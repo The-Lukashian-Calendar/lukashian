@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+ * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -82,7 +82,7 @@ public final class Formatter {
 		/**
 		 * Format the day only, for example: '43'.
 		 */
-		DAY_ONLY;
+		DAY_ONLY
 	}
 
 	/**
@@ -101,10 +101,10 @@ public final class Formatter {
 			return Integer.toString(day.getEpochDay());
 
 		} else if (format == DayFormat.YEAR_FIRST) {
-			return format(day.getYear()) + separator + Integer.toString(day.getDay());
+			return format(day.getYear()) + separator + day.getDay();
 
 		} else if (format == DayFormat.DAY_FIRST) {
-			return Integer.toString(day.getDay()) + separator + format(day.getYear());
+			return day.getDay() + separator + format(day.getYear());
 
 		} else if (format == DayFormat.DAY_ONLY) {
 			return Integer.toString(day.getDay());

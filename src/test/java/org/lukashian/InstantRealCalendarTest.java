@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+ * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,24 +50,24 @@
  */
 package org.lukashian;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for the {@link Instant} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the @{@link TestMillisecondStoreDataProvider}.
  */
 public class InstantRealCalendarTest {
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws NoSuchFieldException, IllegalAccessException {
 		//Running with the actual calendar, in order to not have millisecond rounding issues, due to the low number of milliseconds per day in the TestMillisecondStoreDataProvider
 		Field provider = MillisecondStore.class.getDeclaredField("provider");
@@ -77,7 +77,7 @@ public class InstantRealCalendarTest {
 		store.reload();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() throws NoSuchFieldException, IllegalAccessException {
 		//Running with the test calendar, in order to have exact predictability
 		Field provider = MillisecondStore.class.getDeclaredField("provider");
@@ -135,38 +135,38 @@ public class InstantRealCalendarTest {
 	}
 
 	@Test
-	public void testDifferenceWithInBeeps() {
-		assertEquals(-24999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(5), 9999)));
-		assertEquals(-20001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(5), 5001)));
-		assertEquals(-20000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(5), 5000)));
-		assertEquals(-19999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(5), 4999)));
-		assertEquals(-15000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(5), 0)));
+	public void testDifferenceInBeepsWith() {
+		assertEquals(-24999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 9999)));
+		assertEquals(-20001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 5001)));
+		assertEquals(-20000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 5000)));
+		assertEquals(-19999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 4999)));
+		assertEquals(-15000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 0)));
 
-		assertEquals(-14999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(4), 9999)));
-		assertEquals(-10001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(4), 5001)));
-		assertEquals(-10000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(4), 5000)));
-		assertEquals(-9999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(4), 4999)));
-		assertEquals(-5000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(4), 0)));
+		assertEquals(-14999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 9999)));
+		assertEquals(-10001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 5001)));
+		assertEquals(-10000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 5000)));
+		assertEquals(-9999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 4999)));
+		assertEquals(-5000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 0)));
 
-		assertEquals(-4999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 9999)));
-		assertEquals(-1000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 6000)));
-		assertEquals(-1, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 5001)));
-		assertEquals(0, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 5000)));
-		assertEquals(1, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 4999)));
-		assertEquals(1000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 4000)));
-		assertEquals(4999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 1)));
-		assertEquals(5000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(3), 0)));
+		assertEquals(-4999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 9999)));
+		assertEquals(-1000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 6000)));
+		assertEquals(-1, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 5001)));
+		assertEquals(0, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 5000)));
+		assertEquals(1, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 4999)));
+		assertEquals(1000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 4000)));
+		assertEquals(4999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 1)));
+		assertEquals(5000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 0)));
 
-		assertEquals(5001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(2), 9999)));
-		assertEquals(9999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(2), 5001)));
-		assertEquals(10000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(2), 5000)));
-		assertEquals(10001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(2), 4999)));
-		assertEquals(15000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(2), 0)));
+		assertEquals(5001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 9999)));
+		assertEquals(9999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 5001)));
+		assertEquals(10000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 5000)));
+		assertEquals(10001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 4999)));
+		assertEquals(15000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 0)));
 
-		assertEquals(15001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(1), 9999)));
-		assertEquals(19999, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(1), 5001)));
-		assertEquals(20000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(1), 5000)));
-		assertEquals(20001, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(1), 4999)));
-		assertEquals(25000, Instant.of(Day.of(3), 5000).differenceWithInBeeps(Instant.of(Day.of(1), 0)));
+		assertEquals(15001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 9999)));
+		assertEquals(19999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 5001)));
+		assertEquals(20000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 5000)));
+		assertEquals(20001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 4999)));
+		assertEquals(25000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 0)));
 	}
 }

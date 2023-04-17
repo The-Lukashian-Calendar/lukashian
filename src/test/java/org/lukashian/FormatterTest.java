@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+ * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,12 +50,12 @@
  */
 package org.lukashian;
 
-import static org.junit.Assert.assertEquals;
-
 import java.math.BigDecimal;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.lukashian.Formatter.DayFormat;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the {@link Formatter} class.
@@ -72,8 +72,8 @@ public class FormatterTest {
 		assertEquals("3 0.330000000000", Formatter.format(Instant.of(1900), DayFormat.DAY_ONLY, "/", BigDecimal::toString));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testFormat_NoDayFormat() {
-		Formatter.format(Day.of(1), null);
+		assertThrows(IllegalStateException.class, () -> Formatter.format(Day.of(1), null));
 	}
 }

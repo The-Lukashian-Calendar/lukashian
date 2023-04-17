@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+ * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,18 +50,12 @@
  */
 package org.lukashian;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.lukashian.LukashianAssert.assertDay;
-import static org.lukashian.LukashianAssert.assertInstant;
-import static org.lukashian.LukashianAssert.assertLukashianException;
-import static org.lukashian.LukashianAssert.assertYear;
-
 import java.math.BigDecimal;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.lukashian.LukashianAssert.*;
 
 /**
  * Unit tests for the {@link Day} class.

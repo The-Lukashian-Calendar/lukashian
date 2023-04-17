@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
-    Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+    Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
     All rights reserved.
 
     The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -62,7 +62,7 @@
 	<!-- Main system data -->
 	<groupId>org.lukashian</groupId>
 	<artifactId>lukashian</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<packaging>jar</packaging>
 
 
@@ -116,7 +116,12 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.10.1</version>
+					<version>3.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.0.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -126,7 +131,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.3.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -136,7 +141,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.4.1</version>
+					<version>3.5.0</version>
 					<configuration>
 						<additionalJOptions>
 							<additionalJOption>-html5</additionalJOption>
@@ -147,7 +152,7 @@
 				<plugin>
 					<groupId>com.mycila</groupId>
 					<artifactId>license-maven-plugin</artifactId>
-					<version>4.1</version>
+					<version>4.2</version>
 					<configuration>
 						<header>license-header.txt</header>
 						<strictCheck>true</strictCheck>
@@ -156,7 +161,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.8</version>
+					<version>0.8.9</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -166,7 +171,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-assembly-plugin</artifactId>
-					<version>3.4.2</version>
+					<version>3.5.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -216,9 +221,9 @@
 	<!-- Dependencies -->
 	<dependencies>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.9.2</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

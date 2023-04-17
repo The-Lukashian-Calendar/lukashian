@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years), GJ Schouten
+ * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -431,7 +431,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * <p>
 	 * If the exact difference between 2 {@link Instant}s is needed, please use {@link #differenceWith(Instant)}.
 	 */
-	public int differenceWithInBeeps(Instant other) {
+	public int differenceInBeepsWith(Instant other) {
 		//Calculate the difference of the proportions, to keep as much information as possible
 		BigDecimal proportionDifference = this.getProportionOfDay().subtract(other.getProportionOfDay());
 
