@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -70,7 +70,7 @@ public class LukashianAssert {
 	}
 
 	public static void assertYear(int expectedYear, Year actual) {
-		assertEquals(expectedYear, actual.getYear());
+		assertEquals(expectedYear, actual.getYearNumber());
 	}
 
 	public static void assertDay(int expectedEpochDay, Day actual) {

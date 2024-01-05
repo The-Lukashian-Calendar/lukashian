@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,11 +50,11 @@
  */
 package org.lukashian;
 
-import static org.lukashian.store.MillisecondStore.store;
+import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 
 import java.io.Serializable;
 
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
+import static org.lukashian.store.MillisecondStore.store;
 
 /**
  * Represents a year in the Lukashian Calendar Mechanism. For the meaning of a year in the standard implementation of the Lukashian Calendar, see
@@ -67,7 +67,7 @@ import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
  * By definition, the exact point at which a year starts belongs to that year, not to the previous year, which ends at that point. So, a year
  * runs from its start (inclusive) to its end (exclusive).
  * <p>
- * In the Lukashian Calendar, the length of a year in milliseconds is not fixed. Instead, it accurately represents the actual length of a particular year in
+ * In the Lukashian Calendar, the length of a year in milliseconds is not constant. Instead, it accurately represents the actual length of a particular year in
  * astronomical terms. Due to astronomical and planetary developments, this duration is not constant. Since the same is true for days (a day accurately represents
  * the actual length of a particular day in astronomical terms), a day is not necessarily contained in a single year. In fact, it is very unlikely that the turn
  * of a year coincides with the turn of a day. Therefore, a day is defined to be part of the year in which it started.
@@ -170,42 +170,42 @@ public final class Year implements Comparable<Year>, Serializable {
 	}
 
 	/**
-	 * Returns whether this year is before the given {@link Year}, not null.
+	 * Returns whether this year is before the given non-null {@link Year}.
 	 */
 	public boolean isBefore(Year other) {
 		return year < other.year;
 	}
 
 	/**
-	 * Returns whether this year is the same or before the given {@link Year}, not null.
+	 * Returns whether this year is the same or before the given non-null {@link Year}.
 	 */
 	public boolean isSameOrBefore(Year other) {
 		return year <= other.year;
 	}
 
 	/**
-	 * Returns whether this year is after the given {@link Year}, not null.
+	 * Returns whether this year is after the given non-null {@link Year}.
 	 */
 	public boolean isAfter(Year other) {
 		return year > other.year;
 	}
 
 	/**
-	 * Returns whether this year is the same or after the given {@link Year}, not null.
+	 * Returns whether this year is the same or after the given non-null {@link Year}.
 	 */
 	public boolean isSameOrAfter(Year other) {
 		return year >= other.year;
 	}
 
 	/**
-	 * Returns whether the given {@link Day}, not null, is part of this year. A {@link Day} is part of a year if it started in that year.
+	 * Returns whether the given non-null {@link Day}, is part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean contains(Day day) {
 		return this.equals(day.getYear());
 	}
 
 	/**
-	 * Returns whether the given {@link Instant}, not null, is inside this year.
+	 * Returns whether the given non-null {@link Instant}, is inside this year.
 	 * <p>
 	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the time component of the {@link Instant} may still
 	 * cause the {@link Instant} to not be part of this year, returning false.
@@ -227,13 +227,13 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Gets the number of days in this year.
 	 */
 	public int getNumberOfDays() {
-		return this.lastDay().getDay();
+		return this.lastDay().getDayNumber();
 	}
 
 	/**
-	 * Returns the integer value of this {@link Year}.
+	 * Returns the integer value of this {@link Year}, i.e. which year this is.
 	 */
-	public int getYear() {
+	public int getYearNumber() {
 		return year;
 	}
 
@@ -259,9 +259,9 @@ public final class Year implements Comparable<Year>, Serializable {
 	}
 
 	/**
-	 * Returns the difference of the numerical year values of this year and the given {@link Year}. Therefore, if this year has a higher numerical year value
-	 * than the other year, the result will be a positive number. If this year has a lower numerical year value than the other year, the result will be a
-	 * negative number. If they represent the same year, the result will be 0.
+	 * Returns the difference of the numerical year values of this year and the given non-null {@link Year}. Therefore, if this year has a higher numerical
+	 * year value than the other year, the result will be a positive number. If this year has a lower numerical year value than the other year, the result
+	 * will be a negative number. If they represent the same year, the result will be 0.
 	 */
 	public int differenceWith(Year other) {
 		return Math.subtractExact(year, other.year);

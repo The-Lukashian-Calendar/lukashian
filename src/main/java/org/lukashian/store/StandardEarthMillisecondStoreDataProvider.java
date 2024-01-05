@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,16 +50,10 @@
  */
 package org.lukashian.store;
 
-import static java.lang.Math.atan;
-import static java.lang.Math.cos;
-import static java.lang.Math.round;
-import static java.lang.Math.sin;
-import static java.lang.Math.tan;
-import static java.lang.Math.toDegrees;
-import static java.lang.Math.toRadians;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static java.lang.Math.*;
 
 /**
  * An implementation of the {@link MillisecondStoreDataProvider} that implements the Lukashian Calendar Mechanism, resulting in a Lukashian Calendar:
@@ -69,7 +63,7 @@ import java.util.Arrays;
  * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a> to
  * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a></li>
  * 	<li>For <a href="https://en.wikipedia.org/wiki/Solar_time">True (or apparent) Solar Earth Days (not Mean Solar Earth Days)</a></li>
- * 	<li>With the year number is approximately 3900 higher than the Gregorian Calendar</li>
+ * 	<li>With the year number approximately 3900 higher than the Gregorian Calendar</li>
  * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
  * </ul>
  *
@@ -92,10 +86,12 @@ import java.util.Arrays;
  * In other words: when does the Lukashian Calendar start?
  * <p>
  * Since the very first day starts at the same instant as the very first year, the southern solstice that is chosen as the start of the calendar also
- * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. Therefore, the southern solstice that was chosen
- * to be the Lukashian Epoch is the one that would make the current year number approximately 3900 higher than the current year in the Gregorian Calendar.
- * Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice. This southern solstice was chosen for
- * the following reasons:
+ * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. The turn of every single day happens at the position
+ * of the planet at the start of the calendar.
+ * <p>
+ * The southern solstice that was chosen to be the Lukashian Epoch is the one with the current year approximately 3900 higher than the current year in the
+ * Gregorian Calendar. Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice. This southern solstice
+ * was chosen for the following reasons:
  *
  * <ul>
  * 	<li>All of human history for which there exists a known, accurate time can be expressed in the Lukashian Calendar (see

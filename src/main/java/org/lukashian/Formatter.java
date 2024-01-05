@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -89,25 +89,25 @@ public final class Formatter {
 	 * Formats the given year by simply returning the year as a {@link String}.
 	 */
 	public static String format(Year year) {
-		return Integer.toString(year.getYear());
+		return Integer.toString(year.getYearNumber());
 	}
 
 	/**
 	 * Formats the given {@link Day} according to the given {@link DayFormat}, using the given separator between the day and the year. If
-	 * {@link DayFormat#EPOCH} is chosen, then the separator is not used.
+	 * {@link DayFormat#EPOCH} or {@link DayFormat#DAY_ONLY} is chosen, then the separator is not used.
 	 */
 	public static String format(Day day, DayFormat format, String separator) {
 		if (format == DayFormat.EPOCH) {
 			return Integer.toString(day.getEpochDay());
 
 		} else if (format == DayFormat.YEAR_FIRST) {
-			return format(day.getYear()) + separator + day.getDay();
+			return format(day.getYear()) + separator + day.getDayNumber();
 
 		} else if (format == DayFormat.DAY_FIRST) {
-			return day.getDay() + separator + format(day.getYear());
+			return day.getDayNumber() + separator + format(day.getYear());
 
 		} else if (format == DayFormat.DAY_ONLY) {
-			return Integer.toString(day.getDay());
+			return Integer.toString(day.getDayNumber());
 
 		} else {
 			throw new IllegalStateException();
@@ -115,8 +115,8 @@ public final class Formatter {
 	}
 
 	/**
-	 * Formats the given {@link Day}, according to the given {@link DayFormat}, with '-' as a separator. If {@link DayFormat#EPOCH} is chosen, then the
-	 * separator is not used.
+	 * Formats the given {@link Day}, according to the given {@link DayFormat}, with '-' as a separator.
+	 * If {@link DayFormat#EPOCH} or {@link DayFormat#DAY_ONLY} is chosen, then the separator is not used.
 	 */
 	public static String format(Day day, DayFormat format) {
 		return format(day, format, "-");

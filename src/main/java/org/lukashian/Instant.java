@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -147,7 +147,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant minus the given amount of milliseconds. This might result in an {@link Instant} that is in a
-	 * different year.
+	 * different day or year.
 	 * <p>
 	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
 	 * rounding will lead to the same beep.
@@ -292,42 +292,42 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Returns whether this instant is before the given {@link Instant}, not null.
+	 * Returns whether this instant is before the given non-null {@link Instant}.
 	 */
 	public boolean isBefore(Instant other) {
 		return epochMilliseconds < other.epochMilliseconds;
 	}
 
 	/**
-	 * Returns whether this instant is the same or before the given {@link Instant}, not null.
+	 * Returns whether this instant is the same or before the given non-null {@link Instant}.
 	 */
 	public boolean isSameOrBefore(Instant other) {
 		return epochMilliseconds <= other.epochMilliseconds;
 	}
 
 	/**
-	 * Returns whether this instant is after the given {@link Instant}, not null.
+	 * Returns whether this instant is after the given non-null {@link Instant}.
 	 */
 	public boolean isAfter(Instant other) {
 		return epochMilliseconds > other.epochMilliseconds;
 	}
 
 	/**
-	 * Returns whether this instant is the same or after the given {@link Instant}, not null.
+	 * Returns whether this instant is the same or after the given non-null {@link Instant}.
 	 */
 	public boolean isSameOrAfter(Instant other) {
 		return epochMilliseconds >= other.epochMilliseconds;
 	}
 
 	/**
-	 * Returns whether this instant is in the given {@link Year}.
+	 * Returns whether this instant is in the given non-null {@link Year}.
 	 */
 	public boolean isIn(Year year) {
 		return year.contains(this);
 	}
 
 	/**
-	 * Returns whether this instant is in the given {@link Day}.
+	 * Returns whether this instant is in the given non-null {@link Day}.
 	 */
 	public boolean isIn(Day day) {
 		return day.contains(this);
@@ -409,7 +409,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Returns the amount of milliseconds between this instant and the given {@link Instant}, directionally. Therefore, if this instant is after the other
+	 * Returns the amount of milliseconds between this instant and the given non-null {@link Instant}, directionally. Therefore, if this instant is after the other
 	 * instant, the result will be a positive number. If this instant is before the other instant, the result will be a negative number. If they represent the
 	 * same {@link Instant} on the timeline, the result will be 0.
 	 */
@@ -418,7 +418,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Returns the amount of beeps between this instant and the given {@link Instant}, directionally. Therefore, if this instant is after the other
+	 * Returns the amount of beeps between this instant and the given non-null {@link Instant}, directionally. Therefore, if this instant is after the other
 	 * instant, the result will be a positive number. If this instant is before the other instant, the result will be a negative number. If they represent the
 	 * same {@link Instant} on the timeline, the result will be 0.
 	 * <p>

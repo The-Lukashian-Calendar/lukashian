@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -60,10 +60,10 @@ import org.lukashian.Year;
  * {@link MillisecondStoreDataProvider} has to provide the following data:
  *
  * <ul>
- * 	<li>The number of epoch milliseconds for each year in an array where the index is the year and the value is the number of
+ * 	<li>The number of epoch milliseconds for each year in an array where the index + 1 is the year and the value is the number of
  * 		epoch milliseconds for that year, i.e. how many milliseconds have passed from the beginning of the calendar up until the final
  * 		point of that year.</li>
- * 	<li>The number of epoch milliseconds for each day in an array where the index is the day and the value is the number of
+ * 	<li>The number of epoch milliseconds for each day in an array where the index + 1 is the epoch day and the value is the number of
  * 		epoch milliseconds for that day, i.e. how many milliseconds have passed from the beginning of the calendar up until the final
  * 		point of that day. This does not take into account the year that each day is in, it simply lists all days in the calendar
  * 		(epoch days).</li>
@@ -82,11 +82,11 @@ import org.lukashian.Year;
  * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a> to
  * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a></li>
  * 	<li>For <a href="https://en.wikipedia.org/wiki/Solar_time">True Solar Earth Days</a></li>
- * 	<li>With the year number is approximately 3900 higher than the Gregorian Calendar</li>
+ * 	<li>With the year number approximately 3900 higher than the Gregorian Calendar</li>
  * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
  * </ul>
  *
- * It is, however, perfectly possibly to create a {@link MillisecondStoreDataProvider} that loads the data for Astronomical Mars years,
+ * It is also, for example, perfectly possibly to create a {@link MillisecondStoreDataProvider} that loads the data for Astronomical Mars years,
  * Astronomical Mars days, starting 10000 Mars years in the past and measured according to Barycentric Coordinate Time. Alternative
  * implementations of the {@link MillisecondStoreDataProvider} can be provided using the Java Server Provider Interface mechanism. Simply
  * put a file named "org.lukashian.store.MillisecondStoreDataProvider" in META-INF/services/ on the classpath and put the fully qualified

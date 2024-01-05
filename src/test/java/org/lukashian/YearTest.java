@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -290,8 +290,8 @@ public class YearTest {
 	}
 
 	@Test
-	public void testGetYear() {
-		assertEquals(2, Year.of(2).getYear());
+	public void testGetYearNumber() {
+		assertEquals(2, Year.of(2).getYearNumber());
 	}
 
 	@Test

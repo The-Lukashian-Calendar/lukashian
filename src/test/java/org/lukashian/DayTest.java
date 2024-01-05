@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,9 +50,9 @@
  */
 package org.lukashian;
 
-import java.math.BigDecimal;
-
 import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
@@ -350,55 +350,55 @@ public class DayTest {
 	}
 
 	@Test
-	public void testGetDay() {
+	public void testGetDayNumber() {
 		assertLukashianException(()-> Day.of(null, 1));
 		assertLukashianException(() -> Day.of(1, 0));
-		assertEquals(1, Day.of(1, 1).getDay());
-		assertEquals(2, Day.of(1, 2).getDay());
-		assertEquals(3, Day.of(1, 3).getDay());
-		assertEquals(4, Day.of(1, 4).getDay());
+		assertEquals(1, Day.of(1, 1).getDayNumber());
+		assertEquals(2, Day.of(1, 2).getDayNumber());
+		assertEquals(3, Day.of(1, 3).getDayNumber());
+		assertEquals(4, Day.of(1, 4).getDayNumber());
 		assertLukashianException(() -> Day.of(1, 5));
-		assertEquals(1, Day.of(2, 1).getDay());
-		assertEquals(2, Day.of(2, 2).getDay());
-		assertEquals(3, Day.of(2, 3).getDay());
+		assertEquals(1, Day.of(2, 1).getDayNumber());
+		assertEquals(2, Day.of(2, 2).getDayNumber());
+		assertEquals(3, Day.of(2, 3).getDayNumber());
 		assertLukashianException(() -> Day.of(2, 4));
-		assertEquals(1, Day.of(3, 1).getDay());
-		assertEquals(2, Day.of(3, 2).getDay());
-		assertEquals(3, Day.of(3, 3).getDay());
+		assertEquals(1, Day.of(3, 1).getDayNumber());
+		assertEquals(2, Day.of(3, 2).getDayNumber());
+		assertEquals(3, Day.of(3, 3).getDayNumber());
 		assertLukashianException(() -> Day.of(3, 4));
-		assertEquals(1, Day.of(4, 1).getDay());
-		assertEquals(2, Day.of(4, 2).getDay());
-		assertEquals(3, Day.of(4, 3).getDay());
-		assertEquals(4, Day.of(4, 4).getDay());
+		assertEquals(1, Day.of(4, 1).getDayNumber());
+		assertEquals(2, Day.of(4, 2).getDayNumber());
+		assertEquals(3, Day.of(4, 3).getDayNumber());
+		assertEquals(4, Day.of(4, 4).getDayNumber());
 		assertLukashianException(() -> Day.of(4, 5));
-		assertEquals(1, Day.of(5, 1).getDay());
+		assertEquals(1, Day.of(5, 1).getDayNumber());
 		assertLukashianException(() -> Day.of(5, 2));
-		assertEquals(1, Day.of(6, 1).getDay());
-		assertEquals(2, Day.of(6, 2).getDay());
+		assertEquals(1, Day.of(6, 1).getDayNumber());
+		assertEquals(2, Day.of(6, 2).getDayNumber());
 		assertLukashianException(() -> Day.of(6, 3));
-		assertEquals(1, Day.of(7, 1).getDay());
+		assertEquals(1, Day.of(7, 1).getDayNumber());
 		assertLukashianException(() -> Day.of(7, 2));
 		assertLukashianException(() -> Day.of(8, 1));
 
 		assertLukashianException(()-> Day.of(0));
-		assertEquals(1, Day.of(1).getDay());
-		assertEquals(2, Day.of(2).getDay());
-		assertEquals(3, Day.of(3).getDay());
-		assertEquals(4, Day.of(4).getDay());
-		assertEquals(1, Day.of(5).getDay());
-		assertEquals(2, Day.of(6).getDay());
-		assertEquals(3, Day.of(7).getDay());
-		assertEquals(1, Day.of(8).getDay());
-		assertEquals(2, Day.of(9).getDay());
-		assertEquals(3, Day.of(10).getDay());
-		assertEquals(1, Day.of(11).getDay());
-		assertEquals(2, Day.of(12).getDay());
-		assertEquals(3, Day.of(13).getDay());
-		assertEquals(4, Day.of(14).getDay());
-		assertEquals(1, Day.of(15).getDay());
-		assertEquals(1, Day.of(16).getDay());
-		assertEquals(2, Day.of(17).getDay());
-		assertEquals(1, Day.of(18).getDay());
+		assertEquals(1, Day.of(1).getDayNumber());
+		assertEquals(2, Day.of(2).getDayNumber());
+		assertEquals(3, Day.of(3).getDayNumber());
+		assertEquals(4, Day.of(4).getDayNumber());
+		assertEquals(1, Day.of(5).getDayNumber());
+		assertEquals(2, Day.of(6).getDayNumber());
+		assertEquals(3, Day.of(7).getDayNumber());
+		assertEquals(1, Day.of(8).getDayNumber());
+		assertEquals(2, Day.of(9).getDayNumber());
+		assertEquals(3, Day.of(10).getDayNumber());
+		assertEquals(1, Day.of(11).getDayNumber());
+		assertEquals(2, Day.of(12).getDayNumber());
+		assertEquals(3, Day.of(13).getDayNumber());
+		assertEquals(4, Day.of(14).getDayNumber());
+		assertEquals(1, Day.of(15).getDayNumber());
+		assertEquals(1, Day.of(16).getDayNumber());
+		assertEquals(2, Day.of(17).getDayNumber());
+		assertEquals(1, Day.of(18).getDayNumber());
 		assertLukashianException(()-> Day.of(19));
 	}
 

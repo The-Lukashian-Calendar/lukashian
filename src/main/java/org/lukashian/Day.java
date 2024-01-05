@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023 (5918-5923 in Lukashian years)
+ * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,12 +50,12 @@
  */
 package org.lukashian;
 
-import static org.lukashian.store.MillisecondStore.store;
+import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
+import static org.lukashian.store.MillisecondStore.store;
 
 /**
  * Represents a day in the Lukashian Calendar Mechanism. For the meaning of a day in the standard implementation of the Lukashian Calendar, see
@@ -66,13 +66,13 @@ import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
  * By definition, the exact point at which a day starts belongs to that day, not to the previous day, which ends at that point. So, a day
  * runs from its start (inclusive) to its end (exclusive).
  * <p>
- * In the Lukashian Calendar, the length of a day in milliseconds is not fixed. Instead, it accurately represents the actual length of a particular day in
+ * In the Lukashian Calendar, the length of a day in milliseconds is not constant. Instead, it accurately represents the actual length of a particular day in
  * astronomical terms. Due to astronomical and planetary developments, this duration is not constant. Since the same is true for years (a year accurately
  * represents the actual length of a particular year in astronomical terms), a day is not necessarily contained in a single year. In fact, it is very unlikely
  * that the turn of a year coincides with the turn of a day. Therefore, a day is defined to be part of the year in which it started.
  * <p>
- * The very first day of the calendar starts at the same point as the very first year. This means that the turn of a day happens at the time of day that was
- * current at the start of the calendar.
+ * The very first day of the calendar starts at the same point as the very first year. This means that the turn of every single day happens at the position
+ * of the planet at the start of the calendar.
  * <p>
  * {@link Day} is an immutable object. New instances are always created when calling one of the mutation methods.
  * <p>
@@ -171,42 +171,42 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
-	 * Returns whether this day is before the given {@link Day}, not null.
+	 * Returns whether this day is before the given non-null {@link Day}.
 	 */
 	public boolean isBefore(Day other) {
 		return epochDay < other.epochDay;
 	}
 
 	/**
-	 * Returns whether this day is the same or before the given {@link Day}, not null.
+	 * Returns whether this day is the same or before the given non-null {@link Day}.
 	 */
 	public boolean isSameOrBefore(Day other) {
 		return epochDay <= other.epochDay;
 	}
 
 	/**
-	 * Returns whether this day is after the given {@link Day}, not null.
+	 * Returns whether this day is after the given non-null {@link Day}.
 	 */
 	public boolean isAfter(Day other) {
 		return epochDay > other.epochDay;
 	}
 
 	/**
-	 * Returns whether this day is the same or after the given {@link Day}, not null.
+	 * Returns whether this day is the same or after the given non-null {@link Day}.
 	 */
 	public boolean isSameOrAfter(Day other) {
 		return epochDay >= other.epochDay;
 	}
 
 	/**
-	 * Returns whether the given {@link Instant}, not null, is inside this day.
+	 * Returns whether the given non-null {@link Instant}, is inside this day.
 	 */
 	public boolean contains(Instant instant) {
 		return this.equals(instant.getDay());
 	}
 
 	/**
-	 * Returns whether this day is in the given {@link Year}, not null.
+	 * Returns whether this day is in the given non-null {@link Year}.
 	 */
 	public boolean isIn(Year year) {
 		return year.contains(this);
@@ -221,8 +221,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
-	 * Returns which day this is since the start of the Lukashian Calendar, regardless of the year. This value starts at 1, like years and days within years, 1
-	 * being the very first day since the start of the calendar.
+	 * Returns which day this is since the start of the Lukashian Calendar, regardless of the year. This value starts at 1, consistent with years and days within years.
+	 * Epoch day 1 is the very first day of the calendar.
 	 */
 	public int getEpochDay() {
 		return epochDay;
@@ -243,7 +243,7 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
-	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the first point of this day or 1 if this is the very first day.
+	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the first point of this day or 1 if this is the very first day of the calendar.
 	 */
 	public long getEpochMillisecondsAtStartOfDay() {
 		return epochMillisecondsPreviousDay + 1;
@@ -257,23 +257,24 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
-	 * Returns the year that this {@link Day} ends in. This is not necessarily the same year in which this day starts.
+	 * Returns the year that this {@link Day} ends in. This is not necessarily the same year as the one in which this day starts.
 	 */
 	public Year getEndYear() {
 		return Year.of(store().getYearForEpochMilliseconds(this.getEpochMilliseconds()));
 	}
 
 	/**
-	 * Returns the integer value of this {@link Day}.
+	 * Returns the integer value of this {@link Day}, i.e. which day of the year this is.
 	 */
-	public int getDay() {
+	public int getDayNumber() {
 		int firstEpochDayOfYear = getFirstDayOfYearInEpochForm(this.getYear());
 		return (epochDay - firstEpochDayOfYear) + 1;
 	}
 
 	/**
-	 * Returns the amount of days between this day and the given {@link Day}, directionally. Therefore, if this day is after the other day, the result will be a
-	 * positive number. If this day is before the other day, the result will be a negative number. If they represent the same day, the result will be 0.
+	 * Returns the amount of days between this day and the given non-null {@link Day}, directionally. Therefore, if this day is after the other day,
+	 * the result will be a positive number. If this day is before the other day, the result will be a negative number. If they represent the same day,
+	 * the result will be 0.
 	 */
 	public int differenceWith(Day other) {
 		return Math.subtractExact(epochDay, other.epochDay);
@@ -302,7 +303,7 @@ public final class Day implements Comparable<Day>, Serializable {
 			throw new LukashianException(day + " is not a valid day, the minimum is 1");
 		}
 		if (day > year.getNumberOfDays()) {
-			throw new LukashianException(day + " is not a valid day in year " + year.getYear());
+			throw new LukashianException(day + " is not a valid day in year " + year.getYearNumber());
 		}
 		int firstEpochDayOfYear = getFirstDayOfYearInEpochForm(year);
 		return Day.of((firstEpochDayOfYear + day) - 1);
