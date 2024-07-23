@@ -190,9 +190,10 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 			//Calculate Equation of Time and calculate true solar day
 
-			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay
-			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...]
-			//This discrepancy will then propagate through the calculation. I'm not sure if anything can be done about this in the context of the current EOT based calculation of epochMillisOfCurrentTrueSolarDay
+			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay.
+			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].
+			//This discrepancy will then propagate through the calculation. I'm not sure if anything can be done about this in the context of the current EOT based calculation of epochMillisOfCurrentTrueSolarDay.
+			//This issue is expected to disappear when we switch to a more comprehensive EOT based calculation or to a VSOP based calculation.
 
 			long millisSinceSolstice = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentSolstice;
 			long millisSincePerihelion = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentBaryCenterPerihelion;
