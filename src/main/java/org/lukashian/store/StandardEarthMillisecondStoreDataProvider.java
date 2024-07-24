@@ -148,6 +148,11 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//See https://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
 		//See Chapter 38 of "Astronomical Algorithms" by Jean Meeus
 
+		//Calculating the true solar day length is done by using the mean solar day length as a basis and then adjusting each day with the Equation of Time.
+		//When determining the mean solar day length, we take into account lengthening of the days due to tidal forces.
+		//This method of calculation achieves a certain level of stability, because any discrepancy in the equation-of-time-adjustment will only affect
+		//the respective day and will never accumulate throughout the calendar; the next day will have a "fresh" calculation starting from its mean solar day length again.
+
 		//Initialize perihelion array
 		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
 		long[] baryCenterPerihelionEpochMilliseconds = new long[yearEpochMilliseconds.length + 2]; //+2 to make sure that last few days of last year also have a perihelion
@@ -192,7 +197,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay.
 			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].
-			//This discrepancy will then propagate through the calculation. I'm not sure if anything can be done about this in the context of the current EOT based calculation of epochMillisOfCurrentTrueSolarDay.
+			//This discrepancy will then propagate through the calculation. Truncating the decimal part, or setting it to a fixed value (eg. 0.5) makes the hiccup larger and therefore does not provide a solution.
 			//This issue is expected to disappear when we switch to a more comprehensive EOT based calculation or to a VSOP based calculation.
 
 			long millisSinceSolstice = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentSolstice;
@@ -210,6 +215,17 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 			//Subtract eot, rather than add, because if eot is positive, apparent solar time is *ahead* of mean, which means that the *duration* of apparent is *shorter*, not longer
 			long epochMillisOfCurrentTrueSolarDay = epochMillisOfCurrentMeanSolarDay - eotMillis;
+
+			//Use this code if you want to display details of certain days
+//			if (currentDay >= 2162615 && currentDay <= 2162619) {
+//				System.out.println(
+//					"Epoch day: " + currentDay + ", " +
+//					"epochMillisOfCurrentMeanSolarDay: " + epochMillisOfCurrentMeanSolarDay + ", " +
+//					"daysSinceSolstice: " + daysSinceSolstice + ", " +
+//					"daysSincePerihelion: " + daysSincePerihelion + ", " +
+//					"epochMillisOfCurrentTrueSolarDay: " + epochMillisOfCurrentTrueSolarDay
+//				);
+//			}
 
 			//Add to List
 			dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
