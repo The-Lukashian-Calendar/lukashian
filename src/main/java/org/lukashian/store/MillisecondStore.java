@@ -94,6 +94,14 @@ public final class MillisecondStore {
 	}
 
 	/**
+	 * Sets the {@link MillisecondStoreDataProvider} to the given instance and reloads this {@link MillisecondStore}.
+	 */
+	public void setMillisecondStoreDataProvider(MillisecondStoreDataProvider provider) {
+		this.provider = provider;
+		this.reload();
+	}
+
+	/**
 	 * Reloads the durations of the {@link Year}s, {@link Day}s and the offset with the UNIX epoch from the {@link MillisecondStoreDataProvider}.
 	 */
 	public void reload() {

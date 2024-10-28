@@ -50,9 +50,8 @@
  */
 package org.lukashian;
 
+import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
@@ -61,6 +60,23 @@ import static org.lukashian.LukashianAssert.*;
  * Unit tests for the {@link Day} class.
  */
 public class DayTest {
+
+	@Test
+	public void testMinusYears() {
+		Day day = Day.of(4, 4);
+
+		assertLukashianException(() -> day.minusYears(1));
+		assertLukashianException(() -> day.minusYears(4));
+		assertDay(4, day.minusYears(3));
+	}
+
+	@Test
+	public void testPlusYears() {
+		Day day = Day.of(1, 4);
+
+		assertLukashianException(() -> day.plusYears(1));
+		assertDay(14, day.plusYears(3));
+	}
 
 	@Test
 	public void testMinusDays() {
@@ -100,17 +116,17 @@ public class DayTest {
 
 	@Test
 	public void testAtTime() {
-		assertLukashianException(() -> Day.of(1).atTime(BigDecimal.valueOf(-1)));
-		assertLukashianException(() -> Day.of(1).atTime(BigDecimal.valueOf(1)));
-		assertLukashianException(() -> Day.of(1).atTime(BigDecimal.valueOf(2)));
+		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(-1)));
+		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(1)));
+		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(2)));
 
 		assertLukashianException(() -> Day.of(1).atTime(-1));
 		assertLukashianException(() -> Day.of(1).atTime(10000));
 		assertLukashianException(() -> Day.of(1).atTime(20000));
 
-		assertInstant(1, Day.of(1).atTime(BigDecimal.ZERO));
-		assertInstant(151, Day.of(1).atTime(BigDecimal.valueOf(0.5)));
-		assertInstant(300, Day.of(1).atTime(new BigDecimal("0.999999999")));
+		assertInstant(1, Day.of(1).atTime(BigFraction.ZERO));
+		assertInstant(151, Day.of(1).atTime(BigFraction.of(5, 10)));
+		assertInstant(300, Day.of(1).atTime(BigFraction.of(999999999, 1000000000)));
 
 		assertInstant(1, Day.of(1).atTime(0));
 		assertInstant(151, Day.of(1).atTime(5000));
@@ -185,7 +201,22 @@ public class DayTest {
 		assertFalse(Day.of(18).contains(Instant.of(4899)));
 		assertFalse(Day.of(18).contains(Instant.of(4900)));
 		assertTrue(Day.of(18).contains(Instant.of(39000)));
-		assertLukashianException(() -> Day.of(18).contains(Instant.of(39001)));
+	}
+
+	@Test
+	public void testContainsNot() {
+		Day day = Day.of(2);
+
+		assertFalse(day.containsNot(day.firstInstant()));
+		assertFalse(day.containsNot(day.lastInstant()));
+
+		assertFalse(Day.of(1).containsNot(Instant.of(1)));
+		assertFalse(Day.of(1).containsNot(Instant.of(300)));
+		assertTrue(Day.of(1).containsNot(Instant.of(301)));
+
+		assertTrue(Day.of(18).containsNot(Instant.of(4899)));
+		assertTrue(Day.of(18).containsNot(Instant.of(4900)));
+		assertFalse(Day.of(18).containsNot(Instant.of(39000)));
 	}
 
 	@Test
@@ -193,6 +224,13 @@ public class DayTest {
 		assertTrue(Day.of(1).isIn(Year.of(1)));
 		assertTrue(Day.of(4).isIn(Year.of(1)));
 		assertFalse(Day.of(5).isIn(Year.of(1)));
+	}
+
+	@Test
+	public void testIsNotIn() {
+		assertFalse(Day.of(1).isNotIn(Year.of(1)));
+		assertFalse(Day.of(4).isNotIn(Year.of(1)));
+		assertTrue(Day.of(5).isNotIn(Year.of(1)));
 	}
 
 	@Test

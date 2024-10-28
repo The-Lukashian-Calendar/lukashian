@@ -50,8 +50,7 @@
  */
 package org.lukashian;
 
-import java.math.BigDecimal;
-
+import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,6 +60,23 @@ import static org.lukashian.LukashianAssert.*;
  * Unit tests for the {@link Instant} class.
  */
 public class InstantTest {
+
+	@Test
+	public void testMinusYears() {
+		Instant instant = Instant.of(4050);
+
+		assertLukashianException(() -> instant.minusYears(1));
+		assertLukashianException(() -> instant.minusYears(4));
+		assertInstant(1050, instant.minusYears(3));
+	}
+
+	@Test
+	public void testPlusYears() {
+		Instant instant = Instant.of(1050);
+
+		assertLukashianException(() -> instant.plusYears(1));
+		assertInstant(4050, instant.plusYears(3));
+	}
 
 	@Test
 	public void testMinusDays() {
@@ -214,17 +230,32 @@ public class InstantTest {
 	}
 
 	@Test
+	public void testIsNotIn() {
+		assertFalse(Instant.of(1).isNotIn(Year.of(1)));
+		assertFalse(Instant.of(500).isNotIn(Year.of(1)));
+		assertFalse(Instant.of(1000).isNotIn(Year.of(1)));
+		assertTrue(Instant.of(1001).isNotIn(Year.of(1)));
+		assertTrue(Instant.of(1500).isNotIn(Year.of(1)));
+
+		assertFalse(Instant.of(1).isNotIn(Day.of(1)));
+		assertFalse(Instant.of(150).isNotIn(Day.of(1)));
+		assertFalse(Instant.of(300).isNotIn(Day.of(1)));
+		assertTrue(Instant.of(301).isNotIn(Day.of(1)));
+		assertTrue(Instant.of(450).isNotIn(Day.of(1)));
+	}
+
+	@Test
 	public void testGetEpochMilliseconds() {
 		assertEquals(1, Instant.of(1).getEpochMilliseconds());
 		assertEquals(10000, Instant.of(10000).getEpochMilliseconds());
-		assertEquals(50000, Instant.of(50000).getEpochMilliseconds());
+		assertEquals(39000, Instant.of(39000).getEpochMilliseconds());
 	}
 
 	@Test
 	public void testGetMillisecond() {
 		assertEquals(1, Instant.of(1).getMillisecond());
 		assertEquals(10000, Instant.of(10000).getMillisecond());
-		assertEquals(50000, Instant.of(50000).getMillisecond());
+		assertEquals(39000, Instant.of(39000).getMillisecond());
 	}
 
 	@Test
@@ -275,24 +306,23 @@ public class InstantTest {
 
 		assertYear(8, Instant.of(38999).getYear());
 		assertYear(8, Instant.of(39000).getYear());
-		assertYear(8, Instant.of(40000).getYear());
 
-		assertLukashianException(() -> Instant.of(40001).getYear());
+		assertLukashianException(() -> Instant.of(39001).getYear());
 	}
 
 	@Test
 	public void testGetProportionOfDay() {
-		assertEquals(new BigDecimal("0.000000000000"), Instant.of(1).getProportionOfDay());
-		assertEquals(new BigDecimal("0.500000000000"), Instant.of(151).getProportionOfDay());
-		assertEquals(new BigDecimal("0.993333333333"), Instant.of(299).getProportionOfDay());
-		assertEquals(new BigDecimal("0.996666666667"), Instant.of(300).getProportionOfDay());
+		assertEquals(BigFraction.of(0), Instant.of(1).getProportionOfDay());
+		assertEquals(BigFraction.of(5, 10), Instant.of(151).getProportionOfDay());
+		assertEquals(BigFraction.of(149, 150), Instant.of(299).getProportionOfDay());
+		assertEquals(BigFraction.of(299, 300), Instant.of(300).getProportionOfDay());
 
-		assertEquals(new BigDecimal("0.000000000000"), Instant.of(301).getProportionOfDay());
-		assertEquals(new BigDecimal("0.500000000000"), Instant.of(451).getProportionOfDay());
-		assertEquals(new BigDecimal("0.993333333333"), Instant.of(599).getProportionOfDay());
-		assertEquals(new BigDecimal("0.996666666667"), Instant.of(600).getProportionOfDay());
+		assertEquals(BigFraction.of(0), Instant.of(301).getProportionOfDay());
+		assertEquals(BigFraction.of(5, 10), Instant.of(451).getProportionOfDay());
+		assertEquals(BigFraction.of(149, 150), Instant.of(599).getProportionOfDay());
+		assertEquals(BigFraction.of(299, 300), Instant.of(600).getProportionOfDay());
 
-		assertEquals(new BigDecimal("0.000000000000"), Instant.of(601).getProportionOfDay());
+		assertEquals(BigFraction.of(0), Instant.of(601).getProportionOfDay());
 	}
 
 	@Test
@@ -339,21 +369,21 @@ public class InstantTest {
 	@Test
 	public void testOf() {
 		assertLukashianException(() -> Instant.of(0));
-		assertLukashianException(() -> Instant.of(Day.of(2), BigDecimal.valueOf(-1)));
-		assertLukashianException(() -> Instant.of(Day.of(2), BigDecimal.valueOf(1)));
-		assertLukashianException(() -> Instant.of(Day.of(2), BigDecimal.valueOf(2)));
+		assertLukashianException(() -> Instant.of(Day.of(2), BigFraction.of(-1)));
+		assertLukashianException(() -> Instant.of(Day.of(2), BigFraction.of(1)));
+		assertLukashianException(() -> Instant.of(Day.of(2), BigFraction.of(2)));
 
 		assertLukashianException(() -> Instant.of(0));
 		assertLukashianException(() -> Instant.of(Day.of(2), -1));
 		assertLukashianException(() -> Instant.of(Day.of(2), 10000));
 		assertLukashianException(() -> Instant.of(Day.of(2), 20000));
 
-		assertInstant(1, Instant.of(Day.of(1), new BigDecimal("0.00")));
-		assertInstant(4, Instant.of(Day.of(1), new BigDecimal("0.01")));
-		assertInstant(151, Instant.of(Day.of(1), new BigDecimal("0.50")));
-		assertInstant(298, Instant.of(Day.of(1), new BigDecimal("0.99")));
-		assertInstant(300, Instant.of(Day.of(1), new BigDecimal("0.997")));
-		assertInstant(300, Instant.of(Day.of(1), new BigDecimal("0.999999999")));
+		assertInstant(1, Instant.of(Day.of(1), BigFraction.of(0)));
+		assertInstant(4, Instant.of(Day.of(1), BigFraction.of(1, 100)));
+		assertInstant(151, Instant.of(Day.of(1), BigFraction.of(5, 10)));
+		assertInstant(298, Instant.of(Day.of(1), BigFraction.of(99, 100)));
+		assertInstant(300, Instant.of(Day.of(1), BigFraction.of(997, 1000)));
+		assertInstant(300, Instant.of(Day.of(1), BigFraction.of(999999999, 1000000000)));
 
 		assertInstant(1, Instant.of(Day.of(1), 0));
 		assertInstant(4, Instant.of(Day.of(1), 100));
@@ -362,12 +392,12 @@ public class InstantTest {
 		assertInstant(300, Instant.of(Day.of(1), 9970));
 		assertInstant(300, Instant.of(Day.of(1), 9999));
 
-		assertInstant(301, Instant.of(Day.of(2), new BigDecimal("0.00")));
-		assertInstant(304, Instant.of(Day.of(2), new BigDecimal("0.01")));
-		assertInstant(451, Instant.of(Day.of(2), new BigDecimal("0.50")));
-		assertInstant(598, Instant.of(Day.of(2), new BigDecimal("0.99")));
-		assertInstant(600, Instant.of(Day.of(2), new BigDecimal("0.997")));
-		assertInstant(600, Instant.of(Day.of(2), new BigDecimal("0.999999999")));
+		assertInstant(301, Instant.of(Day.of(2), BigFraction.of(0)));
+		assertInstant(304, Instant.of(Day.of(2), BigFraction.of(1, 100)));
+		assertInstant(451, Instant.of(Day.of(2), BigFraction.of(5, 10)));
+		assertInstant(598, Instant.of(Day.of(2), BigFraction.of(99, 100)));
+		assertInstant(600, Instant.of(Day.of(2), BigFraction.of(997, 1000)));
+		assertInstant(600, Instant.of(Day.of(2), BigFraction.of(999999999, 1000000000)));
 
 		assertInstant(301, Instant.of(Day.of(2), 0));
 		assertInstant(304, Instant.of(Day.of(2), 100));
@@ -376,8 +406,8 @@ public class InstantTest {
 		assertInstant(600, Instant.of(Day.of(2), 9970));
 		assertInstant(600, Instant.of(Day.of(2), 9999));
 
-		assertInstant(151, Instant.of(Year.of(1), 1, new BigDecimal("0.50")));
-		assertInstant(151, Instant.of(1, 1, new BigDecimal("0.50")));
+		assertInstant(151, Instant.of(Year.of(1), 1, BigFraction.of(5, 10)));
+		assertInstant(151, Instant.of(1, 1, BigFraction.of(5, 10)));
 
 		assertInstant(151, Instant.of(Year.of(1), 1, 5000));
 		assertInstant(151, Instant.of(1, 1, 5000));

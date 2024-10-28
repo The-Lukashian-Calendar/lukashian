@@ -50,9 +50,7 @@
  */
 package org.lukashian;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-
+import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -67,32 +65,63 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class InstantRealCalendarTest {
 
-  @BeforeAll
-  public static void setUp() throws NoSuchFieldException, IllegalAccessException {
-		//Running with the actual calendar, in order to not have millisecond rounding issues, due to the low number of milliseconds per day in the TestMillisecondStoreDataProvider
-		Field provider = MillisecondStore.class.getDeclaredField("provider");
-		provider.setAccessible(true);
-		MillisecondStore store = MillisecondStore.store();
-		provider.set(store, new StandardEarthMillisecondStoreDataProvider());
-		store.reload();
-  }
+	@BeforeAll
+	public static void setUp() {
+		//Running the tests in this file with the actual calendar
+		MillisecondStore.store().setMillisecondStoreDataProvider(new StandardEarthMillisecondStoreDataProvider());
+	}
 
-  @AfterAll
-  public static void tearDown() throws NoSuchFieldException, IllegalAccessException {
-		//Running with the test calendar, in order to have exact predictability
-		Field provider = MillisecondStore.class.getDeclaredField("provider");
-		provider.setAccessible(true);
-		MillisecondStore store = MillisecondStore.store();
-		provider.set(store, new TestMillisecondStoreDataProvider());
-		store.reload();
-  }
+	@AfterAll
+	public static void tearDown() {
+		//After this test, switch back to the test calendar again
+		MillisecondStore.store().setMillisecondStoreDataProvider(new TestMillisecondStoreDataProvider());
+	}
+
+	@Test
+	public void testInstantEquality() {
+		//For the first thousand milliseconds of the calendar and a bit more
+		for (int i = 1; i <= 100000; i++) {
+			this.testInstantEquality(i);
+		}
+
+		//For the periods overlapping the start and end of this day
+		Day today = Day.now();
+		long start = today.getEpochMillisecondsAtStartOfDay();
+		long end = today.getEpochMilliseconds();
+		for (long i = start - 100000; i <= start + 100000; i++) {
+			this.testInstantEquality(i);
+		}
+		for (long i = end - 100000; i <= end + 100000; i++) {
+			this.testInstantEquality(i);
+		}
+
+		//For the beeps of today
+		for (int i = 0; i < 10000; i++) {
+			Instant instant = today.atTime(i);
+			assertEquals(i, instant.getBeeps());
+		}
+	}
+
+	private void testInstantEquality(long epochMillis) {
+		Instant instant = Instant.of(epochMillis);
+		assertEquals(epochMillis, instant.getEpochMilliseconds());
+
+		Instant copy = Instant.of(instant.getDay(), instant.getProportionOfDay());
+		assertEquals(instant.getEpochMilliseconds(), copy.getEpochMilliseconds());
+		assertEquals(instant.getProportionOfDay(), copy.getProportionOfDay());
+		assertEquals(instant.getBeeps(), copy.getBeeps());
+		assertEquals(instant, copy);
+
+		Instant beepCopy = Instant.of(instant.getDay(), instant.getBeeps());
+		assertEquals(instant.getBeeps(), beepCopy.getBeeps());
+	}
 
 	@Test
 	public void testMinusProportionOfDay() {
 		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(4), 0), realInstant.minusProportionOfDay(new BigDecimal("0.499999999999999999999999999999999999999999999999999999999999999999")));
-		assertEquals(Instant.of(Day.of(3), 5001), realInstant.minusProportionOfDay(new BigDecimal("0.9999")));
-		assertEquals(Instant.of(Day.of(3), 5000), realInstant.minusProportionOfDay(new BigDecimal("0.999999999999999999999999999999999999999999999999999999999999999999")));
+		assertEquals(Instant.of(Day.of(4), 0), realInstant.minusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L)));
+		assertEquals(Instant.of(Day.of(3), 5001), realInstant.minusProportionOfDay(BigFraction.of(9999, 10000)));
+		assertEquals(Instant.of(Day.of(3), 5000), realInstant.minusProportionOfDay(BigFraction.of(999999999999999999L, 1000000000000000000L)));
 	}
 
 	@Test
@@ -114,8 +143,8 @@ public class InstantRealCalendarTest {
 	@Test
 	public void testPlusProportionOfDay() {
 		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(5), 4999), realInstant.plusProportionOfDay(new BigDecimal("0.9999")));
-		//Can't test the 'plus' version of the testcases with many BigDecimals, because overflow into the next beep is prevented and therefore the resulting beep cannot be expressed as a literal
+		assertEquals(Instant.of(Day.of(5), 4999), realInstant.plusProportionOfDay(BigFraction.of(9999, 10000)));
+		//Can't test the 'plus' version of the testcases with many BigDecimals, because overflow into the next beep is prevented and therefore the resulting Instant cannot be expressed with a whole number of beeps
 	}
 
 	@Test

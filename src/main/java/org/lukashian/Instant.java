@@ -50,8 +50,9 @@
  */
 package org.lukashian;
 
+import org.apache.commons.numbers.fraction.BigFraction;
+
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import static org.lukashian.store.MillisecondStore.store;
@@ -60,20 +61,42 @@ import static org.lukashian.store.MillisecondStore.store;
  * Represents a unique millisecond on the timeline. This means that the very first millisecond on the timeline is millisecond 1. This is consistent with the
  * numbering of {@link Day}s and {@link Year}s, that also start at 1.
  * <p>
- * This class is also used to handle the concept of "time of day". In the Lukashian Calendar, the time of day is simply a {@link BigDecimal} that expresses
- * <i>the proportion of all milliseconds of the day that have <b>fully passed</b></i>. This {@link BigDecimal} can then be represented as, for example,
+ * This class is also used to handle the concept of "time of day". In the Lukashian Calendar, the time of day is simply a {@link BigFraction} that expresses
+ * <i>the proportion of the day that has passed</i>. This {@link BigFraction} can then be represented as, for example,
  * <a href="https://en.wikipedia.org/wiki/Basis_point">Basis Points</a>.
  * <p>
- * This means that the time of day is 0 during the first millisecond of the day, since that first millisecond hasn't fully passed yet. This also means that
- * millisecond 1 actually represents the start of the calendar, not one millisecond after the start and that the first millisecond of a {@link Day} or
- * {@link Year} represents the start of that {@link Day} or {@link Year}, not one millisecond after the start.
- * <p>
- * It also means that the proportion can never be 1 (or 10000 beeps), because by then, the next day has already started. After all, a day runs from its start
- * (inclusive), to its end (exclusive).
- * <p>
- * Note that this ONLY applies to the determination of the {@link BigDecimal} that expresses the time of day, it does not apply other parts of the calendar,
- * which are not affected by this matter. For example, when calling {@link Instant#getEpochMilliseconds()}, which returns the number of milliseconds since the
- * start of the calendar, it includes the millisecond of the instant itself.
+ * The fact that an Instant is used to represent a unique millisecond on the timeline, as well as the proportion of the day that has passed, means that we
+ * need to specify how to translate between those two:
+ * <ul>
+ *     <li>
+ *         <b>From a proportion (as {@link BigFraction}) to a specific millisecond:</b>
+ *         The thing to consider here is that a specific proportion (for example 0.12345th of the day), may not actually lead to a whole number of milliseconds
+ *         to have passed on that day. The millisecond that is chosen as the result of the translation is the millisecond that the proportion "points to". The
+ *         best way to visualize this is a wheel of fortune: the arrow is the proportion and the segments on the wheel are the milliseconds. It does not matter
+ *         at which part of a segment the arrow points. If a certain proportion means that, for example, 120.01 milliseconds have passed on a certain day, then
+ *         millisecond 121 of that day is chosen.
+ *         <p>
+ *         If a certain proportion points <i>exactly</i> at a boundary between milliseconds, then the millisecond <i>after</i> the boundary is chosen. For example,
+ *         if a certain proportion means that exactly 120 milliseconds have <i>fully passed</i> (and hence we are at the start of millisecond 121), then millisecond
+ *         121 of that day is chosen.
+ *         <p>
+ *         This effectively means that an Instant represents a specific millisecond <i>including</i> its start, but <i>excluding</i> its end, or in mathematical
+ *         notation: <pre>[m></pre>. This also effectively means that the calendar does have a start, but does not have an end, which is as expected.
+ *     </li>
+ *     <li>
+ *         <b>From a specific millisecond to a proportion (as {@link BigFraction}):</b>
+ *         This is not a problem, because a BigFraction has arbitrary precision, so for a specific millisecond, we can always exactly calculate the proportion of the day
+ *         that has passed. The only questions is: is the millisecond itself considered to have fully passed?
+ *         <p>
+ *         The answer is "no", the millisecond for which we calculate the proportion of the day that has passed, is itself <i>not</i> considered to have fully passed.
+ *         In fact, this millisecond is considered to not have passed at all, meaning that we calculate the proportion of the day from the start of the day until the
+ *         start of this millisecond. This means that the first millisecond of the day results in a proportion of 0 and the final millisecond of the day results in a
+ *         proportion smaller than 1. This corresponds to the fact that a {@link Day} runs from its start (inclusive) to its end (exclusive).
+ *     </li>
+ * </ul>
+ * Internally, an Instant stores the BigFraction that represents the proportion of the day that has passed and <i>not</i> the millisecond that this Instant represents.
+ * This is because the BigFraction can not only be used to represent the millisecond, but also the proportion that was originally chosen to create this Instant.
+ * Storing the millisecond would have meant that we would no longer know which proportion was originally chosen to create an Instant.
  */
 public final class Instant implements Comparable<Instant>, Serializable {
 
@@ -82,19 +105,41 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 */
 	public static final int BEEPS_PER_DAY = 10000;
 
-	/**
-	 * The scale to use for {@link BigDecimal} divide operations. This is high enough to make sure that a {@link BigDecimal} representing a proportion of a day will have a granularity
-	 * that is higher than 0.1 millisecond. Since the Lukashian Calendar has a resolution of a millisecond, this should then never lead to rounding issues.
-	 */
-	private static final int BIGDECIMAL_DIV_SCALE = 12;
+	private Day day;
+	private BigFraction proportionOfDay;
 
-	private long epochMilliseconds;
-
-	private Instant(long epochMilliseconds) {
-		if (epochMilliseconds < 1) {
-			throw new LukashianException(epochMilliseconds + " is not a valid value, the minimum is 1");
+	private Instant(Day day, BigFraction proportionOfDay) {
+		if (proportionOfDay.compareTo(BigFraction.ZERO) < 0 || proportionOfDay.compareTo(BigFraction.ONE) >= 0) {
+			throw new LukashianException("Proportion of day must be between 0 (inclusive) and 1 (exclusive)");
 		}
-		this.epochMilliseconds = epochMilliseconds;
+		this.day = day;
+		this.proportionOfDay = proportionOfDay;
+	}
+
+	/**
+	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day minus the given amount of years, for
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
+	 * resulting day.
+	 * <p>
+	 * To see what the resulting day will be, see {@link Day#minusYears(int)}, which will be applied to this instant's day.
+	 *
+	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar or when the resulting year does not have a day with this instant's day's number
+	 */
+	public Instant minusYears(int yearsToSubtract) {
+		return Instant.of(day.minusYears(yearsToSubtract), proportionOfDay);
+	}
+
+	/**
+	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day plus the given amount of years, for
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
+	 * resulting day.
+	 * <p>
+	 * To see what the resulting day will be, see {@link Day#plusYears(int)}, which will be applied to this instant's day.
+	 *
+	 * @throws LukashianException when the resulting year does not have a day with this instant's day's number
+	 */
+	public Instant plusYears(int yearsToAdd) {
+		return Instant.of(day.plusYears(yearsToAdd), proportionOfDay);
 	}
 
 	/**
@@ -107,7 +152,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
 	public Instant minusDays(int daysToSubtract) {
-		return Instant.of(this.getDay().minusDays(daysToSubtract), this.getProportionOfDay());
+		return Instant.of(day.minusDays(daysToSubtract), proportionOfDay);
 	}
 
 	/**
@@ -118,7 +163,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Calling this method might result in a {@link Instant} that is in a different year.
 	 */
 	public Instant plusDays(int daysToAdd) {
-		return Instant.of(this.getDay().plusDays(daysToAdd), this.getProportionOfDay());
+		return Instant.of(day.plusDays(daysToAdd), proportionOfDay);
 	}
 
 	/**
@@ -149,8 +194,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Returns a new {@link Instant} that represents this instant minus the given amount of milliseconds. This might result in an {@link Instant} that is in a
 	 * different day or year.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
@@ -163,10 +207,9 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant minus the given amount of seconds. This might result in an {@link Instant} that is in a
-	 * different year.
+	 * different day or year.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
@@ -176,10 +219,9 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant plus the given amount of milliseconds. This might result in an {@link Instant} that is in a
-	 * different year.
+	 * different day or year.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 */
 	public Instant plusMilliseconds(long millisecondsToAdd) {
 		if (millisecondsToAdd < 0) { //To not have to deal with negatives
@@ -190,10 +232,9 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant plus the given amount of seconds. This might result in an {@link Instant} that is in a
-	 * different year.
+	 * different day or year.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 */
 	public Instant plusSeconds(long secondsToAdd) {
 		return this.plusMilliseconds(secondsToAdd * 1000);
@@ -201,122 +242,122 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant minus the given proportion of a {@link Day}. This might result in an {@link Instant} that is in a
-	 * different day or year. The value of the passed {@link BigDecimal} will be interpreted in such a way that 1 is a full day. So 0.5 will represent half a day and 2.5 will represent two
+	 * different day or year. The value of the passed {@link BigFraction} will be interpreted in such a way that 1 is a full day. So 0.5 will represent half a day and 2.5 will represent two
 	 * and a half days.
 	 * <p>
-	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are subtracted may not be constant either if subtracting that proportion will
+	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are subtracted may vary if subtracting that proportion will
 	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.2 of the current day and 0.4 is subtracted, this will lead to an {@link Instant} that is
 	 * at 0.8 of the previous day. This means that the first 0.2 day that was subtracted has the duration of 20% of the current day and the last 0.2 day that was subtracted has the duration of 20%
 	 * of the previous day.
 	 * <p>
 	 * The same principle applies if more than 1 day is subtracted.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
-	public Instant minusProportionOfDay(BigDecimal proportionToSubtract) {
-		if (proportionToSubtract.compareTo(BigDecimal.ZERO) < 0) { //To not have to deal with negatives
+	public Instant minusProportionOfDay(BigFraction proportionToSubtract) {
+		if (proportionToSubtract.compareTo(BigFraction.ZERO) < 0) { //To not have to deal with negatives
 			return this.plusProportionOfDay(proportionToSubtract.negate());
 		}
-		BigDecimal totalProportion = this.getProportionOfDay().subtract(proportionToSubtract);
-		int daysToSubtract = totalProportion.divideToIntegralValue(BigDecimal.ONE.negate()).intValue();
-		BigDecimal remainingProportion = totalProportion.remainder(BigDecimal.ONE.negate());
+		BigFraction totalProportion = proportionOfDay.subtract(proportionToSubtract);
+		int daysToSubtract = totalProportion.negate().intValue();
+		BigFraction remainingProportion = totalProportion.add(daysToSubtract);
 
-		if (remainingProportion.compareTo(BigDecimal.ZERO) < 0) {
+		if (remainingProportion.compareTo(BigFraction.ZERO) < 0) {
 			daysToSubtract++; //Add one on top of the amount of whole days
-			remainingProportion = remainingProportion.add(BigDecimal.ONE);
+			remainingProportion = remainingProportion.add(BigFraction.ONE);
 		}
-		return Instant.of(this.getDay().minusDays(daysToSubtract), remainingProportion);
+		return Instant.of(day.minusDays(daysToSubtract), remainingProportion);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant minus the given amount of beeps. This might result in an {@link Instant} that is in a different day or year.
 	 * <p>
-	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are subtracted may not be constant either if
+	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are subtracted may vary if
 	 * subtracting those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and 4000 beeps are subtracted,
 	 * this will lead to an {@link Instant} that is at 8000 beeps of the previous day. This means that the first 2000 beeps that were subtracted have the duration of 2000/10000th of the current day
 	 * and the last 2000 beeps that were subtracted have the duration of 2000/10000th of the previous day.
 	 * <p>
 	 * The same principle applies if more than 1 day's worth of beeps are subtracted.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
 	public Instant minusBeeps(int beepsToSubtract) {
-		return this.minusProportionOfDay(new BigDecimal(beepsToSubtract).divide(new BigDecimal(BEEPS_PER_DAY), BIGDECIMAL_DIV_SCALE, RoundingMode.HALF_UP));
+		return this.minusProportionOfDay(BigFraction.of(beepsToSubtract, BEEPS_PER_DAY));
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant plus the given proportion of a {@link Day}. This might result in an {@link Instant} that is in a
-	 * different day or year. The value of the passed {@link BigDecimal} will be interpreted in such a way that 1 is a full day. So 0.5 will represent half a day and 2.5 will represent two
+	 * different day or year. The value of the passed {@link BigFraction} will be interpreted in such a way that 1 is a full day. So 0.5 will represent half a day and 2.5 will represent two
 	 * and a half days.
 	 * <p>
-	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are added may not be constant either if adding that proportion will
+	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are added may vary if adding that proportion will
 	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.8 of the current day and 0.4 is added, this will lead to an {@link Instant} that is
 	 * at 0.2 of the next day. This means that the first 0.2 day that was added has the duration of 20% of the current day and the last 0.2 day that was added has the duration of 20% of the next day.
 	 * <p>
 	 * The same principle applies if more than 1 day is added.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 */
-	public Instant plusProportionOfDay(BigDecimal proportionToAdd) {
-		if (proportionToAdd.compareTo(BigDecimal.ZERO) < 0) { //To not have to deal with negatives
+	public Instant plusProportionOfDay(BigFraction proportionToAdd) {
+		if (proportionToAdd.compareTo(BigFraction.ZERO) < 0) { //To not have to deal with negatives
 			return this.minusProportionOfDay(proportionToAdd.negate());
 		}
-		BigDecimal totalProportion = this.getProportionOfDay().add(proportionToAdd);
-		int daysToAdd = totalProportion.divideToIntegralValue(BigDecimal.ONE).intValue();
-		BigDecimal remainingProportion = totalProportion.remainder(BigDecimal.ONE);
-		return Instant.of(this.getDay().plusDays(daysToAdd), remainingProportion);
+		BigFraction totalProportion = proportionOfDay.add(proportionToAdd);
+		int daysToAdd = totalProportion.intValue();
+		BigFraction remainingProportion = totalProportion.subtract(daysToAdd);
+		return Instant.of(day.plusDays(daysToAdd), remainingProportion);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents this instant plus the given amount of beeps. This might result in an {@link Instant} that is in a different day or year.
 	 * <p>
-	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are added may not be constant either if
+	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are added may vary if
 	 * adding those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 8000 beeps of the current day and 4000 beeps are added,
 	 * this will lead to an {@link Instant} that is at 2000 beeps of the next day. This means that the first 2000 beeps that were added have the duration of 2000/10000th of the current day
 	 * and the last 2000 beeps that were added have the duration of 2000/10000th of the next day.
 	 * <p>
 	 * The same principle applies if more than 1 day's worth of beeps are added.
 	 * <p>
-	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep and
-	 * rounding will lead to the same beep.
+	 * Please note that if the resulting {@link Instant} is formatted with the default options in {@link Formatter}, it may look the same as the original if the change is less than 1 beep.
 	 */
 	public Instant plusBeeps(int beepsToAdd) {
-		return this.plusProportionOfDay(new BigDecimal(beepsToAdd).divide(new BigDecimal(BEEPS_PER_DAY), BIGDECIMAL_DIV_SCALE, RoundingMode.HALF_UP));
+		return this.plusProportionOfDay(BigFraction.of(beepsToAdd, BEEPS_PER_DAY));
 	}
 
 	/**
-	 * Returns whether this instant is before the given non-null {@link Instant}.
+	 * Returns whether this instant is before the given non-null {@link Instant}. This will compare the unique milliseconds on the timeline that the Instants represent. It will not compare
+	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isBefore(Instant other) {
-		return epochMilliseconds < other.epochMilliseconds;
+		return this.getEpochMilliseconds() < other.getEpochMilliseconds();
 	}
 
 	/**
-	 * Returns whether this instant is the same or before the given non-null {@link Instant}.
+	 * Returns whether this instant is the same or before the given non-null {@link Instant}. This will compare the unique milliseconds on the timeline that the Instants represent. It will not compare
+	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isSameOrBefore(Instant other) {
-		return epochMilliseconds <= other.epochMilliseconds;
+		return this.getEpochMilliseconds() <= other.getEpochMilliseconds();
 	}
 
 	/**
-	 * Returns whether this instant is after the given non-null {@link Instant}.
+	 * Returns whether this instant is after the given non-null {@link Instant}. This will compare the unique milliseconds on the timeline that the Instants represent. It will not compare
+	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isAfter(Instant other) {
-		return epochMilliseconds > other.epochMilliseconds;
+		return this.getEpochMilliseconds() > other.getEpochMilliseconds();
 	}
 
 	/**
-	 * Returns whether this instant is the same or after the given non-null {@link Instant}.
+	 * Returns whether this instant is the same or after the given non-null {@link Instant}. This will compare the unique milliseconds on the timeline that the Instants represent. It will not compare
+	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isSameOrAfter(Instant other) {
-		return epochMilliseconds >= other.epochMilliseconds;
+		return this.getEpochMilliseconds() >= other.getEpochMilliseconds();
 	}
 
 	/**
@@ -327,6 +368,13 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
+	 * Returns whether this instant is not in the given non-null {@link Year}.
+	 */
+	public boolean isNotIn(Year year) {
+		return year.containsNot(this);
+	}
+
+	/**
 	 * Returns whether this instant is in the given non-null {@link Day}.
 	 */
 	public boolean isIn(Day day) {
@@ -334,28 +382,59 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the millisecond represented by this
-	 * instant. This is, by definition, the number of the very millisecond that this instant represents. This method therefore returns the same
-	 * result as {@link #getMillisecond()}.
+	 * Returns whether this instant is not in the given non-null {@link Day}.
 	 */
-	public long getEpochMilliseconds() {
-		return epochMilliseconds;
+	public boolean isNotIn(Day day) {
+		return day.containsNot(this);
 	}
 
 	/**
-	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the millisecond represented by this
-	 * instant. This is, by definition, the number of the very millisecond that this instant represents. This method therefore returns the same
-	 * result as {@link #getEpochMilliseconds()}.
+	 * Gets the unique millisecond on the timeline that this Instant represents. This is essentially the how-manieth millisecond on the
+	 * entire calendar this Instant represents. See the javadoc of {@link Instant} for an explanation of how a proportion of a day is translated
+	 * to a specific millisecond.
+	 * <p>
+	 * This method returns the same result as {@link #getMillisecond()}.
+	 */
+	public long getEpochMilliseconds() {
+		long millisecondsOfDay = day.lengthInMilliseconds();
+
+		//Calculate the millisecond that this proportion points to
+		BigFraction resultingMillisecond = BigFraction.of(millisecondsOfDay).multiply(proportionOfDay);
+
+		//If the proportion points to exact boundary between milliseconds, go to next millisecond
+		if (resultingMillisecond.equals(BigFraction.of(resultingMillisecond.longValue()))) {
+			resultingMillisecond = resultingMillisecond.add(BigFraction.ONE);
+		}
+
+		//Convert to long, round UP, so that it picks the millisecond that this proportion points at
+		long resultingMillisecondLong = resultingMillisecond.bigDecimalValue(0, RoundingMode.UP).longValue();
+
+		return day.getEpochMillisecondsPreviousDay() + resultingMillisecondLong;
+	}
+
+	/**
+	 * Gets the unique millisecond on the timeline that this Instant represents. This is essentially the how-manieth millisecond on the
+	 * entire calendar this Instant represents. See the javadoc of {@link Instant} for an explanation of how a proportion of a day is translated
+	 * to a specific millisecond.
+	 * <p>
+	 * This method returns the same result as {@link #getEpochMilliseconds()}.
 	 */
 	public long getMillisecond() {
-		return epochMilliseconds;
+		return this.getEpochMilliseconds();
+	}
+
+	/**
+	 * Returns the proportion of the {@link Day} of this instant that has passed.
+	 */
+	public BigFraction getProportionOfDay() {
+		return proportionOfDay;
 	}
 
 	/**
 	 * Returns the {@link Day} of this instant.
 	 */
 	public Day getDay() {
-		return Day.of(store().getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()));
+		return day;
 	}
 
 	/**
@@ -368,19 +447,6 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * For the {@link Day} of this instant, gets the <i>the proportion of all milliseconds that has <b>fully passed</b></i> at the time of the
-	 * <i>start of this instant</i>, so, not including the millisecond represented by this instant itself.
-	 * <p>
-	 * This is in order to achieve a value from 0 (inclusive) and 1 (exclusive). Please see the javadoc of {@link Instant} for an explanation.
-	 */
-	public BigDecimal getProportionOfDay() {
-		Day day = this.getDay();
-		long millisecondsOfDay = day.lengthInMilliseconds();
-		long millisecondsPassed = epochMilliseconds - day.getEpochMillisecondsAtStartOfDay();
-		return BigDecimal.valueOf(millisecondsPassed).divide(BigDecimal.valueOf(millisecondsOfDay), BIGDECIMAL_DIV_SCALE, RoundingMode.HALF_UP);
-	}
-
-	/**
 	 * Gets the {@link #getProportionOfDay()}, represented as <a href="https://en.wikipedia.org/wiki/Basis_point">beeps</a>.
 	 * This will result in an int between 0 (inclusive) and 9999 (inclusive). Please see the javadoc of {@link Instant} for an explanation.
 	 * <p>
@@ -388,9 +454,10 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * day lasting for only half a beep and the last one lasting for one and a half (because the last half would otherwise be rounded to the first beep of the following day).
 	 * <p>
 	 * As a result, the amount of beeps that is returned by this method is the amount of beeps that have <b>fully passed</b> at the time of the <i>start of this instant</i>.
+	 * This means that everything after the first 4 significant digits of the proportion of the day that this instant represents, will be truncated.
 	 */
 	public int getBeeps() {
-		return this.getProportionOfDay().multiply(new BigDecimal(BEEPS_PER_DAY)).intValue();
+		return proportionOfDay.multiply(BigFraction.of(BEEPS_PER_DAY)).intValue();
 	}
 
 	/**
@@ -398,7 +465,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * instant. For instants that occurred before the UNIX Epoch, a negative number is returned.
 	 */
 	public long getUnixEpochMilliseconds() {
-		return store().getUnixEpochMilliseconds(epochMilliseconds);
+		return store().getUnixEpochMilliseconds(this.getEpochMilliseconds());
 	}
 
 	/**
@@ -414,7 +481,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * same {@link Instant} on the timeline, the result will be 0.
 	 */
 	public long differenceWith(Instant other) {
-		return Math.subtractExact(epochMilliseconds, other.epochMilliseconds);
+		return Math.subtractExact(this.getEpochMilliseconds(), other.getEpochMilliseconds());
 	}
 
 	/**
@@ -423,54 +490,54 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * same {@link Instant} on the timeline, the result will be 0.
 	 * <p>
 	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that constitute the returned difference
-	 * may not be constant either if this instant is compared to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and
+	 * may vary if this instant is compared to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and
 	 * it is compared to an {@link Instant} that is at 8000 beeps of the previous day, the result will be 4000. 2000 of these beeps have the duration of 2000/10000th of the current day
 	 * and the other 2000 beeps have the duration of 2000/10000th of the previous day.
 	 * <p>
 	 * The same principle applies if there is more than 1 day between the compared {@link Instant}s.
 	 * <p>
 	 * If the exact difference between 2 {@link Instant}s is needed, please use {@link #differenceWith(Instant)}.
+	 * <p>
+	 * Please note that the exact proportion of each {@link Instant} is used to calculate the difference. This difference is then rounded to beeps after the calculation. This means that
+	 * if the difference between an instant at 5000 beeps and an instant at 3000 beeps, on the same day, is calculated, the result will be 2000. If, however, the instant at 5000
+	 * beeps has an exact internal proportion of 0.500099999, then the result will be 2001.
 	 */
 	public int differenceInBeepsWith(Instant other) {
-		//Calculate the difference of the proportions, to keep as much information as possible
-		BigDecimal proportionDifference = this.getProportionOfDay().subtract(other.getProportionOfDay());
+		//Calculate the difference of the exact proportions
+		BigFraction proportionDifference = proportionOfDay.subtract(other.getProportionOfDay());
 
-		//Multiply and round, to keep as much information as possible
-		int beepDifference = proportionDifference.multiply(new BigDecimal(BEEPS_PER_DAY)).setScale(0, RoundingMode.HALF_UP).intValue();
+		//Calculate the difference of the beeps
+		int beepDifference = proportionDifference.multiply(BEEPS_PER_DAY).intValue();
 
 		//Calculate the difference of the days
-		int dayDifference = this.getDay().differenceWith(other.getDay()) * BEEPS_PER_DAY;
+		int dayDifference = day.differenceWith(other.getDay()) * BEEPS_PER_DAY;
 
 		return beepDifference + dayDifference;
 	}
 
 	/**
-	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the Lukashian Calendar.
+	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the Lukashian Calendar. See the javadoc of
+	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
 	 *
 	 * @throws LukashianException when the given number of milliseconds is lower than 0
 	 */
 	public static Instant of(long epochMilliseconds) {
-		return new Instant(epochMilliseconds);
+		Day day =  Day.of(store().getEpochDayForEpochMilliseconds(epochMilliseconds));
+		long millisecondsOfDay = day.lengthInMilliseconds();
+
+		long millisecondsPassed = epochMilliseconds - day.getEpochMillisecondsAtStartOfDay(); //Use getEpochMillisecondsAtStartOfDay in order not to count the millisecond itself as having passed
+		BigFraction proportionOfDay = BigFraction.of(millisecondsPassed, millisecondsOfDay);
+		return Instant.of(day, proportionOfDay);
 	}
 
 	/**
 	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * For more information on how this mechanism works, see the javadoc of {@link Instant}.
 	 *
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 1 (exclusive)
 	 */
-	public static Instant of(Day day, BigDecimal proportionOfDay) {
-		if (proportionOfDay.compareTo(BigDecimal.ZERO) < 0 || proportionOfDay.compareTo(BigDecimal.ONE) >= 0) {
-			throw new LukashianException("Proportion of day must be between 0 (inclusive) and 1 (exclusive)");
-		}
-		long millisecondsOfDay = day.lengthInMilliseconds();
-
-		//Multiply and round, to keep as much information as possible
-		long millisecondsPassed = BigDecimal.valueOf(millisecondsOfDay).multiply(proportionOfDay).setScale(0, RoundingMode.HALF_UP).longValue();
-
-		//Should the rounding inadvertently lead to a value that is not on the Day anymore, use the last millisecond of the Day
-		millisecondsPassed = Math.min(millisecondsPassed, millisecondsOfDay - 1);
-
-		return Instant.of(day.getEpochMillisecondsAtStartOfDay() + millisecondsPassed);
+	public static Instant of(Day day, BigFraction proportionOfDay) {
+		return new Instant(day, proportionOfDay);
 	}
 
 	/**
@@ -478,7 +545,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 *
 	 * @throws LukashianException when the given day does not exist for the given year or when the given proportion is not between 0 (inclusive) and 1 (exclusive)
 	 */
-	public static Instant of(Year year, int day, BigDecimal proportionOfDay) {
+	public static Instant of(Year year, int day, BigFraction proportionOfDay) {
 		return Instant.of(Day.of(year, day), proportionOfDay);
 	}
 
@@ -488,7 +555,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
 	 * between 0 (inclusive) and 1 (exclusive)
 	 */
-	public static Instant of(int year, int day, BigDecimal proportionOfDay) {
+	public static Instant of(int year, int day, BigFraction proportionOfDay) {
 		return Instant.of(Day.of(year, day), proportionOfDay);
 	}
 
@@ -498,7 +565,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 9999 (inclusive)
 	 */
 	public static Instant of(Day day, int beeps) {
-		return Instant.of(day, new BigDecimal(beeps).divide(new BigDecimal(BEEPS_PER_DAY)));
+		return Instant.of(day, BigFraction.of(beeps, BEEPS_PER_DAY));
 	}
 
 	/**
@@ -547,17 +614,17 @@ public final class Instant implements Comparable<Instant>, Serializable {
 
 	@Override
 	public int compareTo(Instant other) {
-		return Long.compare(epochMilliseconds, other.epochMilliseconds);
+		return Long.compare(this.getEpochMilliseconds(), other.getEpochMilliseconds());
 	}
 
 	@Override
 	public int hashCode() {
-		return Long.valueOf(epochMilliseconds).hashCode();
+		return Long.valueOf(this.getEpochMilliseconds()).hashCode();
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		return object instanceof Instant && ((Instant) object).epochMilliseconds == epochMilliseconds;
+		return object instanceof Instant && ((Instant) object).getEpochMilliseconds() == this.getEpochMilliseconds();
 	}
 
 	@Override

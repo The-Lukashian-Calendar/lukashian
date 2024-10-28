@@ -205,6 +205,13 @@ public final class Year implements Comparable<Year>, Serializable {
 	}
 
 	/**
+	 * Returns whether the given non-null {@link Day}, is not part of this year. A {@link Day} is part of a year if it started in that year.
+	 */
+	public boolean containsNot(Day day) {
+		return !this.contains(day);
+	}
+
+	/**
 	 * Returns whether the given non-null {@link Instant}, is inside this year.
 	 * <p>
 	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the time component of the {@link Instant} may still
@@ -213,6 +220,16 @@ public final class Year implements Comparable<Year>, Serializable {
 	public boolean contains(Instant instant) {
 		long instantEpochMilliseconds = instant.getEpochMilliseconds();
 		return instantEpochMilliseconds >= this.getEpochMillisecondsAtStartOfYear() && instantEpochMilliseconds <= epochMilliseconds;
+	}
+
+	/**
+	 * Returns whether the given non-null {@link Instant}, is not inside this year.
+	 * <p>
+	 * Please note that, even when the {@link Day} of the given {@link Instant} does not start within this year, the time component of the {@link Instant} may still
+	 * cause the {@link Instant} to be part of this year, returning false.
+	 */
+	public boolean containsNot(Instant instant) {
+		return !this.contains(instant);
 	}
 
 	/**

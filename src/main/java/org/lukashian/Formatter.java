@@ -50,7 +50,8 @@
  */
 package org.lukashian;
 
-import java.math.BigDecimal;
+import org.apache.commons.numbers.fraction.BigFraction;
+
 import java.util.function.Function;
 
 /**
@@ -132,7 +133,7 @@ public final class Formatter {
 	/**
 	 * Formats the given time, using the given {@link Function}.
 	 */
-	public static String format(BigDecimal proportionOfDay, Function<BigDecimal, String> formatter) {
+	public static String format(BigFraction proportionOfDay, Function<BigFraction, String> formatter) {
 		return formatter.apply(proportionOfDay);
 	}
 
@@ -142,28 +143,28 @@ public final class Formatter {
 	 * <p>
 	 * For a detailed explanation on how the proportion is interpreted, see {@link Instant#getBeeps()}.
 	 */
-	public static String format(BigDecimal proportionOfDay) {
-		return format(proportionOfDay, bd -> String.format("%04d", proportionOfDay.multiply(new BigDecimal(Instant.BEEPS_PER_DAY)).intValue()));
+	public static String format(BigFraction proportionOfDay) {
+		return format(proportionOfDay, bd -> String.format("%04d", proportionOfDay.multiply(Instant.BEEPS_PER_DAY).intValue()));
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat, String)} and {@link #format(BigDecimal, Function)}, using a space to separate
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat, String)} and {@link #format(BigFraction, Function)}, using a space to separate
 	 * the two.
 	 */
-	public static String format(Instant instant, DayFormat dayFormat, String daySeparator, Function<BigDecimal, String> formatter) {
+	public static String format(Instant instant, DayFormat dayFormat, String daySeparator, Function<BigFraction, String> formatter) {
 		return format(instant.getDay(), dayFormat, daySeparator) + " " + format(instant.getProportionOfDay(), formatter);
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigDecimal, Function)}, using a space to separate the
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigFraction, Function)}, using a space to separate the
 	 * two.
 	 */
-	public static String format(Instant instant, DayFormat dayFormat, Function<BigDecimal, String> formatter) {
+	public static String format(Instant instant, DayFormat dayFormat, Function<BigFraction, String> formatter) {
 		return format(instant.getDay(), dayFormat) + " " + format(instant.getProportionOfDay(), formatter);
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day)} and {@link #format(BigDecimal)}, using a space to separate the two.
+	 * Formats the given {@link Instant} using {@link #format(Day)} and {@link #format(BigFraction)}, using a space to separate the two.
 	 */
 	public static String format(Instant instant) {
 		return format(instant.getDay()) + " " + format(instant.getProportionOfDay());

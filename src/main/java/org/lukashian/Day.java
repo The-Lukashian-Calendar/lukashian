@@ -50,10 +50,10 @@
  */
 package org.lukashian;
 
+import org.apache.commons.numbers.fraction.BigFraction;
 import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 import static org.lukashian.store.MillisecondStore.store;
 
@@ -101,6 +101,28 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
+	 * Returns a new {@link Day} that represents this day's number on this day's year minus the given amount of years, for example,
+	 * if this day represents day number 10 of its year, then calling this method will return an day that represents day number 10 of the
+	 * resulting year.
+	 *
+	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar or when the resulting year does not have a day with this day's number
+	 */
+	public Day minusYears(int yearsToSubtract) {
+		return Day.of(this.getYear().minusYears(yearsToSubtract), this.getDayNumber());
+	}
+
+	/**
+	 * Returns a new {@link Day} that represents this day's number on this day's year plus the given amount of years, for example,
+	 * if this day represents day number 10 of its year, then calling this method will return an day that represents day number 10 of the
+	 * resulting year.
+	 *
+	 * @throws LukashianException when the resulting year does not have a day with this day's number
+	 */
+	public Day plusYears(int yearsToAdd) {
+		return Day.of(this.getYear().plusYears(yearsToAdd), this.getDayNumber());
+	}
+
+	/**
 	 * Returns a new {@link Day} that represents this day minus the given amount of days. This might result in a {@link Day} that is in a different year.
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
@@ -143,7 +165,7 @@ public final class Day implements Comparable<Day>, Serializable {
 	 *
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 1 (exclusive).
 	 */
-	public Instant atTime(BigDecimal proportionOfDay) {
+	public Instant atTime(BigFraction proportionOfDay) {
 		return Instant.of(this, proportionOfDay);
 	}
 
@@ -206,10 +228,24 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
+	 * Returns whether the given non-null {@link Instant}, is not inside this day.
+	 */
+	public boolean containsNot(Instant instant) {
+		return !this.contains(instant);
+	}
+
+	/**
 	 * Returns whether this day is in the given non-null {@link Year}.
 	 */
 	public boolean isIn(Year year) {
 		return year.contains(this);
+	}
+
+	/**
+	 * Returns whether this day is not in the given non-null {@link Year}.
+	 */
+	public boolean isNotIn(Year year) {
+		return year.containsNot(this);
 	}
 
 	/**

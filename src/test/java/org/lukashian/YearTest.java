@@ -198,7 +198,6 @@ public class YearTest {
 		assertInstant(4499, Year.of(5).lastInstant());
 		assertInstant(4800, Year.of(6).lastInstant());
 		assertInstant(5000, Year.of(7).lastInstant());
-		assertInstant(40000, Year.of(8).lastInstant());
 
 		assertYear(1, Year.of(1).lastInstant().getYear());
 		assertYear(2, Year.of(2).lastInstant().getYear());
@@ -207,7 +206,6 @@ public class YearTest {
 		assertYear(5, Year.of(5).lastInstant().getYear());
 		assertYear(6, Year.of(6).lastInstant().getYear());
 		assertYear(7, Year.of(7).lastInstant().getYear());
-		assertYear(8, Year.of(8).lastInstant().getYear());
 	}
 
 	@Test
@@ -263,6 +261,33 @@ public class YearTest {
 		assertTrue(Year.of(4).contains(Instant.of(3001)));
 		assertTrue(Year.of(4).contains(Instant.of(4000)));
 		assertFalse(Year.of(4).contains(Instant.of(4001)));
+	}
+
+	@Test
+	public void testContainsNot() {
+		Year year = Year.of(2);
+
+		assertFalse(year.containsNot(year.firstInstant()));
+		assertFalse(year.containsNot(year.lastInstant()));
+
+		assertFalse(Year.of(1).containsNot(Day.of(1)));
+		assertFalse(Year.of(1).containsNot(Day.of(4)));
+		assertTrue(Year.of(1).containsNot(Day.of(5)));
+
+		assertFalse(Year.of(1).containsNot(Instant.of(1)));
+		assertFalse(Year.of(1).containsNot(Instant.of(999)));
+		assertFalse(Year.of(1).containsNot(Instant.of(1000)));
+		assertTrue(Year.of(1).containsNot(Instant.of(1001)));
+
+		assertFalse(Year.of(3).containsNot(Instant.of(2999)));
+		assertFalse(Year.of(3).containsNot(Instant.of(3000)));
+		assertTrue(Year.of(3).containsNot(Instant.of(3001)));
+
+		assertTrue(Year.of(4).containsNot(Instant.of(2999)));
+		assertTrue(Year.of(4).containsNot(Instant.of(3000)));
+		assertFalse(Year.of(4).containsNot(Instant.of(3001)));
+		assertFalse(Year.of(4).containsNot(Instant.of(4000)));
+		assertTrue(Year.of(4).containsNot(Instant.of(4001)));
 	}
 
 	@Test

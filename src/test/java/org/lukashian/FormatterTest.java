@@ -50,8 +50,7 @@
  */
 package org.lukashian;
 
-import java.math.BigDecimal;
-
+import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
 import org.lukashian.Formatter.DayFormat;
 
@@ -67,9 +66,9 @@ public class FormatterTest {
 		assertEquals("1-1 0000", Formatter.format(Instant.of(1)));
 		assertEquals("1-1 9966", Formatter.format(Instant.of(300)));
 		assertEquals("2-3 3300", Formatter.format(Instant.of(1900)));
-		assertEquals("7 0.330000000000", Formatter.format(Instant.of(1900), DayFormat.EPOCH, BigDecimal::toString));
-		assertEquals("3/2 0.330000000000", Formatter.format(Instant.of(1900), DayFormat.DAY_FIRST, "/", BigDecimal::toString));
-		assertEquals("3 0.330000000000", Formatter.format(Instant.of(1900), DayFormat.DAY_ONLY, "/", BigDecimal::toString));
+		assertEquals("7 33 / 100", Formatter.format(Instant.of(1900), DayFormat.EPOCH, BigFraction::toString));
+		assertEquals("3/2 33 / 100", Formatter.format(Instant.of(1900), DayFormat.DAY_FIRST, "/", BigFraction::toString));
+		assertEquals("3 33 / 100", Formatter.format(Instant.of(1900), DayFormat.DAY_ONLY, "/", BigFraction::toString));
 	}
 
 	@Test

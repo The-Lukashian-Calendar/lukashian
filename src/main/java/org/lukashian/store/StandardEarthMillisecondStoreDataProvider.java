@@ -161,12 +161,12 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		}
 
 		//Initialize variables for calculating the duration of a Mean Solar Day, taking into account the slowing rotation of the Earth, but not taking into account the Equation of Time
-		double centurialIncreaseInNanos = 1_700_000L; //Known value
+		long centurialIncreaseInNanos = 1_700_000L; //Known value
 		double dailyIncreaseInNanos = centurialIncreaseInNanos / (100 * 365.25);
 
-		double lengthOfMeanSolarDayAtYear5900InNanos = 86_400_002_000_000L; //Known value
-		double increaseBetweenEpochAndYear5900InNanos = centurialIncreaseInNanos * 59;
-		double lengthOfMeanSolarDayAtEpochInNanos = lengthOfMeanSolarDayAtYear5900InNanos - increaseBetweenEpochAndYear5900InNanos;
+		long lengthOfMeanSolarDayAtYear5900InNanos = 86_400_002_000_000L; //Known value
+		long increaseBetweenEpochAndYear5900InNanos = centurialIncreaseInNanos * 59;
+		long lengthOfMeanSolarDayAtEpochInNanos = lengthOfMeanSolarDayAtYear5900InNanos - increaseBetweenEpochAndYear5900InNanos;
 
 		//Initialize ArrayList that will hold the days
 		ArrayList<Long> dayEpochMilliseconds = new ArrayList<>(yearEpochMilliseconds.length * 370); //Make sure there's enough capacity
@@ -199,6 +199,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].
 			//This discrepancy will then propagate through the calculation. Truncating the decimal part, or setting it to a fixed value (eg. 0.5) makes the hiccup larger and therefore does not provide a solution.
 			//This issue is expected to disappear when we switch to a more comprehensive EOT based calculation or to a VSOP based calculation.
+			//Another potential way to solve it, is not to rollover to the next most recent solstice or perihelion once a year, but interpolating the current position of the solstice and perihelion for every individual day.
 
 			long millisSinceSolstice = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentSolstice;
 			long millisSincePerihelion = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentBaryCenterPerihelion;
