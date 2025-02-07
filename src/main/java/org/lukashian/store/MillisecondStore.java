@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -50,19 +50,23 @@
  */
 package org.lukashian.store;
 
-import java.util.Arrays;
-import java.util.ServiceLoader;
-
 import org.lukashian.Day;
 import org.lukashian.LukashianException;
 import org.lukashian.Year;
 
+import java.util.Arrays;
+import java.util.ServiceLoader;
+
 /**
  * For each {@link Day} and {@link Year}, this class stores the number of milliseconds between the start of the calendar (the Lukashian epoch)
  * and the end of that day or year. It also stores the offset between the Lukashian epoch and the UNIX epoch. An implementation of
- * {@link MillisecondStoreDataProvider} is used to obtain this data. By default, an instance of {@link StandardEarthMillisecondStoreDataProvider} is used, but
- * the Java Service Provider Interface mechanism may be used to provide alternative implementations, see {@link MillisecondStoreDataProvider} for more
- * information.
+ * {@link MillisecondStoreDataProvider} is used to obtain this data. By default, an instance of {@link StandardEarthMillisecondStoreDataProvider} is used.
+ * <p>
+ * Alternative implementations of the {@link MillisecondStoreDataProvider} can be provided using the Java Server Provider Interface mechanism. Simply
+ * put a file named "org.lukashian.store.MillisecondStoreDataProvider" in META-INF/services/ on the classpath and put the fully qualified
+ * name of the desired {@link MillisecondStoreDataProvider} implementation as text in that file.
+ * <p>
+ * Alternatively, you could use the {@link #setMillisecondStoreDataProvider} of the {@link #INSTANCE} singleton.
  *
  * @see MillisecondStoreDataProvider
  */

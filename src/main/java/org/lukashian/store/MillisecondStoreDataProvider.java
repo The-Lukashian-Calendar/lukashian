@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -87,10 +87,8 @@ import org.lukashian.Year;
  * </ul>
  *
  * It is also, for example, perfectly possibly to create a {@link MillisecondStoreDataProvider} that loads the data for Astronomical Mars years,
- * Astronomical Mars days, starting 10000 Mars years in the past and measured according to Barycentric Coordinate Time. Alternative
- * implementations of the {@link MillisecondStoreDataProvider} can be provided using the Java Server Provider Interface mechanism. Simply
- * put a file named "org.lukashian.store.MillisecondStoreDataProvider" in META-INF/services/ on the classpath and put the fully qualified
- * name of the desired {@link MillisecondStoreDataProvider} implementation as text in that file.
+ * Astronomical Mars days, starting 10000 Mars years in the past and measured according to Barycentric Coordinate Time. Please refer to
+ * {@link MillisecondStore} for information on how to specify which instance of {@link MillisecondStoreDataProvider} to use.
  * <p>
  * This implementation of The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e.
  * there's a first millisecond, a last one and at least one in between. It might work for years and days that last less than 3 milliseconds,

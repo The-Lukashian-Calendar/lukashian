@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
-    Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+    Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
     All rights reserved.
 
     The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -62,7 +62,7 @@
 	<!-- Main system data -->
 	<groupId>org.lukashian</groupId>
 	<artifactId>lukashian</artifactId>
-	<version>1.10.0</version>
+	<version>1.11.0</version>
 	<packaging>jar</packaging>
 
 
@@ -119,7 +119,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>3.5.1</version>
+					<version>3.5.2</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -139,7 +139,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.10.1</version>
+					<version>3.11.2</version>
 					<configuration>
 						<additionalJOptions>
 							<additionalJOption>-html5</additionalJOption>
@@ -152,8 +152,11 @@
 					<artifactId>license-maven-plugin</artifactId>
 					<version>4.6</version>
 					<configuration>
-						<header>license-header.txt</header>
-						<strictCheck>true</strictCheck>
+						<licenseSets>
+							<licenseSet>
+								<header>license-header.txt</header>
+							</licenseSet>
+						</licenseSets>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -229,7 +232,7 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>5.11.3</version>
+			<version>5.11.4</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

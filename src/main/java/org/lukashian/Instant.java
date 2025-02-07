@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -85,8 +85,8 @@ import static org.lukashian.store.MillisecondStore.store;
  *     </li>
  *     <li>
  *         <b>From a specific millisecond to a proportion (as {@link BigFraction}):</b>
- *         This is not a problem, because a BigFraction has arbitrary precision, so for a specific millisecond, we can always exactly calculate the proportion of the day
- *         that has passed. The only questions is: is the millisecond itself considered to have fully passed?
+ *         This is not a problem, because a BigFraction has exact precision for any rational number, so for a specific millisecond, we can always exactly calculate
+ *         the proportion of the day that has passed. The only questions is: is the millisecond itself considered to have fully passed?
  *         <p>
  *         The answer is "no", the millisecond for which we calculate the proportion of the day that has passed, is itself <i>not</i> considered to have fully passed.
  *         In fact, this millisecond is considered to not have passed at all, meaning that we calculate the proportion of the day from the start of the day until the
@@ -94,9 +94,30 @@ import static org.lukashian.store.MillisecondStore.store;
  *         proportion smaller than 1. This corresponds to the fact that a {@link Day} runs from its start (inclusive) to its end (exclusive).
  *     </li>
  * </ul>
- * Internally, an Instant stores the BigFraction that represents the proportion of the day that has passed and <i>not</i> the millisecond that this Instant represents.
- * This is because the BigFraction can not only be used to represent the millisecond, but also the proportion that was originally chosen to create this Instant.
- * Storing the millisecond would have meant that we would no longer know which proportion was originally chosen to create an Instant.
+ * Internally, an Instant stores its {@link Day} and the BigFraction that represents the proportion of its day that has passed. It does *not* store the unique millisecond
+ * on the timeline that this Instant represents.
+ * <p>
+ * When creating an Instant using one of the constructors or methods that specifies the proportion of the day, the Instant stores the proportion with which it was created.
+ * <p>
+ * When creating an Instant using one of the constructors or methods that specifies the unique millisecond on the timeline, the translation to the corresponding
+ * proportion is done as outlined above, after which the resulting {@link Day} and proportion (as BigFraction) will be stored.
+ * <p>
+ * The standard Java methods {@link #equals(Object)}, {@link #hashCode()} and {@link #compareTo(Instant)} look at the unique millisecond on the timeline that this Instant
+ * represents, not the exact proportion of the day.
+ * <p>
+ * So, why not store the unique millisecond on the timeline that this Instant represents, instead of the {@link Day} and the proportion as a BigFraction? Remember the
+ * translations: if we create an Instant at, say, 5000 beeps of a certain day, this proportion will "point" to a certain millisecond. It is unlikely that this proportion
+ * will point exactly to a boundary between milliseconds. If we would then store said millisecond as the representation of the Instant, then what would happen if we
+ * then calculate the number of beeps that have passed?
+ * <p>
+ * First, we would have to translate back to the proportion of the day that has passed. The millisecond itself is not considered to have passed at all (see the explanation
+ * of the translations above), meaning that we won't get 0.5, but something like 0.499999999....... If this then gets truncated to beeps, we get 4999 instead of the
+ * original 5000 (rounding cannot solve the problem, see {@link #getBeeps()} for details).
+ * <p>
+ * By storing the {@link Day} and the proportion with which the Instant was created, we do not have this problem.
+ * <p>
+ * The other way around is not a problem either. BigFraction has exact precision for any rational number, so translating a unique millisecond on the timeline to a
+ * proportion, and then back again, is guaranteed to yield the original value.
  */
 public final class Instant implements Comparable<Instant>, Serializable {
 
@@ -531,7 +552,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 * For more information on how this mechanism works, see the javadoc of {@link Instant}.
 	 *
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 1 (exclusive)
@@ -541,7 +562,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 *
 	 * @throws LukashianException when the given day does not exist for the given year or when the given proportion is not between 0 (inclusive) and 1 (exclusive)
 	 */
@@ -550,7 +571,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 *
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
 	 * between 0 (inclusive) and 1 (exclusive)
@@ -560,7 +581,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 *
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 9999 (inclusive)
 	 */
@@ -569,7 +590,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 *
 	 * @throws LukashianException when the given day does not exist for the given year or when the given proportion is not between 0 (inclusive) and 9999 (inclusive)
 	 */
@@ -578,7 +599,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond that occurs after the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
 	 *
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
 	 * between 0 (inclusive) and 9999 (inclusive)

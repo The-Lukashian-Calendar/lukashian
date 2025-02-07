@@ -6,6 +6,10 @@ For more information, please visit [lukashian.org](https://www.lukashian.org)!
 
 ## Changelog
 
+### 1.11.0:
+- Improved Javadoc documentation
+- Updated versions of dependencies
+
 ### 1.10.0:
 - Created this changelog
 - Added methods `Day.plusYears()`, `Day.minusYears()`, `Instant.plusYears()` and `Instant.minusYears()`

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -54,7 +54,8 @@ import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
 import org.lukashian.Formatter.DayFormat;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for the {@link Formatter} class.

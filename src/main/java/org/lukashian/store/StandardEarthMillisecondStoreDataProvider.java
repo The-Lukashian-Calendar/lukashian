@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -175,7 +175,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		int currentDay = 1;
 		double epochNanosOfCurrentMeanSolarDay = 0;
 		long epochMillisOfEndOfFinalYear = yearEpochMilliseconds[yearEpochMilliseconds.length - 1];
-		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.get(dayEpochMilliseconds.size() - 1) < epochMillisOfEndOfFinalYear) {
+		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.getLast() < epochMillisOfEndOfFinalYear) {
 			//Calculate mean solar day length for this day
 			double increaseSinceEpochInNanos = dailyIncreaseInNanos * (currentDay - 1);
 			double lengthOfCurrentMeanSolarDayInNanos = lengthOfMeanSolarDayAtEpochInNanos + increaseSinceEpochInNanos;

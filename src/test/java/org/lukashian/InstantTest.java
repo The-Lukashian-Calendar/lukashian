@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 (5918-5924 in Lukashian years)
+ * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -451,6 +451,14 @@ public class InstantTest {
 		assertTrue(Instant.of(1).equals(Instant.of(1)));
 		assertFalse(Instant.of(1).equals(Instant.of(2)));
 		assertFalse(Instant.of(1).equals(Year.of(1)));
+
+		Instant i1 = Instant.of(1, 1, BigFraction.of(600000000, 1000000000));
+		Instant i2 = Instant.of(1, 1, BigFraction.of(600000000, 1000000000));
+		assertTrue(i1.equals(i2));
+
+		i1 = Instant.of(1, 1, BigFraction.of(600000000, 1000000000));
+		i2 = Instant.of(1, 1, BigFraction.of(600000001, 1000000000));
+		assertTrue(i1.equals(i2)); //equals looks at exact millisecond, not proportion
 	}
 
 	@Test
