@@ -12,16 +12,16 @@ as a dependency. Then, you can simply use the `org.lukashian.Instant`, `org.luka
 get the current time, use `Instant.now()`. Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) for full documentation on
 these classes.
 
-### Formatting:
+### Formatting
 
 Use the `org.lukashian.Formatter` class to format Instants, Days and Years. Please see the [Javadoc](https://www.lukashian.org/javadoc/org/lukashian/Formatter.html)
 for all available formatting options.
 
-### Using different calendar implementations:
+### Using different calendar implementations
 
-By default, the Lukashian Calendar uses the implementation for Planet Earth. Because the Lukashian Calendar mechanism makes no assumptions about how
-long days and years are, or how many days a year should have, it is possible to create implementations for alternative definitions of days and years, for
-example for other planets. Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
+By default, the Lukashian Calendar uses the implementation for Planet Earth. However, because the Lukashian Calendar mechanism makes no assumptions about
+how long days and years are, or how many days a year should have, it is possible to create implementations for other planets. Please see the
+[Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
 `org.lukashian.store.MillisecondStore` and `org.lukashian.store.MillisecondStoreDataProvider` classes for more details.
 
 &nbsp;
