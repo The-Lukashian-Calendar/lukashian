@@ -19,8 +19,8 @@ for all available formatting options.
 
 ### Using different calendar implementations:
 
-By default, the Lukashian Calendar uses the implementation for planet Earth. Because the Lukashian Calendar mechanism makes no assumptions about how
-long days and years are, or how many days are in a year, it is possible to create implementations for alternative definitions of days and years, for
+By default, the Lukashian Calendar uses the implementation for Planet Earth. Because the Lukashian Calendar mechanism makes no assumptions about how
+long days and years are, or how many days a year should have, it is possible to create implementations for alternative definitions of days and years, for
 example for other planets. Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
 `org.lukashian.store.MillisecondStore` and `org.lukashian.store.MillisecondStoreDataProvider` classes for more details.
 
