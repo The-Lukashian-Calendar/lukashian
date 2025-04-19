@@ -4,24 +4,7 @@ For the artifacts, please visit the [Maven Central](https://central.sonatype.com
 
 For more information, please visit [lukashian.org](https://www.lukashian.org)!
 
-## Changelog
-
-### 1.11.0:
-- Improved Javadoc documentation
-- Updated versions of dependencies
-
-### 1.10.0:
-- Created this changelog
-- Added methods `Day.plusYears()`, `Day.minusYears()`, `Instant.plusYears()` and `Instant.minusYears()`
-- Added methods `Year.containsNot()`, `Day.containsNot()`, `Day.isNotIn()`, `Instant.isNotIn()`
-- Added method `MillisecondStore.setMillisecondStoreDataProvider()` that allows changing the `MillisecondStoreDataProvider` on the fly
-- Switched from `java.lang.BigDecimal` to `org.apache.commons.numbers.fraction.BigFraction` for `Instant` calculations, because `BigDecimal` did not provide the required accuracy
-- Switched from Java 17 LTS to Java 21 LTS
-- Various small improvements and optimizations
-
-### 1.9.0 and before:
-- The Lukashian Calendar did not maintain a changelog on GitHub yet...
-
+&nbsp;
 ## How to use the Lukashian Calendar
 
 Using the Lukashian Calendar is easy. First, add the most recent version of the [jar file](https://central.sonatype.com/artifact/org.lukashian/lukashian)
@@ -40,3 +23,22 @@ By default, the Lukashian Calendar uses the implementation for planet Earth. Bec
 long days and years are, or how many days are in a year, it is possible to create implementations for alternative definitions of days and years, for
 example for other planets. Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
 `org.lukashian.store.MillisecondStore` and `org.lukashian.store.MillisecondStoreDataProvider` classes for more details.
+
+&nbsp;
+## Changelog
+
+### 1.11.0:
+- Improved Javadoc documentation
+- Updated versions of dependencies
+
+### 1.10.0:
+- Created this changelog
+- Added methods `Day.plusYears()`, `Day.minusYears()`, `Instant.plusYears()` and `Instant.minusYears()`
+- Added methods `Year.containsNot()`, `Day.containsNot()`, `Day.isNotIn()`, `Instant.isNotIn()`
+- Added method `MillisecondStore.setMillisecondStoreDataProvider()` that allows changing the `MillisecondStoreDataProvider` on the fly
+- Switched from `java.lang.BigDecimal` to `org.apache.commons.numbers.fraction.BigFraction` for `Instant` calculations, because `BigDecimal` did not provide the required accuracy
+- Switched from Java 17 LTS to Java 21 LTS
+- Various small improvements and optimizations
+
+### 1.9.0 and before:
+- The Lukashian Calendar did not maintain a changelog on GitHub yet...
