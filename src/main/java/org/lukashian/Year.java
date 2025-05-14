@@ -72,12 +72,12 @@ import static org.lukashian.store.MillisecondStore.store;
  * the actual length of a particular day in astronomical terms), a day is not necessarily contained in a single year. In fact, it is very unlikely that the turn
  * of a year coincides with the turn of a day. Therefore, a day is defined to be part of the year in which it started.
  * <p>
- * {@link Year} is an immutable object. New instances are always created when calling one of the mutation methods.
- * <p>
  * A {@link Year} keeps track of the total number of milliseconds that have taken place from the start of the Lukashian Calendar (Lukashian epoch) until
  * the final point of this year. This value is called "epoch milliseconds". This information allows for determining which year a day is in and how to
  * do various calculations. A {@link Year} also keeps track of the epoch milliseconds of the previous {@link Year}, for calculation purposes.
  * This means that a {@link Year} knows how many milliseconds it lasts, by subtracting the two.
+ * <p>
+ * {@link Year} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
 public final class Year implements Comparable<Year>, Serializable {
 

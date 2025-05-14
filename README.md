@@ -2,7 +2,7 @@ This is the Java Reference Implementation of The Lukashian Calendar, a calendar 
 
 For the artifacts, please visit the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian).
 
-For more information, please visit [lukashian.org](https://www.lukashian.org)!
+For more information on the calendar mechanism itself, please visit [lukashian.org](https://www.lukashian.org)!
 
 &nbsp;
 ## How to use the Lukashian Calendar
@@ -21,11 +21,33 @@ for all available formatting options.
 
 By default, the Lukashian Calendar uses the implementation for Planet Earth. However, because the Lukashian Calendar mechanism makes no assumptions about
 how long days and years are, or how many days a year should have, it is possible to create implementations for other planets. Please see the
-[Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
-`org.lukashian.store.MillisecondStore` and `org.lukashian.store.MillisecondStoreDataProvider` classes for more details.
+[Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the `MillisecondStore` and `MillisecondStoreDataProvider` classes for more details.
+
+### Loading calendar implementations from an external resource
+
+In order to facilitate central maintenance and governance of the official numbers that define an implementation of the Lukashian Calendar, the
+`ExternalResourceMillisecondStoreDataProvider` can load implementations from external resources.
+
+The `FileMillisecondStoreDataProvider` and `HttpMillisecondStoreDataProvider` provide functionality for loading implementations via files or HTTP URL's,
+respectively, whereas the `StandardEarthHttpMillisecondStoreDataProvider` loads the implementation for Planet Earth directly from the official lukashian.org server.
+
+Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) for full documentation on these classes.
+
+#### Ports to other languages
+
+Because of this external loading mechanism, ports of the Lukashian Calendar in other programming languages only need to port the `ExternalResourceMillisecondStoreDataProvider`
+and its subclasses, not the implementations of `MillisecondStoreDataProvider` that perform the actual calculations, as the results of these calculations will also
+be loadable from the official lukashian.org server.
+
 
 &nbsp;
 ## Changelog
+Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
+
+### 1.12.0:
+- Added method `Day.getLengthOfBeepInMilliseconds()`
+- Added mechanism for loading implementations of the Lukashian Calendar from external resources, specifically, the `ExternalResourceMillisecondStoreDataProvider`,
+  `FileMillisecondStoreDataProvider`, `HttpMillisecondStoreDataProvider` and `StandardEarthHttpMillisecondStoreDataProvider` classes.
 
 ### 1.11.0:
 - Improved Javadoc documentation

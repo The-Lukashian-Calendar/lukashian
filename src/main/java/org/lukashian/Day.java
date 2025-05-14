@@ -55,6 +55,7 @@ import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 
 import java.io.Serializable;
 
+import static org.lukashian.Instant.BEEPS_PER_DAY;
 import static org.lukashian.store.MillisecondStore.store;
 
 /**
@@ -74,8 +75,6 @@ import static org.lukashian.store.MillisecondStore.store;
  * The very first day of the calendar starts at the same point as the very first year. This means that the turn of every single day happens at the position
  * of the planet at the start of the calendar.
  * <p>
- * {@link Day} is an immutable object. New instances are always created when calling one of the mutation methods.
- * <p>
  * A {@link Day} keeps track of the total number of milliseconds that have taken place from the start of the Lukashian Calendar (Lukashian epoch) until
  * the final point of this day. This value is called "epoch milliseconds". This information allows for determining which year a day is in and how to
  * do various calculations. A {@link Day} also keeps track of the epoch milliseconds of the previous {@link Day}, for calculation purposes.
@@ -84,6 +83,8 @@ import static org.lukashian.store.MillisecondStore.store;
  * Internally, a {@link Day} keeps track of its epoch value ("epoch day"). This value represents which day this is since the start of the Lukashian
  * Calendar, regardless of the year. This value also starts at 1, like years and days within years, 1 being the very first day since the start of
  * the calendar.
+ * <p>
+ * {@link Day} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
 public final class Day implements Comparable<Day>, Serializable {
 
@@ -305,6 +306,14 @@ public final class Day implements Comparable<Day>, Serializable {
 	public int getDayNumber() {
 		int firstEpochDayOfYear = getFirstDayOfYearInEpochForm(this.getYear());
 		return (epochDay - firstEpochDayOfYear) + 1;
+	}
+
+	/**
+	 * Returns the length of one beep on this {@link Day}, i.e. one-ten-thousandth of this {@link Day}, in milliseconds.
+	 * Since the result is not a whole number, is it represented as a {@link BigFraction}.
+	 */
+	public BigFraction getLengthOfBeepInMilliseconds() {
+		return BigFraction.of(this.lengthInMilliseconds(), BEEPS_PER_DAY);
 	}
 
 	/**

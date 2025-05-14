@@ -118,6 +118,8 @@ import static org.lukashian.store.MillisecondStore.store;
  * <p>
  * The other way around is not a problem either. BigFraction has exact precision for any rational number, so translating a unique millisecond on the timeline to a
  * proportion, and then back again, is guaranteed to yield the original value.
+ * <p>
+ * {@link Instant} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
 public final class Instant implements Comparable<Instant>, Serializable {
 
@@ -517,11 +519,9 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * <p>
 	 * The same principle applies if there is more than 1 day between the compared {@link Instant}s.
 	 * <p>
-	 * If the exact difference between 2 {@link Instant}s is needed, please use {@link #differenceWith(Instant)}.
+	 * If the difference in beeps between the the compared {@link Instant}s is not a whole number, then the decimal part of the result will be truncated.
 	 * <p>
-	 * Please note that the exact proportion of each {@link Instant} is used to calculate the difference. This difference is then rounded to beeps after the calculation. This means that
-	 * if the difference between an instant at 5000 beeps and an instant at 3000 beeps, on the same day, is calculated, the result will be 2000. If, however, the instant at 5000
-	 * beeps has an exact internal proportion of 0.500099999, then the result will be 2001.
+	 * If the exact difference between 2 {@link Instant}s is needed, please use {@link #differenceWith(Instant)}.
 	 */
 	public int differenceInBeepsWith(Instant other) {
 		//Calculate the difference of the exact proportions

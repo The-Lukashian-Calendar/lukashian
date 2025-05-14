@@ -197,5 +197,8 @@ public class InstantRealCalendarTest {
 		assertEquals(20000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 5000)));
 		assertEquals(20001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 4999)));
 		assertEquals(25000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 0)));
+
+		assertEquals(-2000, Instant.of(Day.of(3), 3000).differenceInBeepsWith(Instant.of(Day.of(3), BigFraction.of(500099999, 1000000000))));
+		assertEquals(0, Instant.of(Day.of(3), 3000).differenceInBeepsWith(Instant.of(Day.of(3), BigFraction.of(300099999, 1000000000))));
 	}
 }
