@@ -128,8 +128,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 */
 	public static final int BEEPS_PER_DAY = 10000;
 
-	private Day day;
-	private BigFraction proportionOfDay;
+	private final Day day;
+	private final BigFraction proportionOfDay;
 
 	private Instant(Day day, BigFraction proportionOfDay) {
 		if (proportionOfDay.compareTo(BigFraction.ZERO) < 0 || proportionOfDay.compareTo(BigFraction.ONE) >= 0) {

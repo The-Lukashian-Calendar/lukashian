@@ -44,10 +44,14 @@ be loadable from the official lukashian.org server.
 ## Changelog
 Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
 
+### 1.13.0:
+- Added additional `Formatter.format()` method
+- Revamped the `MillisecondStore` mechanism, enabling the usage of multiple simultaneous instances of `MillisecondStoreDataProvider`
+
 ### 1.12.0:
 - Added method `Day.getLengthOfBeepInMilliseconds()`
 - Added mechanism for loading implementations of the Lukashian Calendar from external resources, specifically, the `ExternalResourceMillisecondStoreDataProvider`,
-  `FileMillisecondStoreDataProvider`, `HttpMillisecondStoreDataProvider` and `StandardEarthHttpMillisecondStoreDataProvider` classes.
+  `FileMillisecondStoreDataProvider`, `HttpMillisecondStoreDataProvider` and `StandardEarthHttpMillisecondStoreDataProvider` classes
 
 ### 1.11.0:
 - Improved Javadoc documentation

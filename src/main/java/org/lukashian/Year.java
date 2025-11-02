@@ -50,15 +50,14 @@
  */
 package org.lukashian;
 
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
-
 import java.io.Serializable;
+import java.util.Objects;
 
-import static org.lukashian.store.MillisecondStore.store;
+import static org.lukashian.store.MillisecondStore.data;
+import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
 
 /**
- * Represents a year in the Lukashian Calendar Mechanism. For the meaning of a year in the standard implementation of the Lukashian Calendar, see
- * {@link StandardEarthMillisecondStoreDataProvider}.
+ * Represents a year in the Lukashian Calendar Mechanism.
  * <p>
  * The first year is year 1 and years before year 1 are not defined. This is consistent with the numbering of days, since they also start at 1. Also, there's
  * a subtle difference between numbering and counting and when it comes to years, numbering is more appropriate, since numbering is giving each year a numeric
@@ -81,17 +80,21 @@ import static org.lukashian.store.MillisecondStore.store;
  */
 public final class Year implements Comparable<Year>, Serializable {
 
-	private int year;
-	private long epochMilliseconds;
-	private long epochMillisecondsPreviousYear;
+	private final int calendarKey;
 
-	private Year(int year) {
+	private final int year;
+	private final long epochMilliseconds;
+	private final long epochMillisecondsPreviousYear;
+
+	private Year(int year, int calendarKey) {
+		this.calendarKey = calendarKey;
+
 		if (year < 1) {
 			throw new LukashianException(year + " is not a valid year, the minimum is 1");
 		}
 		this.year = year;
-		this.epochMilliseconds = store().getEpochMillisecondsForYear(year);
-		this.epochMillisecondsPreviousYear = year == 1 ? 0 : store().getEpochMillisecondsForYear(year - 1);
+		this.epochMilliseconds = data(calendarKey).getEpochMillisecondsForYear(year);
+		this.epochMillisecondsPreviousYear = year == 1 ? 0 : data(calendarKey).getEpochMillisecondsForYear(year - 1);
 	}
 
 	/**
@@ -152,7 +155,7 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns a new {@link Day} that represents the last {@link Day} of this year. Please note that this {@link Day} may end in the next year.
 	 */
 	public Day lastDay() {
-		return Day.of(store().getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()));
+		return Day.of(data(calendarKey).getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()));
 	}
 
 	/**
@@ -285,19 +288,37 @@ public final class Year implements Comparable<Year>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Year} representing the given year.
+	 * Creates a new {@link Year} representing the given year of the given calendar instance.
+	 *
+	 * @throws LukashianException when the given year is 0 or lower or when the given calendar instance is not registered
+	 */
+	public static Year of(int year, int calendarKey) {
+		return new Year(year, calendarKey);
+	}
+
+	/**
+	 * Creates a new {@link Year} representing the given year of the default calendar instance.
 	 *
 	 * @throws LukashianException when the given year is 0 or lower
 	 */
 	public static Year of(int year) {
-		return new Year(year);
+		return Year.of(year, defaultCalendarKey());
 	}
 
 	/**
-	 * Returns the current {@link Year}.
+	 * Returns the current {@link Year} of the given calendar instance.
+	 *
+	 * @throws LukashianException when the given calendar instance is not registered
+	 */
+	public static Year now(int calendarKey) {
+		return Year.of(data(calendarKey).getYearForEpochMilliseconds(data(calendarKey).getCurrentEpochMilliseconds()), calendarKey);
+	}
+
+	/**
+	 * Returns the current {@link Year} of the default calendar instance.
 	 */
 	public static Year now() {
-		return Year.of(store().getYearForEpochMilliseconds(store().getCurrentEpochMilliseconds()));
+		return Year.now(defaultCalendarKey());
 	}
 
 	@Override
@@ -307,12 +328,14 @@ public final class Year implements Comparable<Year>, Serializable {
 
 	@Override
 	public int hashCode() {
-		return year;
+		return Objects.hash(year, calendarKey);
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		return object instanceof Year && ((Year) object).year == year;
+		return object instanceof Year &&
+			   ((Year) object).year == year &&
+			   ((Year) object).calendarKey == calendarKey;
 	}
 
 	@Override

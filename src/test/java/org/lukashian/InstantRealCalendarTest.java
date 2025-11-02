@@ -55,13 +55,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
+import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Unit tests for the {@link Instant} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the @{@link TestMillisecondStoreDataProvider}.
+ * Unit tests for the {@link Instant} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the {@link TestMillisecondStoreDataProvider}.
  */
 public class InstantRealCalendarTest {
 
@@ -118,6 +118,7 @@ public class InstantRealCalendarTest {
 
 	@Test
 	public void testMinusProportionOfDay() {
+		//Equals looks at the millisecond that an Instant represents; if two proportions are close enough to represent the same millisecond, then they are considered equal
 		Instant realInstant = Instant.of(Day.of(4), 5000);
 		assertEquals(Instant.of(Day.of(4), 0), realInstant.minusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L)));
 		assertEquals(Instant.of(Day.of(3), 5001), realInstant.minusProportionOfDay(BigFraction.of(9999, 10000)));
@@ -142,9 +143,11 @@ public class InstantRealCalendarTest {
 
 	@Test
 	public void testPlusProportionOfDay() {
+		//Equals looks at the millisecond that an Instant represents; if two proportions are close enough to represent the same millisecond, then they are considered equal
 		Instant realInstant = Instant.of(Day.of(4), 5000);
+		assertEquals(Day.of(4).lastInstant(), realInstant.plusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L))); //Proportion is not enough to "reach" the next day
 		assertEquals(Instant.of(Day.of(5), 4999), realInstant.plusProportionOfDay(BigFraction.of(9999, 10000)));
-		//Can't test the 'plus' version of the testcases with many BigDecimals, because overflow into the next beep is prevented and therefore the resulting Instant cannot be expressed with a whole number of beeps
+		assertEquals(Instant.of(Day.of(5), 5000), realInstant.plusProportionOfDay(BigFraction.of(999999999999999999L, 1000000000000000000L)));
 	}
 
 	@Test

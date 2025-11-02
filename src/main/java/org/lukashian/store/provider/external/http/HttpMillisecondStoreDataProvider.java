@@ -48,42 +48,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store.external.file;
+package org.lukashian.store.provider.external.http;
 
-import org.lukashian.store.external.ExternalResourceMillisecondStoreDataProvider;
-import org.lukashian.store.external.http.StandardEarthHttpMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.ExternalResourceMillisecondStoreDataProvider;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import static java.net.http.HttpClient.Redirect.NORMAL;
 
 /**
- * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from a file.
+ * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from an HTTP location.
  * <p>
  * Please see {@link ExternalResourceMillisecondStoreDataProvider} for more details regarding the external resource mechanism.
- * <p>
- * The {@link FileMillisecondStoreDataProvider} is useful for applications that want to load the numbers of milliseconds from
- * the official lukashian.org server, but don't have access to the Internet. If you want to use this class to load the exact same
- * numbers as the {@link StandardEarthHttpMillisecondStoreDataProvider}, then you can simply perform requests to the location specified
- * in the {@link StandardEarthHttpMillisecondStoreDataProvider}, extended with the default locations specified in
- * {@link ExternalResourceMillisecondStoreDataProvider}, for example:
- * <pre>
- *     curl -L https://lukashian.org/millisecondstore/standardearth/unixEpochOffset -o unixEpochOffset
- * </pre>
- * Alternatively, you can simply use a browser to obtain the file at the above example url.
  */
-public class FileMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
+public class HttpMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
 
-	public FileMillisecondStoreDataProvider(String basePath, String unixEpochOffsetPathExtension, String yearEpochMillisecondsPathExtension, String dayEpochMillisecondsPathExtension) {
-		super(basePath, unixEpochOffsetPathExtension, yearEpochMillisecondsPathExtension, dayEpochMillisecondsPathExtension);
+	public HttpMillisecondStoreDataProvider(String baseUrl, String unixEpochOffsetUrlExtension, String yearEpochMillisecondsUrlExtension, String dayEpochMillisecondsUrlExtension) {
+		super(baseUrl, unixEpochOffsetUrlExtension, yearEpochMillisecondsUrlExtension, dayEpochMillisecondsUrlExtension);
 	}
 
-	public FileMillisecondStoreDataProvider(String basePath) {
-		super(basePath);
+	public HttpMillisecondStoreDataProvider(String baseUrl) {
+		super(baseUrl);
 	}
 
-	protected byte[] loadMillisecondsByteArray(String path) throws IOException {
-		try (FileInputStream fis = new FileInputStream(path)) {
-			return fis.readAllBytes();
+	protected byte[] loadMillisecondsByteArray(String url) throws IOException, InterruptedException {
+		try (HttpClient client = HttpClient.newBuilder().followRedirects(NORMAL).build()) {
+			HttpRequest request = HttpRequest.newBuilder()
+				.GET()
+				.header("Accept", "application/octet-stream")
+				.uri(URI.create(url))
+				.build();
+
+			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+			if (response.statusCode() == 200) {
+				return response.body();
+			} else {
+				throw new IOException("Expected response code 200, instead received response code " + response.statusCode());
+			}
 		}
 	}
 }

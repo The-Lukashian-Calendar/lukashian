@@ -51,43 +51,66 @@
 package org.lukashian.store;
 
 import org.lukashian.Day;
+import org.lukashian.Instant;
 import org.lukashian.LukashianException;
 import org.lukashian.Year;
+import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
+import org.lukashian.store.provider.StandardMarsMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardEarthHttpMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondStoreDataProvider;
 
-import java.util.Arrays;
-import java.util.ServiceLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * For each {@link Day} and {@link Year}, this class stores the number of milliseconds between the start of the calendar (the Lukashian epoch)
- * and the end of that day or year. It also stores the offset between the Lukashian epoch and the UNIX epoch. An implementation of
- * {@link MillisecondStoreDataProvider} is used to obtain this data. By default, an instance of {@link StandardEarthMillisecondStoreDataProvider} is used.
+ * This singleton class manages the various instances of the Lukashian Calendar. Each instance is implemented by a {@link MillisecondStoreDataProvider}
+ * and provides the mechanism with the necessary {@link MillisecondStoreData}.
  * <p>
- * Alternative implementations of the {@link MillisecondStoreDataProvider} can be provided using the Java Server Provider Interface mechanism. Simply
- * put a file named "org.lukashian.store.MillisecondStoreDataProvider" in META-INF/services/ on the classpath and put the fully qualified
- * name of the desired {@link MillisecondStoreDataProvider} implementation as text in that file.
+ * The int constants in this class represent the instances that are supported by default. It is also possible to register your own implementation
+ * of {@link MillisecondStoreDataProvider} and register it.
  * <p>
- * Alternatively, you could use the {@link #setMillisecondStoreDataProvider} of the {@link #INSTANCE} singleton.
+ * The default calendar instance will be used when {@link Year}, {@link Day} and {@link Instant} methods do not specify a calendar instance. By default,
+ * the default is {@link #EARTH}. It is possible to set a different default.
+ * <p>
+ * Data will only be requested from a {@link MillisecondStoreDataProvider} when the mechanism needs it, so no eager loading is done. Also, this
+ * class stores the data for repeated use, so no caching is needed in the {@link MillisecondStoreDataProvider}.
  *
  * @see MillisecondStoreDataProvider
  */
 public final class MillisecondStore {
 
+	/**
+	 * Represents the {@link StandardEarthMillisecondStoreDataProvider}
+	 */
+	public static final int EARTH = 1;
+
+	/**
+	 * Represents the {@link StandardEarthHttpMillisecondStoreDataProvider}
+	 */
+	public static final int EARTH_HTTP_LUKASHIAN_ORG = 2;
+
+	/**
+	 * Represents the {@link StandardMarsMillisecondStoreDataProvider}
+	 */
+	public static final int MARS = 3;
+
+	/**
+	 * Represents the {@link StandardMarsHttpMillisecondStoreDataProvider}
+	 */
+	public static final int MARS_HTTP_LUKASHIAN_ORG = 4;
+
 	private static final MillisecondStore INSTANCE = new MillisecondStore();
 
-	private MillisecondStoreDataProvider provider;
+	private int defaultCalendarKey = EARTH;
 
-	private long unixEpochOffsetMilliseconds;
-	private long[] yearEpochMilliseconds;
-	private long[] dayEpochMilliseconds;
-	private long[] unixTimestampsWithLeapSecond;
+	private final Map<Integer, MillisecondStoreDataProvider> providers = new ConcurrentHashMap<>();
+	private final Map<Integer, MillisecondStoreData> data = new ConcurrentHashMap<>();
 
 	private MillisecondStore() {
-		ServiceLoader<MillisecondStoreDataProvider> loader = ServiceLoader.load(MillisecondStoreDataProvider.class);
-		provider = loader.findFirst().orElseGet(StandardEarthMillisecondStoreDataProvider::new);
-
-		unixTimestampsWithLeapSecond = getUnixTimestampsWithLeapSecond();
-
-		this.reload();
+		this.registerProvider(EARTH, new StandardEarthMillisecondStoreDataProvider());
+		this.registerProvider(EARTH_HTTP_LUKASHIAN_ORG, new StandardEarthHttpMillisecondStoreDataProvider());
+		this.registerProvider(MARS, new StandardMarsMillisecondStoreDataProvider());
+		this.registerProvider(MARS_HTTP_LUKASHIAN_ORG, new StandardMarsHttpMillisecondStoreDataProvider());
 	}
 
 	/**
@@ -98,134 +121,69 @@ public final class MillisecondStore {
 	}
 
 	/**
-	 * Sets the {@link MillisecondStoreDataProvider} to the given instance and reloads this {@link MillisecondStore}.
+	 * Shortcut method to call {@link #getDefaultCalendarKey()} on the singleton {@link #INSTANCE}.
 	 */
-	public void setMillisecondStoreDataProvider(MillisecondStoreDataProvider provider) {
-		this.provider = provider;
-		this.reload();
+	public static int defaultCalendarKey() {
+		return INSTANCE.getDefaultCalendarKey();
 	}
 
 	/**
-	 * Reloads the durations of the {@link Year}s, {@link Day}s and the offset with the UNIX epoch from the {@link MillisecondStoreDataProvider}.
+	 * Shortcut method to call {@link #getData(int)} on the singleton {@link #INSTANCE}.
 	 */
-	public void reload() {
-		unixEpochOffsetMilliseconds = provider.loadUnixEpochOffsetMilliseconds();
-		yearEpochMilliseconds = provider.loadYearEpochMilliseconds();
-		dayEpochMilliseconds = provider.loadDayEpochMilliseconds(yearEpochMilliseconds);
+	public static MillisecondStoreData data(int calendarKey) {
+		return INSTANCE.getData(calendarKey);
 	}
 
 	/**
-	 * Gets the number of milliseconds from the UNIX Epoch until the given number of milliseconds from the Lukashian Epoch.
+	 * Get the default calendar key, for when no explicit calendar key is provided.
 	 */
-	public long getUnixEpochMilliseconds(long lukashianEpochMilliseconds) {
-		long unixEpochMilliseconds = Math.subtractExact(lukashianEpochMilliseconds, unixEpochOffsetMilliseconds);
-
-		//We have the correct value, now we need to make it incorrect, so that it matches the incorrect UNIX time standard
-		int index = Arrays.binarySearch(unixTimestampsWithLeapSecond, unixEpochMilliseconds);
-		int numberOfLeapSeconds = index >= 0 ? index + 1 : -index - 1;
-
-		return unixEpochMilliseconds - (numberOfLeapSeconds * 1000L);
+	public int getDefaultCalendarKey() {
+		return defaultCalendarKey;
 	}
 
 	/**
-	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the given number of milliseconds from the UNIX Epoch.
+	 * Set the default calendar key, for when no explicit calendar key is provided.
 	 */
-	public long getLukashianEpochMilliseconds(long unixEpochMilliseconds) {
-		//We have the incorrect value, now we need to make it correct, to compensate for the the incorrect UNIX time standard
-		int index = Arrays.binarySearch(unixTimestampsWithLeapSecond, unixEpochMilliseconds);
-		int numberOfLeapSeconds = index >= 0 ? index + 1 : -index - 1;
-
-		return Math.addExact(unixEpochMilliseconds + (numberOfLeapSeconds * 1000L), unixEpochOffsetMilliseconds);
+	public void setDefaultCalendarKey(int defaultCalendarKey) {
+		this.defaultCalendarKey = defaultCalendarKey;
 	}
 
 	/**
-	 * Gets the number of milliseconds from the start of the Lukashian Calendar until now.
+	 * Registers the given {@link MillisecondStoreDataProvider} under the given key. It is not advisable to overwrite the
+	 * standard keys, i.e. the int constants in this class, as other classes might depend on those constants to represent
+	 * what they are intended to represent.
 	 */
-	public long getCurrentEpochMilliseconds() {
-		return this.getLukashianEpochMilliseconds(System.currentTimeMillis());
+	public void registerProvider(int key, MillisecondStoreDataProvider provider) {
+		providers.put(key, provider);
 	}
 
 	/**
-	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the final point of the given year.
+	 * Gets the {@link MillisecondStoreData} generated by the {@link MillisecondStoreDataProvider} with the given key.
+	 * <p>
+	 * Data is requested from the {@link MillisecondStoreDataProvider} only once, after which it is stored for future use.
+	 *
+	 * @throws LukashianException when the given key is not mapped to a {@link MillisecondStoreDataProvider}
 	 */
-	public long getEpochMillisecondsForYear(int year) {
-		if (year > yearEpochMilliseconds.length) {
-			throw new LukashianException("Year " + year + " isn't supported yet by this Lukashian Calendar implementation");
+	public MillisecondStoreData getData(int calendarKey) {
+		if (providers.get(calendarKey) == null) {
+			throw new LukashianException("Please register provider for key " + calendarKey + " before calling this method with key " + calendarKey);
 		}
-		return yearEpochMilliseconds[year - 1];
+		return data.computeIfAbsent(calendarKey, k -> new MillisecondStoreData(providers.get(k)));
 	}
 
 	/**
-	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the final point of the given day. The day is specified in epoch
-	 * form, i.e. the how manieth day it is since the start of the Lukashian Calendar, irrespective of the year of the day.
+	 * Clears the {@link MillisecondStoreData} corresponding to the given key, so that, upon the next call to {@link #data(int)} with
+	 * that key, the data is re-requested from the {@link MillisecondStoreDataProvider}.
 	 */
-	public long getEpochMillisecondsForEpochDay(int epochDay) {
-		if (epochDay > dayEpochMilliseconds.length) {
-			throw new LukashianException("Epoch day " + epochDay + " isn't supported yet by this Lukashian Calendar implementation");
-		}
-		return dayEpochMilliseconds[epochDay - 1];
+	public void clearData(int key) {
+		data.remove(key);
 	}
 
 	/**
-	 * Gets the year that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
+	 * Clears all {@link MillisecondStoreData}, so that, upon the next call to {@link #data(int)}, the data is re-requested
+	 * from the {@link MillisecondStoreDataProvider}.
 	 */
-	public int getYearForEpochMilliseconds(long epochMilliseconds) {
-		if (epochMilliseconds > yearEpochMilliseconds[yearEpochMilliseconds.length - 1]) {
-			throw new LukashianException("Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar implementation");
-		}
-		int index = Arrays.binarySearch(yearEpochMilliseconds, epochMilliseconds);
-		return index >= 0 ? index + 1 : -index;
-	}
-
-	/**
-	 * Gets the epoch day that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
-	 */
-	public int getEpochDayForEpochMilliseconds(long epochMilliseconds) {
-		if (epochMilliseconds > dayEpochMilliseconds[dayEpochMilliseconds.length - 1]) {
-			throw new LukashianException("Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar implementation");
-		}
-		int index = Arrays.binarySearch(dayEpochMilliseconds, epochMilliseconds);
-		return index >= 0 ? index + 1 : -index;
-	}
-
-	private static long[] getUnixTimestampsWithLeapSecond() {
-		//if (true) return new long[] {}; //For initial Unix offset calculation
-
-		//See https://github.com/eggert/tz/blob/master/leap-seconds.list
-		long[] secondsSince1900WithLeapSecond = new long[] {
-			2287785600L,
-			2303683200L,
-			2335219200L,
-			2366755200L,
-			2398291200L,
-			2429913600L,
-			2461449600L,
-			2492985600L,
-			2524521600L,
-			2571782400L,
-			2603318400L,
-			2634854400L,
-			2698012800L,
-			2776982400L,
-			2840140800L,
-			2871676800L,
-			2918937600L,
-			2950473600L,
-			2982009600L,
-			3029443200L,
-			3076704000L,
-			3124137600L,
-			3345062400L,
-			3439756800L,
-			3550089600L,
-			3644697600L,
-			3692217600L
-		};
-
-		long[] unixTimestampsWithLeapSecond = new long[secondsSince1900WithLeapSecond.length];
-		for (int i = 0; i < unixTimestampsWithLeapSecond.length; i++ ) {
-			unixTimestampsWithLeapSecond[i] = (secondsSince1900WithLeapSecond[i] - 2208988800L) * 1000;
-		}
-		return unixTimestampsWithLeapSecond;
+	public void clearAllData() {
+		data.clear();
 	}
 }

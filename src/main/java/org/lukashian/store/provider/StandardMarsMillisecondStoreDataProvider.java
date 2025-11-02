@@ -48,7 +48,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store;
+package org.lukashian.store.provider;
+
+import org.lukashian.store.MillisecondStoreDataProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -102,7 +104,7 @@ import static java.lang.Math.*;
  *
  * This class uses the book "Astronomical Algorithms" by Jean Meeus to implement the calculations for the days and years.
  */
-public class StandardEarthMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
+public class StandardMarsMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
 	private static final double[] A = new double[] {485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50, 45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8};
 	private static final double[] B = new double[] {324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72, 243.58, 119.81, 297.17, 21.02,

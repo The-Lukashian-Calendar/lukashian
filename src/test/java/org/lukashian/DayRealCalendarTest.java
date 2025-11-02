@@ -54,13 +54,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
+import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the @{@link TestMillisecondStoreDataProvider}.
+ * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the {@link TestMillisecondStoreDataProvider}.
  */
 public class DayRealCalendarTest {
 

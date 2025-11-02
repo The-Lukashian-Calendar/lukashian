@@ -48,49 +48,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store;
+package org.lukashian.store.provider.external.file;
 
-import org.lukashian.Day;
-import org.lukashian.Year;
+import org.lukashian.store.provider.external.ExternalResourceMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardEarthHttpMillisecondStoreDataProvider;
+
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
- * For each {@link Day} and {@link Year}, an instance of this class provices the number of milliseconds between the start of the calendar
- * (the Lukashian epoch) and the end of that day or year (we call this 'epoch milliseconds'). It also stores the offset between the Lukashian
- * epoch and the UNIX epoch. Using these numbers, the actual years and days of the Lukashian Calendar are defined. An implementation of
- * {@link MillisecondStoreDataProvider} has to provide the following data:
- *
- * <ul>
- * 	<li>The number of epoch milliseconds for each year in an array where the index + 1 is the year and the value is the number of
- * 		epoch milliseconds for that year, i.e. how many milliseconds have passed from the beginning of the calendar up until the final
- * 		point of that year.</li>
- * 	<li>The number of epoch milliseconds for each day in an array where the index + 1 is the epoch day and the value is the number of
- * 		epoch milliseconds for that day, i.e. how many milliseconds have passed from the beginning of the calendar up until the final
- * 		point of that day. This does not take into account the year that each day is in, it simply lists all days in the calendar
- * 		(epoch days).</li>
- * 	<li>The offset in milliseconds between the Lukashian epoch (i.e. the start of the Lukashian Calendar) and the UNIX epoch in such a way
- * 		that "unixEpochOffsetMilliseconds + millisecondsSinceUnixEpoch = millisecondsSinceLukashianEpoch", in other words, when the UNIX
- * 		epoch is AFTER the Lukashian epoch, it needs to be a positive number. It needs to be measured around the point of the UNIX epoch,
- * 		before any UNIX leap seconds were added.</li>
- * </ul>
- *
- * Please note that this allows for various implementations of the Lukashian Calendar Mechanism. See {@link MillisecondStore} for the
- * various implementations that are available by default.
+ * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from a file.
  * <p>
- * This implementation of The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e.
- * there's a first millisecond, a last one and at least one in between. It might work for years and days that last less than 3 milliseconds,
- * but this has not been tested and is not guaranteed.
+ * Please see {@link ExternalResourceMillisecondStoreDataProvider} for more details regarding the external resource mechanism.
  * <p>
- * Following the previous constraint, this implementation of The Lukashian Calendar Mechanism also assumes that each year is at least 3
- * days long, i.e. there's a first day, a last one and at least one in between.
- * <p>
- * Implementations of this interface do not have to provide any caching functionality: each method is called only once and the result is
- * stored for future reference by the {@link MillisecondStore}.
+ * The {@link FileMillisecondStoreDataProvider} is useful for applications that want to load the numbers of milliseconds from
+ * the official lukashian.org server, but don't have access to the Internet. If you want to use this class to load the exact same
+ * numbers as the {@link StandardEarthHttpMillisecondStoreDataProvider}, then you can simply perform requests to the location specified
+ * in the {@link StandardEarthHttpMillisecondStoreDataProvider}, extended with the default locations specified in
+ * {@link ExternalResourceMillisecondStoreDataProvider}, for example:
+ * <pre>
+ *     curl -L https://lukashian.org/millisecondstore/standardearth/unixEpochOffset -o unixEpochOffset
+ * </pre>
+ * Alternatively, you can simply use a browser to obtain the file at the above example url.
  */
-public interface MillisecondStoreDataProvider {
+public class FileMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
 
-	long loadUnixEpochOffsetMilliseconds();
+	public FileMillisecondStoreDataProvider(String basePath, String unixEpochOffsetPathExtension, String yearEpochMillisecondsPathExtension, String dayEpochMillisecondsPathExtension) {
+		super(basePath, unixEpochOffsetPathExtension, yearEpochMillisecondsPathExtension, dayEpochMillisecondsPathExtension);
+	}
 
-	long[] loadYearEpochMilliseconds();
+	public FileMillisecondStoreDataProvider(String basePath) {
+		super(basePath);
+	}
 
-	long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds);
+	protected byte[] loadMillisecondsByteArray(String path) throws IOException {
+		try (FileInputStream fis = new FileInputStream(path)) {
+			return fis.readAllBytes();
+		}
+	}
 }

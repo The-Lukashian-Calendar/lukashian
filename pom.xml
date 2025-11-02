@@ -90,7 +90,7 @@
 	<developers>
 		<developer>
 			<name>Gert-Jan Schouten</name>
-			<url>https://www.zenbi.co.uk</url>
+			<url>https://www.matrixweb.nl</url>
 			<roles>
 				<role>Creator</role>
 			</roles>
@@ -268,9 +268,7 @@
 			<!-- For more information about how this works, see:
 				-https://maven.apache.org/guides/mini/guide-central-repository-upload.html
 				-https://central.sonatype.org/publish/requirements/gpg/
-				-https://oss.sonatype.org/index.html
-				-https://issues.sonatype.org/browse/OSSRH-58862
-				-https://keys.openpgp.org/search?q=903EE6E045CB6B0A7025C145A2EFF7B8BFA5CCE2
+				-https://central.sonatype.org/
 			 -->
 			<build>
 				<plugins>

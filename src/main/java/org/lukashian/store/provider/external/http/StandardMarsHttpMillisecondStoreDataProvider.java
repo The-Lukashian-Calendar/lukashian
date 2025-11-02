@@ -48,48 +48,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store.external.http;
+package org.lukashian.store.provider.external.http;
 
-import org.lukashian.store.external.ExternalResourceMillisecondStoreDataProvider;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import static java.net.http.HttpClient.Redirect.NORMAL;
+import org.lukashian.store.provider.StandardMarsMillisecondStoreDataProvider;
 
 /**
- * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from an HTTP location.
- * <p>
- * Please see {@link ExternalResourceMillisecondStoreDataProvider} for more details regarding the external resource mechanism.
+ * This implementation of {@link HttpMillisecondStoreDataProvider} loads binary streams of long values from the official lukashian.org server.
+ * The values that are returned by this server are generated server side by an instance of {@link StandardMarsMillisecondStoreDataProvider}.
  */
-public class HttpMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
+public class StandardMarsHttpMillisecondStoreDataProvider extends HttpMillisecondStoreDataProvider {
 
-	public HttpMillisecondStoreDataProvider(String baseUrl, String unixEpochOffsetUrlExtension, String yearEpochMillisecondsUrlExtension, String dayEpochMillisecondsUrlExtension) {
-		super(baseUrl, unixEpochOffsetUrlExtension, yearEpochMillisecondsUrlExtension, dayEpochMillisecondsUrlExtension);
-	}
-
-	public HttpMillisecondStoreDataProvider(String baseUrl) {
-		super(baseUrl);
-	}
-
-	protected byte[] loadMillisecondsByteArray(String url) throws IOException, InterruptedException {
-		try (HttpClient client = HttpClient.newBuilder().followRedirects(NORMAL).build()) {
-			HttpRequest request = HttpRequest.newBuilder()
-				.GET()
-				.header("Accept", "application/octet-stream")
-				.uri(URI.create(url))
-				.build();
-
-			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-			if (response.statusCode() == 200) {
-				return response.body();
-			} else {
-				throw new IOException("Expected response code 200, instead received response code " + response.statusCode());
-			}
-		}
+	public StandardMarsHttpMillisecondStoreDataProvider() {
+		super("https://lukashian.org/millisecondstore/standardmars/");
 	}
 }
