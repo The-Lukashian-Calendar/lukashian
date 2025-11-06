@@ -53,6 +53,7 @@ package org.lukashian;
 import java.io.Serializable;
 import java.util.Objects;
 
+import static org.lukashian.LukashianException.check;
 import static org.lukashian.store.MillisecondStore.data;
 import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
 
@@ -78,20 +79,17 @@ import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
  * <p>
  * {@link Year} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
-public final class Year implements Comparable<Year>, Serializable {
-
-	private final int calendarKey;
+public final class Year extends CalendarObject implements Comparable<Year>, Serializable {
 
 	private final int year;
 	private final long epochMilliseconds;
 	private final long epochMillisecondsPreviousYear;
 
 	private Year(int year, int calendarKey) {
-		this.calendarKey = calendarKey;
+		super(calendarKey);
 
-		if (year < 1) {
-			throw new LukashianException(year + " is not a valid year, the minimum is 1");
-		}
+		check(year >= 1, () -> year + " is not a valid year, the minimum is 1");
+
 		this.year = year;
 		this.epochMilliseconds = data(calendarKey).getEpochMillisecondsForYear(year);
 		this.epochMillisecondsPreviousYear = year == 1 ? 0 : data(calendarKey).getEpochMillisecondsForYear(year - 1);
@@ -106,7 +104,7 @@ public final class Year implements Comparable<Year>, Serializable {
 		if (yearsToSubtract < 0) { //To not have to deal with negatives
 			return this.plusYears(Math.negateExact(yearsToSubtract));
 		}
-		return Year.of(Math.subtractExact(year, yearsToSubtract));
+		return Year.of(Math.subtractExact(year, yearsToSubtract), calendarKey);
 	}
 
 	/**
@@ -116,7 +114,7 @@ public final class Year implements Comparable<Year>, Serializable {
 		if (yearsToAdd < 0) { //To not have to deal with negatives
 			return this.minusYears(Math.negateExact(yearsToAdd));
 		}
-		return Year.of(Math.addExact(year, yearsToAdd));
+		return Year.of(Math.addExact(year, yearsToAdd), calendarKey);
 	}
 
 	/**
@@ -155,27 +153,29 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns a new {@link Day} that represents the last {@link Day} of this year. Please note that this {@link Day} may end in the next year.
 	 */
 	public Day lastDay() {
-		return Day.of(data(calendarKey).getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()));
+		return Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()), calendarKey);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents the first {@link Instant} of this year. This is not necessarily at the start of a day.
 	 */
 	public Instant firstInstant() {
-		return Instant.of(this.getEpochMillisecondsAtStartOfYear());
+		return Instant.ofEpoch(this.getEpochMillisecondsAtStartOfYear(), calendarKey);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents the last {@link Instant} of this year. This is not necessarily at the end of a day.
 	 */
 	public Instant lastInstant() {
-		return Instant.of(this.getEpochMilliseconds());
+		return Instant.ofEpoch(this.getEpochMilliseconds(), calendarKey);
 	}
 
 	/**
 	 * Returns whether this year is before the given non-null {@link Year}.
 	 */
 	public boolean isBefore(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year < other.year;
 	}
 
@@ -183,6 +183,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is the same or before the given non-null {@link Year}.
 	 */
 	public boolean isSameOrBefore(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year <= other.year;
 	}
 
@@ -190,6 +192,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is after the given non-null {@link Year}.
 	 */
 	public boolean isAfter(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year > other.year;
 	}
 
@@ -197,6 +201,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is the same or after the given non-null {@link Year}.
 	 */
 	public boolean isSameOrAfter(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year >= other.year;
 	}
 
@@ -204,6 +210,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether the given non-null {@link Day}, is part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean contains(Day day) {
+		this.checkSameKeyAs(day);
+
 		return this.equals(day.getYear());
 	}
 
@@ -211,6 +219,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether the given non-null {@link Day}, is not part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean containsNot(Day day) {
+		this.checkSameKeyAs(day);
+
 		return !this.contains(day);
 	}
 
@@ -221,6 +231,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * cause the {@link Instant} to not be part of this year, returning false.
 	 */
 	public boolean contains(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		long instantEpochMilliseconds = instant.getEpochMilliseconds();
 		return instantEpochMilliseconds >= this.getEpochMillisecondsAtStartOfYear() && instantEpochMilliseconds <= epochMilliseconds;
 	}
@@ -232,6 +244,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * cause the {@link Instant} to be part of this year, returning false.
 	 */
 	public boolean containsNot(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		return !this.contains(instant);
 	}
 
@@ -284,6 +298,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * will be a negative number. If they represent the same year, the result will be 0.
 	 */
 	public int differenceWith(Year other) {
+		this.checkSameKeyAs(other);
+
 		return Math.subtractExact(year, other.year);
 	}
 

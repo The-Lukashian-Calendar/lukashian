@@ -50,32 +50,34 @@
  */
 package org.lukashian;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
+import java.io.Serializable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.MillisecondStore.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import static org.lukashian.LukashianException.check;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * Common superclass of {@link Year}, {@link Day} and {@link Instant}.
  */
-public class DayRealCalendarTest {
+public sealed abstract class CalendarObject implements Serializable permits Year, Day, Instant {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	protected final int calendarKey;
+
+	protected CalendarObject(int calendarKey) {
+		this.calendarKey = calendarKey;
 	}
 
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
+	/**
+	 * Gets the calendar key of this {@link CalendarObject}.
+	 */
+	public int getCalendarKey() {
+		return calendarKey;
 	}
 
-	//TODO: Test manual calendar key instantiators
+	/**
+	 * Checks whether this {@link CalendarObject} has the same calendar key as the given {@link CalendarObject}.
+	 *
+	 * @throws LukashianException when this CalendarObject has a different calendar key than the given CalendarObject
+	 */
+	public void checkSameKeyAs(CalendarObject other) {
+		check(this.getCalendarKey() == other.getCalendarKey(), () -> "Calendar keys of CalendarObjects do not match");
+	}
 }

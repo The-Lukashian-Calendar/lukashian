@@ -48,34 +48,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.MillisecondStore.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+package org.lukashian.store;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * Unit tests for the {@link MillisecondStore} class.
  */
-public class DayRealCalendarTest {
+public class MillisecondStoreTest {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
-	}
-
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
-	}
-
-	//TODO: Test manual calendar key instantiators
+	//TODO: comprehensive test for MillisecondStore, that uses special providers that log their invocations,
+	// so you can test that each method is invoked only once
 }

@@ -51,30 +51,22 @@
 package org.lukashian;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
 import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.MillisecondStore.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
+ * Unit tests for the {@link Year} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
  * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
  */
-public class DayRealCalendarTest {
+public class YearRealCalendarTest {
 
 	@BeforeAll
 	public static void setUp() {
 		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
 		MillisecondStore.store().setDefaultCalendarKey(TEST);
-	}
-
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
 	}
 
 	//TODO: Test manual calendar key instantiators

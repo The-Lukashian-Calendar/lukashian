@@ -51,15 +51,26 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.lukashian.store.MillisecondStore;
+import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
+import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
  * Unit tests for the {@link Day} class.
  */
 public class DayTest {
+
+	@BeforeAll
+	public static void setUp() {
+		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
+		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	}
 
 	@Test
 	public void testMinusYears() {
@@ -67,7 +78,7 @@ public class DayTest {
 
 		assertLukashianException(() -> day.minusYears(1));
 		assertLukashianException(() -> day.minusYears(4));
-		assertDay(4, day.minusYears(3));
+		assertDay(4, TEST, day.minusYears(3));
 	}
 
 	@Test
@@ -75,316 +86,328 @@ public class DayTest {
 		Day day = Day.of(1, 4);
 
 		assertLukashianException(() -> day.plusYears(1));
-		assertDay(14, day.plusYears(3));
+		assertDay(14, TEST, day.plusYears(3));
 	}
 
 	@Test
 	public void testMinusDays() {
-		Day day = Day.of(2);
+		Day day = Day.ofEpoch(2, TEST);
 
 		assertLukashianException(() -> day.minusDays(3));
 		assertLukashianException(() -> day.minusDays(2));
-		assertDay(1, day.minusDays(1));
-		assertDay(2, day.minusDays(0));
-		assertDay(3, day.minusDays(-1));
-		assertDay(4, day.minusDays(-2));
+		assertDay(1, TEST, day.minusDays(1));
+		assertDay(2, TEST, day.minusDays(0));
+		assertDay(3, TEST, day.minusDays(-1));
+		assertDay(4, TEST, day.minusDays(-2));
 		assertLukashianException(() -> day.minusDays(-17));
 	}
 
 	@Test
 	public void testPlusDays() {
-		Day day = Day.of(2);
+		Day day = Day.ofEpoch(2, TEST);
 
 		assertLukashianException(() -> day.plusDays(17));
-		assertDay(4, day.plusDays(2));
-		assertDay(3, day.plusDays(1));
-		assertDay(2, day.plusDays(0));
-		assertDay(1, day.plusDays(-1));
+		assertDay(4, TEST, day.plusDays(2));
+		assertDay(3, TEST, day.plusDays(1));
+		assertDay(2, TEST, day.plusDays(0));
+		assertDay(1, TEST, day.plusDays(-1));
 		assertLukashianException(() -> day.plusDays(-2));
 		assertLukashianException(() -> day.plusDays(-3));
 	}
 
 	@Test
 	public void testPrevious() {
-		assertDay(1, Day.of(2).previous());
+		assertDay(1, TEST, Day.ofEpoch(2, TEST).previous());
 	}
 
 	@Test
 	public void testNext() {
-		assertDay(3, Day.of(2).next());
+		assertDay(3, TEST, Day.ofEpoch(2, TEST).next());
 	}
 
 	@Test
 	public void testAtTime() {
-		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(-1)));
-		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(1)));
-		assertLukashianException(() -> Day.of(1).atTime(BigFraction.of(2)));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(BigFraction.of(-1)));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(BigFraction.of(1)));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(BigFraction.of(2)));
 
-		assertLukashianException(() -> Day.of(1).atTime(-1));
-		assertLukashianException(() -> Day.of(1).atTime(10000));
-		assertLukashianException(() -> Day.of(1).atTime(20000));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(-1));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(10000));
+		assertLukashianException(() -> Day.ofEpoch(1, TEST).atTime(20000));
 
-		assertInstant(1, Day.of(1).atTime(BigFraction.ZERO));
-		assertInstant(151, Day.of(1).atTime(BigFraction.of(5, 10)));
-		assertInstant(300, Day.of(1).atTime(BigFraction.of(999999999, 1000000000)));
+		assertInstant(1, TEST, Day.ofEpoch(1, TEST).atTime(BigFraction.ZERO));
+		assertInstant(151, TEST, Day.ofEpoch(1, TEST).atTime(BigFraction.of(5, 10)));
+		assertInstant(300, TEST, Day.ofEpoch(1, TEST).atTime(BigFraction.of(999999999, 1000000000)));
 
-		assertInstant(1, Day.of(1).atTime(0));
-		assertInstant(151, Day.of(1).atTime(5000));
-		assertInstant(300, Day.of(1).atTime(9999));
+		assertInstant(1, TEST, Day.ofEpoch(1, TEST).atTime(0));
+		assertInstant(151, TEST, Day.ofEpoch(1, TEST).atTime(5000));
+		assertInstant(300, TEST, Day.ofEpoch(1, TEST).atTime(9999));
 	}
 
 	@Test
 	public void testFirstInstant() {
-		assertInstant(1, Day.of(1).firstInstant());
-		assertInstant(301, Day.of(2).firstInstant());
+		assertInstant(1, TEST, Day.ofEpoch(1, TEST).firstInstant());
+		assertInstant(301, TEST, Day.ofEpoch(2, TEST).firstInstant());
 
-		assertDay(1, Day.of(1).firstInstant().getDay());
-		assertDay(2, Day.of(2).firstInstant().getDay());
+		assertDay(1, TEST, Day.ofEpoch(1, TEST).firstInstant().getDay());
+		assertDay(2, TEST, Day.ofEpoch(2, TEST).firstInstant().getDay());
 	}
 
 	@Test
 	public void testLastInstant() {
-		assertInstant(300, Day.of(1).lastInstant());
-		assertInstant(600, Day.of(2).lastInstant());
+		assertInstant(300, TEST, Day.ofEpoch(1, TEST).lastInstant());
+		assertInstant(600, TEST, Day.ofEpoch(2, TEST).lastInstant());
 
-		assertDay(1, Day.of(1).lastInstant().getDay());
-		assertDay(2, Day.of(2).lastInstant().getDay());
+		assertDay(1, TEST, Day.ofEpoch(1, TEST).lastInstant().getDay());
+		assertDay(2, TEST, Day.ofEpoch(2, TEST).lastInstant().getDay());
 	}
 
 	@Test
 	public void testIsBefore() {
-		assertTrue(Day.of(1).isBefore(Day.of(2)));
-		assertTrue(Day.of(1).isBefore(Day.of(5)));
-		assertFalse(Day.of(2).isBefore(Day.of(1)));
-		assertFalse(Day.of(5).isBefore(Day.of(1)));
-		assertFalse(Day.of(1).isBefore(Day.of(1)));
+		assertTrue(Day.ofEpoch(1, TEST).isBefore(Day.ofEpoch(2, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).isBefore(Day.ofEpoch(5, TEST)));
+		assertFalse(Day.ofEpoch(2, TEST).isBefore(Day.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(5, TEST).isBefore(Day.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).isBefore(Day.ofEpoch(1, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(1).isBefore(Day.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testIsSameOrBefore() {
-		assertTrue(Day.of(1).isSameOrBefore(Day.of(2)));
-		assertTrue(Day.of(1).isSameOrBefore(Day.of(5)));
-		assertFalse(Day.of(2).isSameOrBefore(Day.of(1)));
-		assertFalse(Day.of(5).isSameOrBefore(Day.of(1)));
-		assertTrue(Day.of(1).isSameOrBefore(Day.of(1)));
+		assertTrue(Day.ofEpoch(1, TEST).isSameOrBefore(Day.ofEpoch(2, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).isSameOrBefore(Day.ofEpoch(5, TEST)));
+		assertFalse(Day.ofEpoch(2, TEST).isSameOrBefore(Day.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(5, TEST).isSameOrBefore(Day.ofEpoch(1, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).isSameOrBefore(Day.ofEpoch(1, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(1).isSameOrBefore(Day.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testIsAfter() {
-		assertFalse(Day.of(1).isAfter(Day.of(2)));
-		assertFalse(Day.of(1).isAfter(Day.of(5)));
-		assertTrue(Day.of(2).isAfter(Day.of(1)));
-		assertTrue(Day.of(5).isAfter(Day.of(1)));
-		assertFalse(Day.of(1).isAfter(Day.of(1)));
+		assertFalse(Day.ofEpoch(1, TEST).isAfter(Day.ofEpoch(2, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).isAfter(Day.ofEpoch(5, TEST)));
+		assertTrue(Day.ofEpoch(2, TEST).isAfter(Day.ofEpoch(1, TEST)));
+		assertTrue(Day.ofEpoch(5, TEST).isAfter(Day.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).isAfter(Day.ofEpoch(1, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(1).isAfter(Day.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testIsSameOrAfter() {
-		assertFalse(Day.of(1).isSameOrAfter(Day.of(2)));
-		assertFalse(Day.of(1).isSameOrAfter(Day.of(5)));
-		assertTrue(Day.of(2).isSameOrAfter(Day.of(1)));
-		assertTrue(Day.of(5).isSameOrAfter(Day.of(1)));
-		assertTrue(Day.of(1).isSameOrAfter(Day.of(1)));
+		assertFalse(Day.ofEpoch(1, TEST).isSameOrAfter(Day.ofEpoch(2, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).isSameOrAfter(Day.ofEpoch(5, TEST)));
+		assertTrue(Day.ofEpoch(2, TEST).isSameOrAfter(Day.ofEpoch(1, TEST)));
+		assertTrue(Day.ofEpoch(5, TEST).isSameOrAfter(Day.ofEpoch(1, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).isSameOrAfter(Day.ofEpoch(1, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(1).isSameOrAfter(Day.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testContains() {
-		Day day = Day.of(2);
+		Day day = Day.ofEpoch(2, TEST);
 
 		assertTrue(day.contains(day.firstInstant()));
 		assertTrue(day.contains(day.lastInstant()));
 
-		assertTrue(Day.of(1).contains(Instant.of(1)));
-		assertTrue(Day.of(1).contains(Instant.of(300)));
-		assertFalse(Day.of(1).contains(Instant.of(301)));
+		assertTrue(Day.ofEpoch(1, TEST).contains(Instant.ofEpoch(1, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).contains(Instant.ofEpoch(300, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).contains(Instant.ofEpoch(301, TEST)));
 
-		assertFalse(Day.of(18).contains(Instant.of(4899)));
-		assertFalse(Day.of(18).contains(Instant.of(4900)));
-		assertTrue(Day.of(18).contains(Instant.of(39000)));
+		assertFalse(Day.ofEpoch(18, TEST).contains(Instant.ofEpoch(4899, TEST)));
+		assertFalse(Day.ofEpoch(18, TEST).contains(Instant.ofEpoch(4900, TEST)));
+		assertTrue(Day.ofEpoch(18, TEST).contains(Instant.ofEpoch(39000, TEST)));
+
+		assertLukashianException(() -> Day.ofEpoch(1).contains(Instant.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testContainsNot() {
-		Day day = Day.of(2);
+		Day day = Day.ofEpoch(2, TEST);
 
 		assertFalse(day.containsNot(day.firstInstant()));
 		assertFalse(day.containsNot(day.lastInstant()));
 
-		assertFalse(Day.of(1).containsNot(Instant.of(1)));
-		assertFalse(Day.of(1).containsNot(Instant.of(300)));
-		assertTrue(Day.of(1).containsNot(Instant.of(301)));
+		assertFalse(Day.ofEpoch(1, TEST).containsNot(Instant.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).containsNot(Instant.ofEpoch(300, TEST)));
+		assertTrue(Day.ofEpoch(1, TEST).containsNot(Instant.ofEpoch(301, TEST)));
 
-		assertTrue(Day.of(18).containsNot(Instant.of(4899)));
-		assertTrue(Day.of(18).containsNot(Instant.of(4900)));
-		assertFalse(Day.of(18).containsNot(Instant.of(39000)));
+		assertTrue(Day.ofEpoch(18, TEST).containsNot(Instant.ofEpoch(4899, TEST)));
+		assertTrue(Day.ofEpoch(18, TEST).containsNot(Instant.ofEpoch(4900, TEST)));
+		assertFalse(Day.ofEpoch(18, TEST).containsNot(Instant.ofEpoch(39000, TEST)));
+
+		assertLukashianException(() -> Day.ofEpoch(1).containsNot(Instant.ofEpoch(2, EARTH)));
 	}
 
 	@Test
 	public void testIsIn() {
-		assertTrue(Day.of(1).isIn(Year.of(1)));
-		assertTrue(Day.of(4).isIn(Year.of(1)));
-		assertFalse(Day.of(5).isIn(Year.of(1)));
+		assertTrue(Day.ofEpoch(1, TEST).isIn(Year.of(1)));
+		assertTrue(Day.ofEpoch(4, TEST).isIn(Year.of(1)));
+		assertFalse(Day.ofEpoch(5, TEST).isIn(Year.of(1)));
+
+		assertLukashianException(() -> Day.ofEpoch(1).isIn(Year.of(2, EARTH)));
 	}
 
 	@Test
 	public void testIsNotIn() {
-		assertFalse(Day.of(1).isNotIn(Year.of(1)));
-		assertFalse(Day.of(4).isNotIn(Year.of(1)));
-		assertTrue(Day.of(5).isNotIn(Year.of(1)));
+		assertFalse(Day.ofEpoch(1, TEST).isNotIn(Year.of(1)));
+		assertFalse(Day.ofEpoch(4, TEST).isNotIn(Year.of(1)));
+		assertTrue(Day.ofEpoch(5, TEST).isNotIn(Year.of(1)));
+
+		assertLukashianException(() -> Day.ofEpoch(1).isNotIn(Year.of(2, EARTH)));
 	}
 
 	@Test
 	public void testLenghtInMilliseconds() {
-		assertEquals(300, Day.of(1).lengthInMilliseconds());
-		assertEquals(300, Day.of(2).lengthInMilliseconds());
-		assertEquals(300, Day.of(3).lengthInMilliseconds());
-		assertEquals(300, Day.of(4).lengthInMilliseconds());
-		assertEquals(300, Day.of(5).lengthInMilliseconds());
-		assertEquals(300, Day.of(6).lengthInMilliseconds());
-		assertEquals(300, Day.of(7).lengthInMilliseconds());
-		assertEquals(300, Day.of(8).lengthInMilliseconds());
-		assertEquals(300, Day.of(9).lengthInMilliseconds());
-		assertEquals(300, Day.of(10).lengthInMilliseconds());
-		assertEquals(300, Day.of(11).lengthInMilliseconds());
-		assertEquals(300, Day.of(12).lengthInMilliseconds());
-		assertEquals(300, Day.of(13).lengthInMilliseconds());
-		assertEquals(300, Day.of(14).lengthInMilliseconds());
-		assertEquals(300, Day.of(15).lengthInMilliseconds());
-		assertEquals(299, Day.of(16).lengthInMilliseconds());
-		assertEquals(101, Day.of(17).lengthInMilliseconds());
-		assertEquals(34100, Day.of(18).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(1, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(2, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(3, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(4, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(5, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(6, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(7, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(8, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(9, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(10, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(11, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(12, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(13, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(14, TEST).lengthInMilliseconds());
+		assertEquals(300, Day.ofEpoch(15, TEST).lengthInMilliseconds());
+		assertEquals(299, Day.ofEpoch(16, TEST).lengthInMilliseconds());
+		assertEquals(101, Day.ofEpoch(17, TEST).lengthInMilliseconds());
+		assertEquals(34100, Day.ofEpoch(18, TEST).lengthInMilliseconds());
 	}
 
 	@Test
 	public void testGetEpochDay() {
-		assertEquals(1, Day.of(1).getEpochDay());
-		assertEquals(2, Day.of(2).getEpochDay());
-		assertEquals(3, Day.of(3).getEpochDay());
-		assertEquals(4, Day.of(4).getEpochDay());
-		assertEquals(5, Day.of(5).getEpochDay());
-		assertEquals(6, Day.of(6).getEpochDay());
-		assertEquals(7, Day.of(7).getEpochDay());
-		assertEquals(8, Day.of(8).getEpochDay());
-		assertEquals(9, Day.of(9).getEpochDay());
-		assertEquals(10, Day.of(10).getEpochDay());
-		assertEquals(11, Day.of(11).getEpochDay());
-		assertEquals(12, Day.of(12).getEpochDay());
-		assertEquals(13, Day.of(13).getEpochDay());
-		assertEquals(14, Day.of(14).getEpochDay());
-		assertEquals(15, Day.of(15).getEpochDay());
-		assertEquals(16, Day.of(16).getEpochDay());
-		assertEquals(17, Day.of(17).getEpochDay());
-		assertEquals(18, Day.of(18).getEpochDay());
+		assertEquals(1, Day.ofEpoch(1, TEST).getEpochDay());
+		assertEquals(2, Day.ofEpoch(2, TEST).getEpochDay());
+		assertEquals(3, Day.ofEpoch(3, TEST).getEpochDay());
+		assertEquals(4, Day.ofEpoch(4, TEST).getEpochDay());
+		assertEquals(5, Day.ofEpoch(5, TEST).getEpochDay());
+		assertEquals(6, Day.ofEpoch(6, TEST).getEpochDay());
+		assertEquals(7, Day.ofEpoch(7, TEST).getEpochDay());
+		assertEquals(8, Day.ofEpoch(8, TEST).getEpochDay());
+		assertEquals(9, Day.ofEpoch(9, TEST).getEpochDay());
+		assertEquals(10, Day.ofEpoch(10, TEST).getEpochDay());
+		assertEquals(11, Day.ofEpoch(11, TEST).getEpochDay());
+		assertEquals(12, Day.ofEpoch(12, TEST).getEpochDay());
+		assertEquals(13, Day.ofEpoch(13, TEST).getEpochDay());
+		assertEquals(14, Day.ofEpoch(14, TEST).getEpochDay());
+		assertEquals(15, Day.ofEpoch(15, TEST).getEpochDay());
+		assertEquals(16, Day.ofEpoch(16, TEST).getEpochDay());
+		assertEquals(17, Day.ofEpoch(17, TEST).getEpochDay());
+		assertEquals(18, Day.ofEpoch(18, TEST).getEpochDay());
 	}
 
 	@Test
 	public void testGetEpochMilliseconds() {
-		assertEquals(300, Day.of(1).getEpochMilliseconds());
-		assertEquals(600, Day.of(2).getEpochMilliseconds());
-		assertEquals(900, Day.of(3).getEpochMilliseconds());
-		assertEquals(1200, Day.of(4).getEpochMilliseconds());
-		assertEquals(1500, Day.of(5).getEpochMilliseconds());
-		assertEquals(1800, Day.of(6).getEpochMilliseconds());
-		assertEquals(2100, Day.of(7).getEpochMilliseconds());
-		assertEquals(2400, Day.of(8).getEpochMilliseconds());
-		assertEquals(2700, Day.of(9).getEpochMilliseconds());
-		assertEquals(3000, Day.of(10).getEpochMilliseconds());
-		assertEquals(3300, Day.of(11).getEpochMilliseconds());
-		assertEquals(3600, Day.of(12).getEpochMilliseconds());
-		assertEquals(3900, Day.of(13).getEpochMilliseconds());
-		assertEquals(4200, Day.of(14).getEpochMilliseconds());
-		assertEquals(4500, Day.of(15).getEpochMilliseconds());
-		assertEquals(4799, Day.of(16).getEpochMilliseconds());
-		assertEquals(4900, Day.of(17).getEpochMilliseconds());
-		assertEquals(39000, Day.of(18).getEpochMilliseconds());
+		assertEquals(300, Day.ofEpoch(1, TEST).getEpochMilliseconds());
+		assertEquals(600, Day.ofEpoch(2, TEST).getEpochMilliseconds());
+		assertEquals(900, Day.ofEpoch(3, TEST).getEpochMilliseconds());
+		assertEquals(1200, Day.ofEpoch(4, TEST).getEpochMilliseconds());
+		assertEquals(1500, Day.ofEpoch(5, TEST).getEpochMilliseconds());
+		assertEquals(1800, Day.ofEpoch(6, TEST).getEpochMilliseconds());
+		assertEquals(2100, Day.ofEpoch(7, TEST).getEpochMilliseconds());
+		assertEquals(2400, Day.ofEpoch(8, TEST).getEpochMilliseconds());
+		assertEquals(2700, Day.ofEpoch(9, TEST).getEpochMilliseconds());
+		assertEquals(3000, Day.ofEpoch(10, TEST).getEpochMilliseconds());
+		assertEquals(3300, Day.ofEpoch(11, TEST).getEpochMilliseconds());
+		assertEquals(3600, Day.ofEpoch(12, TEST).getEpochMilliseconds());
+		assertEquals(3900, Day.ofEpoch(13, TEST).getEpochMilliseconds());
+		assertEquals(4200, Day.ofEpoch(14, TEST).getEpochMilliseconds());
+		assertEquals(4500, Day.ofEpoch(15, TEST).getEpochMilliseconds());
+		assertEquals(4799, Day.ofEpoch(16, TEST).getEpochMilliseconds());
+		assertEquals(4900, Day.ofEpoch(17, TEST).getEpochMilliseconds());
+		assertEquals(39000, Day.ofEpoch(18, TEST).getEpochMilliseconds());
 	}
 
 	@Test
 	public void testGetEpochMillisecondsPreviousDay() {
-		assertEquals(0, Day.of(1).getEpochMillisecondsPreviousDay());
-		assertEquals(300, Day.of(2).getEpochMillisecondsPreviousDay());
-		assertEquals(600, Day.of(3).getEpochMillisecondsPreviousDay());
-		assertEquals(900, Day.of(4).getEpochMillisecondsPreviousDay());
-		assertEquals(1200, Day.of(5).getEpochMillisecondsPreviousDay());
-		assertEquals(1500, Day.of(6).getEpochMillisecondsPreviousDay());
-		assertEquals(1800, Day.of(7).getEpochMillisecondsPreviousDay());
-		assertEquals(2100, Day.of(8).getEpochMillisecondsPreviousDay());
-		assertEquals(2400, Day.of(9).getEpochMillisecondsPreviousDay());
-		assertEquals(2700, Day.of(10).getEpochMillisecondsPreviousDay());
-		assertEquals(3000, Day.of(11).getEpochMillisecondsPreviousDay());
-		assertEquals(3300, Day.of(12).getEpochMillisecondsPreviousDay());
-		assertEquals(3600, Day.of(13).getEpochMillisecondsPreviousDay());
-		assertEquals(3900, Day.of(14).getEpochMillisecondsPreviousDay());
-		assertEquals(4200, Day.of(15).getEpochMillisecondsPreviousDay());
-		assertEquals(4500, Day.of(16).getEpochMillisecondsPreviousDay());
-		assertEquals(4799, Day.of(17).getEpochMillisecondsPreviousDay());
-		assertEquals(4900, Day.of(18).getEpochMillisecondsPreviousDay());
+		assertEquals(0, Day.ofEpoch(1, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(300, Day.ofEpoch(2, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(600, Day.ofEpoch(3, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(900, Day.ofEpoch(4, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(1200, Day.ofEpoch(5, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(1500, Day.ofEpoch(6, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(1800, Day.ofEpoch(7, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(2100, Day.ofEpoch(8, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(2400, Day.ofEpoch(9, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(2700, Day.ofEpoch(10, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(3000, Day.ofEpoch(11, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(3300, Day.ofEpoch(12, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(3600, Day.ofEpoch(13, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(3900, Day.ofEpoch(14, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(4200, Day.ofEpoch(15, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(4500, Day.ofEpoch(16, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(4799, Day.ofEpoch(17, TEST).getEpochMillisecondsPreviousDay());
+		assertEquals(4900, Day.ofEpoch(18, TEST).getEpochMillisecondsPreviousDay());
 	}
 
 	@Test
 	public void testGetEpochMillisecondsAtStartOfDay() {
-		assertEquals(1, Day.of(1).getEpochMillisecondsAtStartOfDay());
-		assertEquals(301, Day.of(2).getEpochMillisecondsAtStartOfDay());
-		assertEquals(601, Day.of(3).getEpochMillisecondsAtStartOfDay());
-		assertEquals(901, Day.of(4).getEpochMillisecondsAtStartOfDay());
-		assertEquals(1201, Day.of(5).getEpochMillisecondsAtStartOfDay());
-		assertEquals(1501, Day.of(6).getEpochMillisecondsAtStartOfDay());
-		assertEquals(1801, Day.of(7).getEpochMillisecondsAtStartOfDay());
-		assertEquals(2101, Day.of(8).getEpochMillisecondsAtStartOfDay());
-		assertEquals(2401, Day.of(9).getEpochMillisecondsAtStartOfDay());
-		assertEquals(2701, Day.of(10).getEpochMillisecondsAtStartOfDay());
-		assertEquals(3001, Day.of(11).getEpochMillisecondsAtStartOfDay());
-		assertEquals(3301, Day.of(12).getEpochMillisecondsAtStartOfDay());
-		assertEquals(3601, Day.of(13).getEpochMillisecondsAtStartOfDay());
-		assertEquals(3901, Day.of(14).getEpochMillisecondsAtStartOfDay());
-		assertEquals(4201, Day.of(15).getEpochMillisecondsAtStartOfDay());
-		assertEquals(4501, Day.of(16).getEpochMillisecondsAtStartOfDay());
-		assertEquals(4800, Day.of(17).getEpochMillisecondsAtStartOfDay());
-		assertEquals(4901, Day.of(18).getEpochMillisecondsAtStartOfDay());
+		assertEquals(1, Day.ofEpoch(1, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(301, Day.ofEpoch(2, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(601, Day.ofEpoch(3, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(901, Day.ofEpoch(4, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(1201, Day.ofEpoch(5, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(1501, Day.ofEpoch(6, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(1801, Day.ofEpoch(7, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(2101, Day.ofEpoch(8, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(2401, Day.ofEpoch(9, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(2701, Day.ofEpoch(10, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(3001, Day.ofEpoch(11, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(3301, Day.ofEpoch(12, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(3601, Day.ofEpoch(13, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(3901, Day.ofEpoch(14, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(4201, Day.ofEpoch(15, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(4501, Day.ofEpoch(16, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(4800, Day.ofEpoch(17, TEST).getEpochMillisecondsAtStartOfDay());
+		assertEquals(4901, Day.ofEpoch(18, TEST).getEpochMillisecondsAtStartOfDay());
 	}
 
 	@Test
 	public void testGetYear() {
-		assertYear(1, Day.of(1).getYear());
-		assertYear(1, Day.of(2).getYear());
-		assertYear(1, Day.of(3).getYear());
-		assertYear(1, Day.of(4).getYear());
-		assertYear(2, Day.of(5).getYear());
-		assertYear(2, Day.of(6).getYear());
-		assertYear(2, Day.of(7).getYear());
-		assertYear(3, Day.of(8).getYear());
-		assertYear(3, Day.of(9).getYear());
-		assertYear(3, Day.of(10).getYear());
-		assertYear(4, Day.of(11).getYear());
-		assertYear(4, Day.of(12).getYear());
-		assertYear(4, Day.of(13).getYear());
-		assertYear(4, Day.of(14).getYear());
-		assertYear(5, Day.of(15).getYear());
-		assertYear(6, Day.of(16).getYear());
-		assertYear(6, Day.of(17).getYear());
-		assertYear(7, Day.of(18).getYear());
+		assertYear(1, TEST, Day.ofEpoch(1, TEST).getYear());
+		assertYear(1, TEST, Day.ofEpoch(2, TEST).getYear());
+		assertYear(1, TEST, Day.ofEpoch(3, TEST).getYear());
+		assertYear(1, TEST, Day.ofEpoch(4, TEST).getYear());
+		assertYear(2, TEST, Day.ofEpoch(5, TEST).getYear());
+		assertYear(2, TEST, Day.ofEpoch(6, TEST).getYear());
+		assertYear(2, TEST, Day.ofEpoch(7, TEST).getYear());
+		assertYear(3, TEST, Day.ofEpoch(8, TEST).getYear());
+		assertYear(3, TEST, Day.ofEpoch(9, TEST).getYear());
+		assertYear(3, TEST, Day.ofEpoch(10, TEST).getYear());
+		assertYear(4, TEST, Day.ofEpoch(11, TEST).getYear());
+		assertYear(4, TEST, Day.ofEpoch(12, TEST).getYear());
+		assertYear(4, TEST, Day.ofEpoch(13, TEST).getYear());
+		assertYear(4, TEST, Day.ofEpoch(14, TEST).getYear());
+		assertYear(5, TEST, Day.ofEpoch(15, TEST).getYear());
+		assertYear(6, TEST, Day.ofEpoch(16, TEST).getYear());
+		assertYear(6, TEST, Day.ofEpoch(17, TEST).getYear());
+		assertYear(7, TEST, Day.ofEpoch(18, TEST).getYear());
 	}
 
 	@Test
 	public void testGetEndYear() {
-		assertYear(1, Day.of(1).getEndYear());
-		assertYear(1, Day.of(2).getEndYear());
-		assertYear(1, Day.of(3).getEndYear());
-		assertYear(2, Day.of(4).getEndYear());
-		assertYear(2, Day.of(5).getEndYear());
-		assertYear(2, Day.of(6).getEndYear());
-		assertYear(3, Day.of(7).getEndYear());
-		assertYear(3, Day.of(8).getEndYear());
-		assertYear(3, Day.of(9).getEndYear());
-		assertYear(3, Day.of(10).getEndYear());
-		assertYear(4, Day.of(11).getEndYear());
-		assertYear(4, Day.of(12).getEndYear());
-		assertYear(4, Day.of(13).getEndYear());
-		assertYear(5, Day.of(14).getEndYear());
-		assertYear(6, Day.of(15).getEndYear());
-		assertYear(6, Day.of(16).getEndYear());
-		assertYear(7, Day.of(17).getEndYear());
-		assertYear(8, Day.of(18).getEndYear());
+		assertYear(1, TEST, Day.ofEpoch(1, TEST).getEndYear());
+		assertYear(1, TEST, Day.ofEpoch(2, TEST).getEndYear());
+		assertYear(1, TEST, Day.ofEpoch(3, TEST).getEndYear());
+		assertYear(2, TEST, Day.ofEpoch(4, TEST).getEndYear());
+		assertYear(2, TEST, Day.ofEpoch(5, TEST).getEndYear());
+		assertYear(2, TEST, Day.ofEpoch(6, TEST).getEndYear());
+		assertYear(3, TEST, Day.ofEpoch(7, TEST).getEndYear());
+		assertYear(3, TEST, Day.ofEpoch(8, TEST).getEndYear());
+		assertYear(3, TEST, Day.ofEpoch(9, TEST).getEndYear());
+		assertYear(3, TEST, Day.ofEpoch(10, TEST).getEndYear());
+		assertYear(4, TEST, Day.ofEpoch(11, TEST).getEndYear());
+		assertYear(4, TEST, Day.ofEpoch(12, TEST).getEndYear());
+		assertYear(4, TEST, Day.ofEpoch(13, TEST).getEndYear());
+		assertYear(5, TEST, Day.ofEpoch(14, TEST).getEndYear());
+		assertYear(6, TEST, Day.ofEpoch(15, TEST).getEndYear());
+		assertYear(6, TEST, Day.ofEpoch(16, TEST).getEndYear());
+		assertYear(7, TEST, Day.ofEpoch(17, TEST).getEndYear());
+		assertYear(8, TEST, Day.ofEpoch(18, TEST).getEndYear());
 	}
 
 	@Test
@@ -418,62 +441,63 @@ public class DayTest {
 		assertLukashianException(() -> Day.of(7, 2));
 		assertLukashianException(() -> Day.of(8, 1));
 
-		assertLukashianException(()-> Day.of(0));
-		assertEquals(1, Day.of(1).getDayNumber());
-		assertEquals(2, Day.of(2).getDayNumber());
-		assertEquals(3, Day.of(3).getDayNumber());
-		assertEquals(4, Day.of(4).getDayNumber());
-		assertEquals(1, Day.of(5).getDayNumber());
-		assertEquals(2, Day.of(6).getDayNumber());
-		assertEquals(3, Day.of(7).getDayNumber());
-		assertEquals(1, Day.of(8).getDayNumber());
-		assertEquals(2, Day.of(9).getDayNumber());
-		assertEquals(3, Day.of(10).getDayNumber());
-		assertEquals(1, Day.of(11).getDayNumber());
-		assertEquals(2, Day.of(12).getDayNumber());
-		assertEquals(3, Day.of(13).getDayNumber());
-		assertEquals(4, Day.of(14).getDayNumber());
-		assertEquals(1, Day.of(15).getDayNumber());
-		assertEquals(1, Day.of(16).getDayNumber());
-		assertEquals(2, Day.of(17).getDayNumber());
-		assertEquals(1, Day.of(18).getDayNumber());
-		assertLukashianException(()-> Day.of(19));
+		assertLukashianException(()-> Day.ofEpoch(0, TEST));
+		assertEquals(1, Day.ofEpoch(1, TEST).getDayNumber());
+		assertEquals(2, Day.ofEpoch(2, TEST).getDayNumber());
+		assertEquals(3, Day.ofEpoch(3, TEST).getDayNumber());
+		assertEquals(4, Day.ofEpoch(4, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(5, TEST).getDayNumber());
+		assertEquals(2, Day.ofEpoch(6, TEST).getDayNumber());
+		assertEquals(3, Day.ofEpoch(7, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(8, TEST).getDayNumber());
+		assertEquals(2, Day.ofEpoch(9, TEST).getDayNumber());
+		assertEquals(3, Day.ofEpoch(10, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(11, TEST).getDayNumber());
+		assertEquals(2, Day.ofEpoch(12, TEST).getDayNumber());
+		assertEquals(3, Day.ofEpoch(13, TEST).getDayNumber());
+		assertEquals(4, Day.ofEpoch(14, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(15, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(16, TEST).getDayNumber());
+		assertEquals(2, Day.ofEpoch(17, TEST).getDayNumber());
+		assertEquals(1, Day.ofEpoch(18, TEST).getDayNumber());
+		assertLukashianException(()-> Day.ofEpoch(19, TEST));
 	}
 
 	@Test
 	public void testDifferenceWith() {
-		assertEquals(0, Day.of(1).differenceWith(Day.of(1)));
-		assertEquals(-1, Day.of(1).differenceWith(Day.of(2)));
-		assertEquals(-2, Day.of(1).differenceWith(Day.of(3)));
-		assertEquals(-3, Day.of(1).differenceWith(Day.of(4)));
-		assertEquals(3, Day.of(4).differenceWith(Day.of(1)));
-		assertEquals(2, Day.of(4).differenceWith(Day.of(2)));
-		assertEquals(1, Day.of(4).differenceWith(Day.of(3)));
-		assertEquals(0, Day.of(4).differenceWith(Day.of(4)));
+		assertEquals(0, Day.ofEpoch(1, TEST).differenceWith(Day.ofEpoch(1, TEST)));
+		assertEquals(-1, Day.ofEpoch(1, TEST).differenceWith(Day.ofEpoch(2, TEST)));
+		assertEquals(-2, Day.ofEpoch(1, TEST).differenceWith(Day.ofEpoch(3, TEST)));
+		assertEquals(-3, Day.ofEpoch(1, TEST).differenceWith(Day.ofEpoch(4, TEST)));
+		assertEquals(3, Day.ofEpoch(4, TEST).differenceWith(Day.ofEpoch(1, TEST)));
+		assertEquals(2, Day.ofEpoch(4, TEST).differenceWith(Day.ofEpoch(2, TEST)));
+		assertEquals(1, Day.ofEpoch(4, TEST).differenceWith(Day.ofEpoch(3, TEST)));
+		assertEquals(0, Day.ofEpoch(4, TEST).differenceWith(Day.ofEpoch(4, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(4, TEST).differenceWith(Day.ofEpoch(4, EARTH)));
 	}
 
 	@Test
 	public void testOf() {
-		assertDay(1, Day.of(1, 1));
-		assertDay(2, Day.of(1, 2));
-		assertDay(3, Day.of(1, 3));
-		assertDay(4, Day.of(1, 4));
-		assertDay(5, Day.of(2, 1));
-		assertDay(6, Day.of(2, 2));
-		assertDay(7, Day.of(2, 3));
-		assertDay(8, Day.of(3, 1));
-		assertDay(9, Day.of(3, 2));
-		assertDay(10, Day.of(3, 3));
-		assertDay(11, Day.of(4, 1));
-		assertDay(12, Day.of(4, 2));
-		assertDay(13, Day.of(4, 3));
-		assertDay(14, Day.of(4, 4));
-		assertDay(15, Day.of(5, 1));
-		assertDay(16, Day.of(6, 1));
-		assertDay(17, Day.of(6, 2));
-		assertDay(18, Day.of(7, 1));
+		assertDay(1, TEST, Day.of(1, 1));
+		assertDay(2, TEST, Day.of(1, 2));
+		assertDay(3, TEST, Day.of(1, 3));
+		assertDay(4, TEST, Day.of(1, 4));
+		assertDay(5, TEST, Day.of(2, 1));
+		assertDay(6, TEST, Day.of(2, 2));
+		assertDay(7, TEST, Day.of(2, 3));
+		assertDay(8, TEST, Day.of(3, 1));
+		assertDay(9, TEST, Day.of(3, 2));
+		assertDay(10, TEST, Day.of(3, 3));
+		assertDay(11, TEST, Day.of(4, 1));
+		assertDay(12, TEST, Day.of(4, 2));
+		assertDay(13, TEST, Day.of(4, 3));
+		assertDay(14, TEST, Day.of(4, 4));
+		assertDay(15, TEST, Day.of(5, 1));
+		assertDay(16, TEST, Day.of(6, 1));
+		assertDay(17, TEST, Day.of(6, 2));
+		assertDay(18, TEST, Day.of(7, 1));
 
-		assertLukashianException(() -> Day.of(0));
+		assertLukashianException(() -> Day.ofEpoch(0));
 		assertLukashianException(() -> Day.of(null, 1));
 		assertLukashianException(() -> Day.of(1, 0));
 		assertLukashianException(() -> Day.of(1, 5));
@@ -488,36 +512,41 @@ public class DayTest {
 
 	@Test
 	public void testNow() {
-		assertNotNull(Day.now());
+		assertEquals(TEST, Day.now().getCalendarKey());
+		assertEquals(EARTH, Day.now(EARTH).getCalendarKey());
 	}
 
 	@Test
 	public void testCompareTo() {
-		assertEquals(0, Day.of(1).compareTo(Day.of(1)));
-		assertEquals(-1, Day.of(1).compareTo(Day.of(2)));
-		assertEquals(-2, Day.of(1).compareTo(Day.of(3)));
-		assertEquals(-3, Day.of(1).compareTo(Day.of(4)));
-		assertEquals(3, Day.of(4).compareTo(Day.of(1)));
-		assertEquals(2, Day.of(4).compareTo(Day.of(2)));
-		assertEquals(1, Day.of(4).compareTo(Day.of(3)));
-		assertEquals(0, Day.of(4).compareTo(Day.of(4)));
+		assertEquals(0, Day.ofEpoch(1, TEST).compareTo(Day.ofEpoch(1, TEST)));
+		assertEquals(-1, Day.ofEpoch(1, TEST).compareTo(Day.ofEpoch(2, TEST)));
+		assertEquals(-2, Day.ofEpoch(1, TEST).compareTo(Day.ofEpoch(3, TEST)));
+		assertEquals(-3, Day.ofEpoch(1, TEST).compareTo(Day.ofEpoch(4, TEST)));
+		assertEquals(3, Day.ofEpoch(4, TEST).compareTo(Day.ofEpoch(1, TEST)));
+		assertEquals(2, Day.ofEpoch(4, TEST).compareTo(Day.ofEpoch(2, TEST)));
+		assertEquals(1, Day.ofEpoch(4, TEST).compareTo(Day.ofEpoch(3, TEST)));
+		assertEquals(0, Day.ofEpoch(4, TEST).compareTo(Day.ofEpoch(4, TEST)));
+		assertLukashianException(() -> Day.ofEpoch(8).compareTo(Day.ofEpoch(4, EARTH)));
 	}
 
 	@Test
 	public void testHashCode() {
-		assertEquals(2, Day.of(2).hashCode());
+		assertEquals(Day.ofEpoch(2, TEST).hashCode(), Day.ofEpoch(2, TEST).hashCode());
+		assertNotEquals(Day.ofEpoch(2, TEST).hashCode(), Day.ofEpoch(2, EARTH).hashCode());
+		assertNotEquals(Day.ofEpoch(2, TEST).hashCode(), Day.ofEpoch(3, TEST).hashCode());
 	}
 
 	@SuppressWarnings({"unlikely-arg-type", "SimplifiableAssertion", "EqualsBetweenInconvertibleTypes"})
 	@Test
 	public void testEquals() {
-		assertTrue(Day.of(1).equals(Day.of(1)));
-		assertFalse(Day.of(1).equals(Day.of(2)));
-		assertFalse(Day.of(1).equals(Year.of(1)));
+		assertTrue(Day.ofEpoch(1, TEST).equals(Day.ofEpoch(1, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).equals(Day.ofEpoch(1, EARTH)));
+		assertFalse(Day.ofEpoch(1, TEST).equals(Day.ofEpoch(2, TEST)));
+		assertFalse(Day.ofEpoch(1, TEST).equals(Year.of(1)));
 	}
 
 	@Test
 	public void testToString() {
-		assertEquals("[Day: 1-2]", Day.of(2).toString());
+		assertEquals("[Day: 1-2]", Day.ofEpoch(2, TEST).toString());
 	}
 }

@@ -54,8 +54,9 @@ import org.apache.commons.numbers.fraction.BigFraction;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
+import java.util.Objects;
 
-import static org.lukashian.store.MillisecondStore.store;
+import static org.lukashian.store.MillisecondStore.*;
 
 /**
  * Represents a unique millisecond on the timeline. This means that the very first millisecond on the timeline is millisecond 1. This is consistent with the
@@ -121,7 +122,7 @@ import static org.lukashian.store.MillisecondStore.store;
  * <p>
  * {@link Instant} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
-public final class Instant implements Comparable<Instant>, Serializable {
+public final class Instant extends CalendarObject implements Comparable<Instant>, Serializable {
 
 	/**
 	 * The amount of beeps per day, see <a href="https://en.wikipedia.org/wiki/Basis_point">Basis Points</a>.
@@ -131,7 +132,9 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	private final Day day;
 	private final BigFraction proportionOfDay;
 
-	private Instant(Day day, BigFraction proportionOfDay) {
+	private Instant(Day day, BigFraction proportionOfDay, int calendarKey) {
+		super(calendarKey);
+
 		if (proportionOfDay.compareTo(BigFraction.ZERO) < 0 || proportionOfDay.compareTo(BigFraction.ONE) >= 0) {
 			throw new LukashianException("Proportion of day must be between 0 (inclusive) and 1 (exclusive)");
 		}
@@ -225,7 +228,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 		if (millisecondsToSubtract < 0) { //To not have to deal with negatives
 			return this.plusMilliseconds(Math.negateExact(millisecondsToSubtract));
 		}
-		return Instant.of(Math.subtractExact(this.getEpochMilliseconds(), millisecondsToSubtract));
+		return Instant.ofEpoch(Math.subtractExact(this.getEpochMilliseconds(), millisecondsToSubtract), calendarKey);
 	}
 
 	/**
@@ -250,7 +253,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 		if (millisecondsToAdd < 0) { //To not have to deal with negatives
 			return this.minusMilliseconds(Math.negateExact(millisecondsToAdd));
 		}
-		return Instant.of(Math.addExact(this.getEpochMilliseconds(), millisecondsToAdd));
+		return Instant.ofEpoch(Math.addExact(this.getEpochMilliseconds(), millisecondsToAdd), calendarKey);
 	}
 
 	/**
@@ -356,6 +359,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isBefore(Instant other) {
+		this.checkSameKeyAs(other);
+
 		return this.getEpochMilliseconds() < other.getEpochMilliseconds();
 	}
 
@@ -364,6 +369,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isSameOrBefore(Instant other) {
+		this.checkSameKeyAs(other);
+
 		return this.getEpochMilliseconds() <= other.getEpochMilliseconds();
 	}
 
@@ -372,6 +379,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isAfter(Instant other) {
+		this.checkSameKeyAs(other);
+
 		return this.getEpochMilliseconds() > other.getEpochMilliseconds();
 	}
 
@@ -380,6 +389,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * the proportions of the respective days that the Instants represent.
 	 */
 	public boolean isSameOrAfter(Instant other) {
+		this.checkSameKeyAs(other);
+
 		return this.getEpochMilliseconds() >= other.getEpochMilliseconds();
 	}
 
@@ -387,6 +398,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Returns whether this instant is in the given non-null {@link Year}.
 	 */
 	public boolean isIn(Year year) {
+		this.checkSameKeyAs(year);
+
 		return year.contains(this);
 	}
 
@@ -394,6 +407,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Returns whether this instant is not in the given non-null {@link Year}.
 	 */
 	public boolean isNotIn(Year year) {
+		this.checkSameKeyAs(year);
+
 		return year.containsNot(this);
 	}
 
@@ -401,6 +416,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Returns whether this instant is in the given non-null {@link Day}.
 	 */
 	public boolean isIn(Day day) {
+		this.checkSameKeyAs(day);
+
 		return day.contains(this);
 	}
 
@@ -408,6 +425,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * Returns whether this instant is not in the given non-null {@link Day}.
 	 */
 	public boolean isNotIn(Day day) {
+		this.checkSameKeyAs(day);
+
 		return day.containsNot(this);
 	}
 
@@ -466,7 +485,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * day of this instant is needed, please call getDay().getYear().
 	 */
 	public Year getYear() {
-		return Year.of(store().getYearForEpochMilliseconds(this.getEpochMilliseconds()));
+		return Year.of(data(calendarKey).getYearForEpochMilliseconds(this.getEpochMilliseconds()), calendarKey);
 	}
 
 	/**
@@ -488,7 +507,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * instant. For instants that occurred before the UNIX Epoch, a negative number is returned.
 	 */
 	public long getUnixEpochMilliseconds() {
-		return store().getUnixEpochMilliseconds(this.getEpochMilliseconds());
+		return data(calendarKey).getUnixEpochMilliseconds(this.getEpochMilliseconds());
 	}
 
 	/**
@@ -504,6 +523,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * same {@link Instant} on the timeline, the result will be 0.
 	 */
 	public long differenceWith(Instant other) {
+		this.checkSameKeyAs(other);
+
 		return Math.subtractExact(this.getEpochMilliseconds(), other.getEpochMilliseconds());
 	}
 
@@ -524,6 +545,8 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * If the exact difference between 2 {@link Instant}s is needed, please use {@link #differenceWith(Instant)}.
 	 */
 	public int differenceInBeepsWith(Instant other) {
+		this.checkSameKeyAs(other);
+
 		//Calculate the difference of the exact proportions
 		BigFraction proportionDifference = proportionOfDay.subtract(other.getProportionOfDay());
 
@@ -537,18 +560,28 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the Lukashian Calendar. See the javadoc of
+	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the given calendar instance. See the javadoc of
 	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
 	 *
-	 * @throws LukashianException when the given number of milliseconds is lower than 0
+	 * @throws LukashianException when the given number of milliseconds is lower than 0 or when the given calendar instance is not registered
 	 */
-	public static Instant of(long epochMilliseconds) {
-		Day day =  Day.of(store().getEpochDayForEpochMilliseconds(epochMilliseconds));
+	public static Instant ofEpoch(long epochMilliseconds, int calendarKey) {
+	Day day =  Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(epochMilliseconds), calendarKey);
 		long millisecondsOfDay = day.lengthInMilliseconds();
 
 		long millisecondsPassed = epochMilliseconds - day.getEpochMillisecondsAtStartOfDay(); //Use getEpochMillisecondsAtStartOfDay in order not to count the millisecond itself as having passed
 		BigFraction proportionOfDay = BigFraction.of(millisecondsPassed, millisecondsOfDay);
 		return Instant.of(day, proportionOfDay);
+	}
+
+	/**
+	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the default calendar instance. See the javadoc of
+	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
+	 *
+	 * @throws LukashianException when the given number of milliseconds is lower than 0
+	 */
+	public static Instant ofEpoch(long epochMilliseconds) {
+		return Instant.ofEpoch(epochMilliseconds, defaultCalendarKey());
 	}
 
 	/**
@@ -558,7 +591,7 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	 * @throws LukashianException when the given proportion is not between 0 (inclusive) and 1 (exclusive)
 	 */
 	public static Instant of(Day day, BigFraction proportionOfDay) {
-		return new Instant(day, proportionOfDay);
+		return new Instant(day, proportionOfDay, day.getCalendarKey());
 	}
 
 	/**
@@ -571,13 +604,25 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
+	 * of the given calendar instance has passed.
 	 *
-	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
-	 * between 0 (inclusive) and 1 (exclusive)
+	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
+	 * between 0 (inclusive) and 1 (exclusive) or or when the given calendar instance is not registered
+	 */
+	public static Instant of(int year, int day, BigFraction proportionOfDay, int calendarKey) {
+		return Instant.of(Day.of(year, day, calendarKey), proportionOfDay);
+	}
+
+	/**
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
+	 * of the default calendar instance has passed.
+	 *
+	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
+	 * between 0 (inclusive) and 1 (exclusive) or or when the given calendar instance is not registered
 	 */
 	public static Instant of(int year, int day, BigFraction proportionOfDay) {
-		return Instant.of(Day.of(year, day), proportionOfDay);
+		return Instant.of(year, day, proportionOfDay, defaultCalendarKey());
 	}
 
 	/**
@@ -599,53 +644,96 @@ public final class Instant implements Comparable<Instant>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day has passed.
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
+	 * of the given calendar instance has passed.
+	 *
+	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
+	 * between 0 (inclusive) and 9999 (inclusive) or when the given calendar instance is not registered
+	 */
+	public static Instant of(int year, int day, int beeps, int calendarKey) {
+		return Instant.of(Day.of(year, day, calendarKey), beeps);
+	}
+
+	/**
+	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
+	 * of the default calendar instance has passed.
 	 *
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
 	 * between 0 (inclusive) and 9999 (inclusive)
 	 */
 	public static Instant of(int year, int day, int beeps) {
-		return Instant.of(Day.of(year, day), beeps);
+		return Instant.of(year, day, beeps, defaultCalendarKey());
 	}
 
 	/**
-	 * Creates a new {@link Instant} representing the amount of milliseconds since the UNIX Epoch. Negative numbers are allowed.
+	 * Creates a new {@link Instant} representing the amount of milliseconds since the UNIX Epoch of the given calendar instance. Negative numbers are allowed.
+	 *
+	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar or when the given calendar instance is not registered
+	 */
+	public static Instant ofUnixEpochMilliseconds(long unixEpochMilliseconds, int calendarKey) {
+		return Instant.ofEpoch(data(calendarKey).getLukashianEpochMilliseconds(unixEpochMilliseconds), calendarKey);
+	}
+
+	/**
+	 * Creates a new {@link Instant} representing the amount of milliseconds since the UNIX Epoch of the default calendar instance. Negative numbers are allowed.
 	 *
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar
 	 */
 	public static Instant ofUnixEpochMilliseconds(long unixEpochMilliseconds) {
-		return Instant.of(store().getLukashianEpochMilliseconds(unixEpochMilliseconds));
+		return Instant.ofUnixEpochMilliseconds(unixEpochMilliseconds, defaultCalendarKey());
 	}
 
 	/**
-	 * Creates a new {@link Instant} representing the same point in time as the given Java {@link java.time.Instant}.
+	 * Creates a new {@link Instant} representing the same point in time as the given Java {@link java.time.Instant} in the given calendar instance.
+	 *
+	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar or when the given calendar instance is not registered
+	 */
+	public static Instant ofJavaInstant(java.time.Instant javaInstant, int calendarKey) {
+		return Instant.ofUnixEpochMilliseconds(javaInstant.toEpochMilli(), calendarKey);
+	}
+
+	/**
+	 * Creates a new {@link Instant} representing the same point in time as the given Java {@link java.time.Instant} in the default calendar instance.
 	 *
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar
 	 */
 	public static Instant ofJavaInstant(java.time.Instant javaInstant) {
-		return Instant.ofUnixEpochMilliseconds(javaInstant.toEpochMilli());
+		return Instant.ofJavaInstant(javaInstant, defaultCalendarKey());
+	}
+
+	/**
+	 * Returns the current {@link Instant} of the given calendar instance.
+	 *
+	 * @throws LukashianException when the given calendar instance is not registered
+	 */
+	public static Instant now(int calendarKey) {
+		return Instant.ofEpoch(data(calendarKey).getCurrentEpochMilliseconds(), calendarKey);
 	}
 
 	/**
 	 * Returns the current {@link Instant}.
 	 */
 	public static Instant now() {
-		return Instant.of(store().getCurrentEpochMilliseconds());
+		return Instant.now(defaultCalendarKey());
 	}
 
 	@Override
 	public int compareTo(Instant other) {
-		return Long.compare(this.getEpochMilliseconds(), other.getEpochMilliseconds());
+		this.checkSameKeyAs(other);
+
+		return Long.compare(this.getEpochMilliseconds(), other.getEpochMilliseconds()); //differenceWith returns a long, so can't be used here
 	}
 
 	@Override
 	public int hashCode() {
-		return Long.valueOf(this.getEpochMilliseconds()).hashCode();
+		return Objects.hash(this.getEpochMilliseconds(), calendarKey);
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		return object instanceof Instant && ((Instant) object).getEpochMilliseconds() == this.getEpochMilliseconds();
+		return object instanceof Instant &&
+			   ((Instant) object).getEpochMilliseconds() == this.getEpochMilliseconds() &&
+			   ((Instant) object).calendarKey == calendarKey;
 	}
 
 	@Override

@@ -51,12 +51,14 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
-import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static org.lukashian.Instant.BEEPS_PER_DAY;
-import static org.lukashian.store.MillisecondStore.*;
+import static org.lukashian.LukashianException.check;
+import static org.lukashian.store.MillisecondStore.data;
+import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
 
 /**
  * Represents a day in the Lukashian Calendar Mechanism.
@@ -85,20 +87,17 @@ import static org.lukashian.store.MillisecondStore.*;
  * <p>
  * {@link Day} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
-public final class Day implements Comparable<Day>, Serializable {
-
-	private final int calendarKey;
+public final class Day extends CalendarObject implements Comparable<Day>, Serializable {
 
 	private final int epochDay;
 	private final long epochMilliseconds;
 	private final long epochMillisecondsPreviousDay;
 
 	private Day(int epochDay, int calendarKey) {
-		this.calendarKey = calendarKey;
+		super(calendarKey);
 
-		if (epochDay < 1) {
-			throw new LukashianException(epochDay + " is not a valid epoch day, the minimum is 1");
-		}
+		check(epochDay >= 1, () -> epochDay + " is not a valid epoch day, the minimum is 1");
+
 		this.epochDay = epochDay;
 		this.epochMilliseconds = data(calendarKey).getEpochMillisecondsForEpochDay(epochDay);
 		this.epochMillisecondsPreviousDay = epochDay == 1 ? 0 : data(calendarKey).getEpochMillisecondsForEpochDay(epochDay - 1);
@@ -135,7 +134,7 @@ public final class Day implements Comparable<Day>, Serializable {
 		if (daysToSubtract < 0) { //To not have to deal with negatives
 			return this.plusDays(Math.negateExact(daysToSubtract));
 		}
-		return Day.ofEpoch(Math.subtractExact(epochDay, daysToSubtract));
+		return Day.ofEpoch(Math.subtractExact(epochDay, daysToSubtract), calendarKey);
 	}
 
 	/**
@@ -145,7 +144,7 @@ public final class Day implements Comparable<Day>, Serializable {
 		if (daysToAdd < 0) { //To not have to deal with negatives
 			return this.minusDays(Math.negateExact(daysToAdd));
 		}
-		return Day.ofEpoch(Math.addExact(epochDay, daysToAdd));
+		return Day.ofEpoch(Math.addExact(epochDay, daysToAdd), calendarKey);
 	}
 
 	/**
@@ -186,20 +185,22 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns a new {@link Instant} that represents the first {@link Instant} of this day.
 	 */
 	public Instant firstInstant() {
-		return Instant.of(this.getEpochMillisecondsAtStartOfDay());
+		return Instant.ofEpoch(this.getEpochMillisecondsAtStartOfDay(), calendarKey);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents the last {@link Instant} of this day.
 	 */
 	public Instant lastInstant() {
-		return Instant.of(this.getEpochMilliseconds());
+		return Instant.ofEpoch(this.getEpochMilliseconds(), calendarKey);
 	}
 
 	/**
 	 * Returns whether this day is before the given non-null {@link Day}.
 	 */
 	public boolean isBefore(Day other) {
+		this.checkSameKeyAs(other);
+
 		return epochDay < other.epochDay;
 	}
 
@@ -207,6 +208,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether this day is the same or before the given non-null {@link Day}.
 	 */
 	public boolean isSameOrBefore(Day other) {
+		this.checkSameKeyAs(other);
+
 		return epochDay <= other.epochDay;
 	}
 
@@ -214,6 +217,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether this day is after the given non-null {@link Day}.
 	 */
 	public boolean isAfter(Day other) {
+		this.checkSameKeyAs(other);
+
 		return epochDay > other.epochDay;
 	}
 
@@ -221,6 +226,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether this day is the same or after the given non-null {@link Day}.
 	 */
 	public boolean isSameOrAfter(Day other) {
+		this.checkSameKeyAs(other);
+
 		return epochDay >= other.epochDay;
 	}
 
@@ -228,6 +235,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether the given non-null {@link Instant}, is inside this day.
 	 */
 	public boolean contains(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		return this.equals(instant.getDay());
 	}
 
@@ -235,6 +244,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether the given non-null {@link Instant}, is not inside this day.
 	 */
 	public boolean containsNot(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		return !this.contains(instant);
 	}
 
@@ -242,6 +253,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether this day is in the given non-null {@link Year}.
 	 */
 	public boolean isIn(Year year) {
+		this.checkSameKeyAs(year);
+
 		return year.contains(this);
 	}
 
@@ -249,6 +262,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns whether this day is not in the given non-null {@link Year}.
 	 */
 	public boolean isNotIn(Year year) {
+		this.checkSameKeyAs(year);
+
 		return year.containsNot(this);
 	}
 
@@ -293,14 +308,14 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * Returns the year of this {@link Day}, which is the year this day starts in.
 	 */
 	public Year getYear() {
-		return Year.of(data(calendarKey).getYearForEpochMilliseconds(this.getEpochMillisecondsAtStartOfDay()));
+		return Year.of(data(calendarKey).getYearForEpochMilliseconds(this.getEpochMillisecondsAtStartOfDay()), calendarKey);
 	}
 
 	/**
 	 * Returns the year that this {@link Day} ends in. This is not necessarily the same year as the one in which this day starts.
 	 */
 	public Year getEndYear() {
-		return Year.of(data(calendarKey).getYearForEpochMilliseconds(this.getEpochMilliseconds()));
+		return Year.of(data(calendarKey).getYearForEpochMilliseconds(this.getEpochMilliseconds()), calendarKey);
 	}
 
 	/**
@@ -325,6 +340,8 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * the result will be 0.
 	 */
 	public int differenceWith(Day other) {
+		this.checkSameKeyAs(other);
+
 		return Math.subtractExact(epochDay, other.epochDay);
 	}
 
@@ -339,32 +356,13 @@ public final class Day implements Comparable<Day>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link Day} representing the given epoch day for {@link MillisecondStore#EARTH}, i.e. the number of the day since the start of the calendar,
+	 * Creates a new {@link Day} representing the given epoch day of the default calendar instance, i.e. the number of the day since the start of the calendar,
 	 * irrespective of the year that the day is in, e.g. 'day 5000 since the epoch'.
 	 *
 	 * @throws LukashianException when the given epoch day is 0 or lower
 	 */
 	public static Day ofEpoch(int epochDay) {
-		return Day.ofEpoch(epochDay, EARTH);
-	}
-
-	/**
-	 * Creates a new {@link Day} representing the given day in the given year of the given calendar instance.
-	 *
-	 * @throws LukashianException when the given day does not exist for the given year or when the given calendar instance is not registered
-	 */
-	public static Day of(Year year, int day, int calendarKey) {
-		if (year == null) {
-			throw new LukashianException("The year of a day cannot be null");
-		}
-		if (day < 1) {
-			throw new LukashianException(day + " is not a valid day, the minimum is 1");
-		}
-		if (day > year.getNumberOfDays()) {
-			throw new LukashianException(day + " is not a valid day in year " + year.getYearNumber());
-		}
-		int firstEpochDayOfYear = getFirstDayOfYearInEpochForm(year);
-		return Day.of((firstEpochDayOfYear + day) - 1);
+		return Day.ofEpoch(epochDay, defaultCalendarKey());
 	}
 
 	/**
@@ -373,42 +371,46 @@ public final class Day implements Comparable<Day>, Serializable {
 	 * @throws LukashianException when the given day does not exist for the given year
 	 */
 	public static Day of(Year year, int day) {
-		if (year == null) {
-			throw new LukashianException("The year of a day cannot be null");
-		}
-		if (day < 1) {
-			throw new LukashianException(day + " is not a valid day, the minimum is 1");
-		}
-		if (day > year.getNumberOfDays()) {
-			throw new LukashianException(day + " is not a valid day in year " + year.getYearNumber());
-		}
+		check(year != null, () -> "The year of a day cannot be null");
+		check(day >= 1, () -> day + " is not a valid day, the minimum is 1");
+		check(day <= year.getNumberOfDays(), () -> day + " is not a valid day in year " + year.getYearNumber());
+
 		int firstEpochDayOfYear = getFirstDayOfYearInEpochForm(year);
-		return Day.of((firstEpochDayOfYear + day) - 1);
+		return Day.ofEpoch((firstEpochDayOfYear + day) - 1, year.getCalendarKey());
 	}
 
 	/**
 	 * Creates a new {@link Day} representing the given day in the given year of the given calendar instance.
 	 *
-	 * @throws LukashianException when the given year is 0 or lower,  when the given day does not exist for the given year or when the given calendar instance is not registered
+	 * @throws LukashianException when the given year is 0 or lower, when the given day does not exist for the given year or when the given calendar instance is not registered
 	 */
 	public static Day of(int year, int day, int calendarKey) {
-		return Day.of(Year.of(year), day);
+		return Day.of(Year.of(year, calendarKey), day);
 	}
 
 	/**
-	 * Creates a new {@link Day} representing the given day in the given year.
+	 * Creates a new {@link Day} representing the given day in the given year of the default calendar instance.
 	 *
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year
 	 */
 	public static Day of(int year, int day) {
-		return Day.of(Year.of(year), day);
+		return Day.of(year, day, defaultCalendarKey());
 	}
 
 	/**
-	 * Returns the current {@link Day}.
+	 * Returns the current {@link Day} of the given calendar instance.
+	 *
+	 * @throws LukashianException when the given calendar instance is not registered
+	 */
+	public static Day now(int calendarKey) {
+		return Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(data(calendarKey).getCurrentEpochMilliseconds()), calendarKey);
+	}
+
+	/**
+	 * Returns the current {@link Day} of the given default calendar instance.
 	 */
 	public static Day now() {
-		return Day.of(store().getEpochDayForEpochMilliseconds(store().getCurrentEpochMilliseconds()));
+		return Day.now(defaultCalendarKey());
 	}
 
 	@Override
@@ -418,12 +420,14 @@ public final class Day implements Comparable<Day>, Serializable {
 
 	@Override
 	public int hashCode() {
-		return epochDay;
+		return Objects.hash(epochDay, calendarKey);
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		return object instanceof Day && ((Day) object).epochDay == epochDay;
+		return object instanceof Day &&
+			   ((Day) object).epochDay == epochDay &&
+			   ((Day) object).calendarKey == calendarKey;
 	}
 
 	@Override
@@ -431,12 +435,12 @@ public final class Day implements Comparable<Day>, Serializable {
 		return "[Day: " + Formatter.format(this) + "]";
 	}
 
-	private static int getFirstDayOfYearInEpochForm(Year year, int calendarKey) {
+	private static int getFirstDayOfYearInEpochForm(Year year) {
 		long epochMillisecondsAtStartOfYear = year.getEpochMillisecondsAtStartOfYear();
-		int runningEpochDayAtStartOfYear = data(calendarKey).getEpochDayForEpochMilliseconds(epochMillisecondsAtStartOfYear);
+		int runningEpochDayAtStartOfYear = data(year.getCalendarKey()).getEpochDayForEpochMilliseconds(epochMillisecondsAtStartOfYear);
 
 		long epochMillisecondsAtStartOfRunningDay = runningEpochDayAtStartOfYear == 1 ? 1 :
-			data(calendarKey).getEpochMillisecondsForEpochDay(runningEpochDayAtStartOfYear - 1) + 1;
+			data(year.getCalendarKey()).getEpochMillisecondsForEpochDay(runningEpochDayAtStartOfYear - 1) + 1;
 
 		if (epochMillisecondsAtStartOfRunningDay < epochMillisecondsAtStartOfYear) { //Present day at start of year started in previous year
 			return runningEpochDayAtStartOfYear + 1;
