@@ -57,7 +57,7 @@ import org.lukashian.store.TestMillisecondStoreDataProvider;
 import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
@@ -76,6 +76,4 @@ public class DayRealCalendarTest {
 	public void testGetLengthOfBeepInMilliseconds() {
 		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
 	}
-
-	//TODO: Test manual calendar key instantiators
 }

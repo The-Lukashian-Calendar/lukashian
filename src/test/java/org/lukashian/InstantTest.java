@@ -54,11 +54,15 @@ import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
+import org.lukashian.store.MillisecondStoreData;
+import org.lukashian.store.MillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
+
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
-import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
@@ -377,6 +381,32 @@ public class InstantTest {
 	}
 
 	@Test
+	public void testToCalendar() {
+		MillisecondStoreDataProvider oneSecondBehind = new TestMillisecondStoreDataProvider() {
+			@Override
+			public long loadUnixEpochOffsetMilliseconds() {
+				try {
+					MillisecondStoreData testData = MillisecondStore.data(TEST);
+					Field f = testData.getClass().getDeclaredField("unixEpochOffsetMilliseconds");
+					f.setAccessible(true);
+					long unixEpochOffsetMilliseconds = (long) f.get(testData);
+
+					return unixEpochOffsetMilliseconds + 1000;
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+		MillisecondStore.store().registerProvider(TEST + 1, oneSecondBehind);
+
+		Instant test = Instant.now(TEST);
+		Instant oneSecondBehindInstant = test.toCalendar(TEST + 1);
+
+		assertEquals(test.getEpochMilliseconds() + 1000, oneSecondBehindInstant.getEpochMilliseconds());
+		assertEquals(TEST + 1, oneSecondBehindInstant.getCalendarKey());
+	}
+
+	@Test
 	public void testDifferenceWith() {
 		assertEquals(0, Instant.ofEpoch(1, TEST).differenceWith(Instant.ofEpoch(1, TEST)));
 		assertEquals(-1, Instant.ofEpoch(1, TEST).differenceWith(Instant.ofEpoch(2, TEST)));
@@ -436,6 +466,12 @@ public class InstantTest {
 
 		assertInstant(151, TEST, Instant.of(Year.of(1), 1, 5000));
 		assertInstant(151, TEST, Instant.of(1, 1, 5000));
+
+		assertInstant(1, EARTH, Instant.ofEpoch(1, EARTH));
+		assertInstant(1, EARTH, Instant.of(1, 1, BigFraction.ZERO, EARTH));
+		assertInstant(1, EARTH, Instant.of(1, 1, 0, EARTH));
+
+		assertEquals(EARTH, Instant.ofJavaInstant(java.time.Instant.now(), EARTH).getCalendarKey());
 	}
 
 	@Test

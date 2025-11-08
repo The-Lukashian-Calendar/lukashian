@@ -51,6 +51,8 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
+import org.lukashian.store.CalendarKeys;
+import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -349,6 +351,8 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	 * Creates a new {@link Day} representing the given epoch day of the given calendar instance, i.e. the number of the day since the start of the calendar,
 	 * irrespective of the year that the day is in, e.g. 'day 5000 since the epoch'.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given epoch day is 0 or lower or when the given calendar instance is not registered
 	 */
 	public static Day ofEpoch(int epochDay, int calendarKey) {
@@ -359,6 +363,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	 * Creates a new {@link Day} representing the given epoch day of the default calendar instance, i.e. the number of the day since the start of the calendar,
 	 * irrespective of the year that the day is in, e.g. 'day 5000 since the epoch'.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given epoch day is 0 or lower
 	 */
 	public static Day ofEpoch(int epochDay) {
@@ -382,6 +387,8 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	/**
 	 * Creates a new {@link Day} representing the given day in the given year of the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower, when the given day does not exist for the given year or when the given calendar instance is not registered
 	 */
 	public static Day of(int year, int day, int calendarKey) {
@@ -391,6 +398,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	/**
 	 * Creates a new {@link Day} representing the given day in the given year of the default calendar instance.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year
 	 */
 	public static Day of(int year, int day) {
@@ -400,6 +408,8 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	/**
 	 * Returns the current {@link Day} of the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given calendar instance is not registered
 	 */
 	public static Day now(int calendarKey) {
@@ -407,7 +417,9 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	}
 
 	/**
-	 * Returns the current {@link Day} of the given default calendar instance.
+	 * Returns the current {@link Day} of the default calendar instance.
+	 *
+	 * @see MillisecondStore
 	 */
 	public static Day now() {
 		return Day.now(defaultCalendarKey());

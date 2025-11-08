@@ -58,7 +58,7 @@ import org.lukashian.store.TestMillisecondStoreDataProvider;
 import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
@@ -203,6 +203,4 @@ public class InstantRealCalendarTest {
 		assertEquals(-2000, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(500099999, 1000000000))));
 		assertEquals(0, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(300099999, 1000000000))));
 	}
-
-	//TODO: Test manual calendar key instantiators
 }

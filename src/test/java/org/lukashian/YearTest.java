@@ -57,7 +57,7 @@ import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
-import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**

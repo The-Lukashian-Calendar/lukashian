@@ -62,15 +62,17 @@ import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondSto
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.lukashian.store.CalendarKeys.*;
+
 /**
  * This singleton class manages the various instances of the Lukashian Calendar. Each instance is implemented by a {@link MillisecondStoreDataProvider}
  * and provides the mechanism with the necessary {@link MillisecondStoreData}.
  * <p>
- * The int constants in this class represent the instances that are supported by default. It is also possible to register your own implementation
- * of {@link MillisecondStoreDataProvider} and register it.
+ * The int constants in the {@link CalendarKeys} class represent the instances that are supported by default. It is also possible to register
+ * your own implementation of {@link MillisecondStoreDataProvider} and register it.
  * <p>
  * The default calendar instance will be used when {@link Year}, {@link Day} and {@link Instant} methods do not specify a calendar instance. By default,
- * the default is {@link #EARTH}. It is possible to set a different default.
+ * the default is EARTH. It is possible to set a different default.
  * <p>
  * Data will only be requested from a {@link MillisecondStoreDataProvider} when the mechanism needs it, so no eager loading is done. Also, this
  * class stores the data for repeated use, so no caching is needed in the {@link MillisecondStoreDataProvider}.
@@ -78,26 +80,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see MillisecondStoreDataProvider
  */
 public final class MillisecondStore {
-
-	/**
-	 * Represents the {@link StandardEarthMillisecondStoreDataProvider}
-	 */
-	public static final int EARTH = 1;
-
-	/**
-	 * Represents the {@link StandardEarthHttpMillisecondStoreDataProvider}
-	 */
-	public static final int EARTH_HTTP_LUKASHIAN_ORG = 2;
-
-	/**
-	 * Represents the {@link StandardMarsMillisecondStoreDataProvider}
-	 */
-	public static final int MARS = 3;
-
-	/**
-	 * Represents the {@link StandardMarsHttpMillisecondStoreDataProvider}
-	 */
-	public static final int MARS_HTTP_LUKASHIAN_ORG = 4;
 
 	private static final MillisecondStore INSTANCE = new MillisecondStore();
 

@@ -51,6 +51,8 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
+import org.lukashian.store.CalendarKeys;
+import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
@@ -518,6 +520,18 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
+	 * Returns the same point in time on the given calendar instance. This is only possible for {@link Instant}s, not {@link Day}s and {@link Year}s, because
+	 * those don't have a one-on-one match between calendar instances, i.e. the  starting and ending points of days and years on one calendar instance may not
+	 * coincide with those on another calendar instance, so they cannot be mapped onto one another.
+	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
+	 */
+	public Instant toCalendar(int calendarKey) {
+		return Instant.ofUnixEpochMilliseconds(this.getUnixEpochMilliseconds(), calendarKey);
+	}
+
+	/**
 	 * Returns the amount of milliseconds between this instant and the given non-null {@link Instant}, directionally. Therefore, if this instant is after the other
 	 * instant, the result will be a positive number. If this instant is before the other instant, the result will be a negative number. If they represent the
 	 * same {@link Instant} on the timeline, the result will be 0.
@@ -563,6 +577,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the given calendar instance. See the javadoc of
 	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given number of milliseconds is lower than 0 or when the given calendar instance is not registered
 	 */
 	public static Instant ofEpoch(long epochMilliseconds, int calendarKey) {
@@ -578,6 +594,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} representing the given number of milliseconds since the start of the default calendar instance. See the javadoc of
 	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given number of milliseconds is lower than 0
 	 */
 	public static Instant ofEpoch(long epochMilliseconds) {
@@ -607,6 +624,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
 	 * of the given calendar instance has passed.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
 	 * between 0 (inclusive) and 1 (exclusive) or or when the given calendar instance is not registered
 	 */
@@ -618,6 +637,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
 	 * of the default calendar instance has passed.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
 	 * between 0 (inclusive) and 1 (exclusive) or or when the given calendar instance is not registered
 	 */
@@ -647,6 +667,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
 	 * of the given calendar instance has passed.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year, when the given proportion is not
 	 * between 0 (inclusive) and 9999 (inclusive) or when the given calendar instance is not registered
 	 */
@@ -658,6 +680,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Creates a new {@link Instant} that represents the millisecond at the point in time when the given proportion of the given day
 	 * of the default calendar instance has passed.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given day does not exist for the given year or when the given proportion is not
 	 * between 0 (inclusive) and 9999 (inclusive)
 	 */
@@ -668,6 +691,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	/**
 	 * Creates a new {@link Instant} representing the amount of milliseconds since the UNIX Epoch of the given calendar instance. Negative numbers are allowed.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar or when the given calendar instance is not registered
 	 */
 	public static Instant ofUnixEpochMilliseconds(long unixEpochMilliseconds, int calendarKey) {
@@ -677,6 +702,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	/**
 	 * Creates a new {@link Instant} representing the amount of milliseconds since the UNIX Epoch of the default calendar instance. Negative numbers are allowed.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar
 	 */
 	public static Instant ofUnixEpochMilliseconds(long unixEpochMilliseconds) {
@@ -686,6 +712,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	/**
 	 * Creates a new {@link Instant} representing the same point in time as the given Java {@link java.time.Instant} in the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar or when the given calendar instance is not registered
 	 */
 	public static Instant ofJavaInstant(java.time.Instant javaInstant, int calendarKey) {
@@ -695,6 +723,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	/**
 	 * Creates a new {@link Instant} representing the same point in time as the given Java {@link java.time.Instant} in the default calendar instance.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given value would result in a point before the start of the Lukashian Calendar
 	 */
 	public static Instant ofJavaInstant(java.time.Instant javaInstant) {
@@ -704,6 +733,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	/**
 	 * Returns the current {@link Instant} of the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given calendar instance is not registered
 	 */
 	public static Instant now(int calendarKey) {
@@ -711,7 +742,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
-	 * Returns the current {@link Instant}.
+	 * Returns the current {@link Instant} of the default calendar instance.
+	 *
+	 * @see MillisecondStore
 	 */
 	public static Instant now() {
 		return Instant.now(defaultCalendarKey());

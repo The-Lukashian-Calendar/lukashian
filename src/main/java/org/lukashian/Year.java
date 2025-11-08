@@ -50,6 +50,9 @@
  */
 package org.lukashian;
 
+import org.lukashian.store.CalendarKeys;
+import org.lukashian.store.MillisecondStore;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -306,6 +309,8 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	/**
 	 * Creates a new {@link Year} representing the given year of the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower or when the given calendar instance is not registered
 	 */
 	public static Year of(int year, int calendarKey) {
@@ -315,6 +320,7 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	/**
 	 * Creates a new {@link Year} representing the given year of the default calendar instance.
 	 *
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given year is 0 or lower
 	 */
 	public static Year of(int year) {
@@ -324,6 +330,8 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	/**
 	 * Returns the current {@link Year} of the given calendar instance.
 	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
 	 * @throws LukashianException when the given calendar instance is not registered
 	 */
 	public static Year now(int calendarKey) {
@@ -332,6 +340,8 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 
 	/**
 	 * Returns the current {@link Year} of the default calendar instance.
+	 *
+	 * @see MillisecondStore
 	 */
 	public static Year now() {
 		return Year.now(defaultCalendarKey());

@@ -58,7 +58,7 @@ import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
-import static org.lukashian.store.MillisecondStore.EARTH;
+import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
@@ -508,6 +508,9 @@ public class DayTest {
 		assertLukashianException(() -> Day.of(6, 3));
 		assertLukashianException(() -> Day.of(7, 2));
 		assertLukashianException(() -> Day.of(8, 1));
+
+		assertDay(1, EARTH, Day.ofEpoch(1, EARTH));
+		assertDay(1, EARTH, Day.of(1, 1, EARTH));
 	}
 
 	@Test
