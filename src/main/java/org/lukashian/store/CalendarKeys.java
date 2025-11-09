@@ -62,7 +62,7 @@ import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondSto
  *
  * @see MillisecondStoreDataProvider
  */
-public class CalendarKeys {
+public final class CalendarKeys {
 
 	/**
 	 * Represents the {@link StandardEarthMillisecondStoreDataProvider}

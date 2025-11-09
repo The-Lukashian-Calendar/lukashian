@@ -73,14 +73,14 @@ import org.lukashian.Year;
  * 		before any UNIX leap seconds were added.</li>
  * </ul>
  *
- * Please note that this allows for various implementations of the Lukashian Calendar Mechanism. See {@link MillisecondStore} for the
- * various implementations that are available by default.
+ * Please note that this allows for various instances of the Lukashian Calendar Mechanism. See {@link MillisecondStore} for the
+ * various instances that are available by default.
  * <p>
- * This implementation of The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e.
- * there's a first millisecond, a last one and at least one in between. It might work for years and days that last less than 3 milliseconds,
- * but this has not been tested and is not guaranteed.
+ * The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e. there's a first millisecond,
+ * a last one and at least one in between. It might work for years and days that last less than 3 milliseconds, but this has not been tested
+ * and is not guaranteed.
  * <p>
- * Following the previous constraint, this implementation of The Lukashian Calendar Mechanism also assumes that each year is at least 3
+ * Following the previous constraint, The Lukashian Calendar Mechanism also assumes that each year is at least 3
  * days long, i.e. there's a first day, a last one and at least one in between.
  * <p>
  * Implementations of this interface do not have to provide any caching functionality: each method is called only once and the result is

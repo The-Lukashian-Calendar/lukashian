@@ -58,6 +58,7 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.Objects;
 
+import static org.lukashian.LukashianException.check;
 import static org.lukashian.store.MillisecondStore.*;
 
 /**
@@ -137,9 +138,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	private Instant(Day day, BigFraction proportionOfDay, int calendarKey) {
 		super(calendarKey);
 
-		if (proportionOfDay.compareTo(BigFraction.ZERO) < 0 || proportionOfDay.compareTo(BigFraction.ONE) >= 0) {
-			throw new LukashianException("Proportion of day must be between 0 (inclusive) and 1 (exclusive)");
-		}
+		check(proportionOfDay.compareTo(BigFraction.ZERO) >= 0 && proportionOfDay.compareTo(BigFraction.ONE) < 0, () -> "Proportion of day must be between 0 (inclusive) and 1 (exclusive)");
+
 		this.day = day;
 		this.proportionOfDay = proportionOfDay;
 	}

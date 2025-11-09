@@ -17,19 +17,30 @@ these classes.
 Use the `org.lukashian.Formatter` class to format Instants, Days and Years. Please see the [Javadoc](https://www.lukashian.org/javadoc/org/lukashian/Formatter.html)
 for all available formatting options.
 
-### Using different calendar implementations
+### Using different calendar instances
 
-By default, the Lukashian Calendar uses the implementation for Planet Earth. However, because the Lukashian Calendar mechanism makes no assumptions about
-how long days and years are, or how many days a year should have, it is possible to create implementations for other planets. Please see the
-[Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the `MillisecondStore` and `MillisecondStoreDataProvider` classes for more details.
+By default, the Lukashian Calendar uses the instance for Planet Earth. However, because the Lukashian Calendar mechanism makes no assumptions about
+how long days and years are, or how many days a year should have, it works universally for every planet, moon or space station. In addition to the
+instance for Planet Earth, an instance for Planet Mars is available as well.
 
-### Loading calendar implementations from an external resource
+Using a different calendar instance can be done in one of two ways. First, you could use the instantiators of `Instant`, `Day` and `Year` that take
+a calendar key as a parameter (for example, the `of`, `ofEpoch` or `now` methods). For the various calendar keys that are available, please see `CalendarKeys`.
+For example, to instantiate the current `Instant` on Planet Mars, use `Instant.now(CalendarKeys.MARS)`.
 
-In order to facilitate central maintenance and governance of the official numbers that define an implementation of the Lukashian Calendar, the
-`ExternalResourceMillisecondStoreDataProvider` can load implementations from external resources.
+The second way to use a different calendar instance, is to set the default calendar instance to a different value. Calling
+`MillisecondStore.store().setDefaultCalendarKey(CalendarKeys.MARS)` will cause all subsequent instantiatiors of `Instant`, `Day` and `Year` that
+don't explicitly specify a calendar key, to use the instance of Planet Mars.
 
-The `FileMillisecondStoreDataProvider` and `HttpMillisecondStoreDataProvider` provide functionality for loading implementations via files or HTTP URL's,
-respectively, whereas the `StandardEarthHttpMillisecondStoreDataProvider` loads the implementation for Planet Earth directly from the official lukashian.org server.
+It is also possible to create your own calendar instance. Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) of the
+`MillisecondStore` and `MillisecondStoreDataProvider` classes for more details.
+
+### Loading calendar instances from an external resource
+
+In order to facilitate central maintenance and governance of the official numbers that define an instance of the Lukashian Calendar, the
+`ExternalResourceMillisecondStoreDataProvider` can load instances from external resources.
+
+The `FileMillisecondStoreDataProvider` and `HttpMillisecondStoreDataProvider` provide functionality for loading instances via files or HTTP URL's,
+respectively, whereas the `StandardEarthHttpMillisecondStoreDataProvider` loads the instance for Planet Earth directly from the official lukashian.org server.
 
 Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) for full documentation on these classes.
 
@@ -45,12 +56,15 @@ be loadable from the official lukashian.org server.
 Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
 
 ### 1.13.0:
+- Revamped the `MillisecondStore` mechanism, enabling the usage of multiple simultaneous implementations of `MillisecondStoreDataProvider`
+- Added a calendar instance for Planet Mars, via `StandardMarsMillisecondStoreDataProvider` and `StandardMarsHttpMillisecondStoreDataProvider`
 - Added additional `Formatter.format()` method
-- Revamped the `MillisecondStore` mechanism, enabling the usage of multiple simultaneous instances of `MillisecondStoreDataProvider`
+- Switched from Java 21 LTS to Java 25 LTS
+- Updated versions of dependencies
 
 ### 1.12.0:
 - Added method `Day.getLengthOfBeepInMilliseconds()`
-- Added mechanism for loading implementations of the Lukashian Calendar from external resources, specifically, the `ExternalResourceMillisecondStoreDataProvider`,
+- Added mechanism for loading instances of the Lukashian Calendar from external resources, specifically, the `ExternalResourceMillisecondStoreDataProvider`,
   `FileMillisecondStoreDataProvider`, `HttpMillisecondStoreDataProvider` and `StandardEarthHttpMillisecondStoreDataProvider` classes
 
 ### 1.11.0:

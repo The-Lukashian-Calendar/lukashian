@@ -69,7 +69,7 @@ import static java.lang.Math.*;
  * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
  * </ul>
  *
- * The standard implementation of the Lukashian Calendar Mechanism ("The Lukashian Calendar") defines a year as a Solar Earth Year
+ * The standard Earth implementation of the Lukashian Calendar Mechanism ("The Lukashian Calendar") defines a year as a Solar Earth Year
  * (or Tropical Earth Year), i.e. a single rotation of the Earth around the Sun, in terms of the cycle of the seasons. See
  * <a href="https://en.m.wikipedia.org/wiki/Tropical_year">here</a> for more details.
  * <p>
@@ -85,15 +85,15 @@ import static java.lang.Math.*;
  * Solar Year, the Lukashian Epoch is likely to be the only case where a day starts at the same instant as a year.
  * <p>
  * By definition, the Lukashian Epoch is at the exact instant of a particular southern solstice. So, which southern solstice was chosen to be the first one?
- * In other words: when does the Lukashian Calendar start?
+ * In other words: when does the Earth instance of the Lukashian Calendar start?
  * <p>
  * Since the very first day starts at the same instant as the very first year, the southern solstice that is chosen as the start of the calendar also
  * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. The turn of every single day happens at the position
  * of the planet at the start of the calendar.
  * <p>
- * The southern solstice that was chosen to be the Lukashian Epoch is the one with the current year approximately 3900 higher than the current year in the
- * Gregorian Calendar. Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice. This southern solstice
- * was chosen for the following reasons:
+ * The southern solstice that was chosen to be the Lukashian Epoch for the Earth instance is the one with the current year approximately 3900 higher than the
+ * current year in the Gregorian Calendar. Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice.
+ * This southern solstice was chosen for the following reasons:
  *
  * <ul>
  * 	<li>All of human history for which there exists a known, accurate time can be expressed in the Lukashian Calendar (see

@@ -62,6 +62,7 @@ import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondSto
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.lukashian.LukashianException.check;
 import static org.lukashian.store.CalendarKeys.*;
 
 /**
@@ -147,9 +148,8 @@ public final class MillisecondStore {
 	 * @throws LukashianException when the given key is not mapped to a {@link MillisecondStoreDataProvider}
 	 */
 	public MillisecondStoreData getData(int calendarKey) {
-		if (providers.get(calendarKey) == null) {
-			throw new LukashianException("Please register provider for key " + calendarKey + " before calling this method with key " + calendarKey);
-		}
+		check(providers.get(calendarKey) != null, () -> "Please register provider for key " + calendarKey + " before calling this method with key " + calendarKey);
+
 		return data.computeIfAbsent(calendarKey, k -> new MillisecondStoreData(providers.get(k)));
 	}
 

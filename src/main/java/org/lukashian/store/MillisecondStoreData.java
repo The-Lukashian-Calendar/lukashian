@@ -51,11 +51,12 @@
 package org.lukashian.store;
 
 import org.lukashian.Day;
-import org.lukashian.LukashianException;
 import org.lukashian.Year;
 
 import java.io.Serializable;
 import java.util.Arrays;
+
+import static org.lukashian.LukashianException.check;
 
 /**
  * For each {@link Day} and {@link Year}, this class stores the number of milliseconds between the start of the calendar (the Lukashian epoch)
@@ -116,9 +117,8 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the final point of the given year.
 	 */
 	public long getEpochMillisecondsForYear(int year) {
-		if (year > yearEpochMilliseconds.length) {
-			throw new LukashianException("Year " + year + " isn't supported yet by this Lukashian Calendar implementation");
-		}
+		check(year <= yearEpochMilliseconds.length, () -> "Year " + year + " isn't supported yet by this Lukashian Calendar instance");
+
 		return yearEpochMilliseconds[year - 1];
 	}
 
@@ -127,9 +127,8 @@ public final class MillisecondStoreData implements Serializable {
 	 * form, i.e. the how manieth day it is since the start of the Lukashian Calendar, irrespective of the year of the day.
 	 */
 	public long getEpochMillisecondsForEpochDay(int epochDay) {
-		if (epochDay > dayEpochMilliseconds.length) {
-			throw new LukashianException("Epoch day " + epochDay + " isn't supported yet by this Lukashian Calendar implementation");
-		}
+		check(epochDay <= dayEpochMilliseconds.length, () -> "Epoch day " + epochDay + " isn't supported yet by this Lukashian Calendar instance");
+
 		return dayEpochMilliseconds[epochDay - 1];
 	}
 
@@ -137,9 +136,8 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the year that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
 	 */
 	public int getYearForEpochMilliseconds(long epochMilliseconds) {
-		if (epochMilliseconds > yearEpochMilliseconds[yearEpochMilliseconds.length - 1]) {
-			throw new LukashianException("Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar implementation");
-		}
+		check(epochMilliseconds <= yearEpochMilliseconds[yearEpochMilliseconds.length - 1], () -> "Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar instance");
+
 		int index = Arrays.binarySearch(yearEpochMilliseconds, epochMilliseconds);
 		return index >= 0 ? index + 1 : -index;
 	}
@@ -148,9 +146,8 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the epoch day that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
 	 */
 	public int getEpochDayForEpochMilliseconds(long epochMilliseconds) {
-		if (epochMilliseconds > dayEpochMilliseconds[dayEpochMilliseconds.length - 1]) {
-			throw new LukashianException("Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar implementation");
-		}
+		check(epochMilliseconds <= dayEpochMilliseconds[dayEpochMilliseconds.length - 1], () -> "Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar instance");
+
 		int index = Arrays.binarySearch(dayEpochMilliseconds, epochMilliseconds);
 		return index >= 0 ? index + 1 : -index;
 	}
