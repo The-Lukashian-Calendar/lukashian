@@ -66,8 +66,7 @@ import static org.lukashian.LukashianException.check;
 import static org.lukashian.store.CalendarKeys.*;
 
 /**
- * This singleton class manages the various instances of the Lukashian Calendar. Each instance is implemented by a {@link MillisecondStoreDataProvider}
- * and provides the mechanism with the necessary {@link MillisecondStoreData}.
+ * This singleton class manages the various instances of the Lukashian Calendar. Each instance is implemented by a {@link MillisecondStoreDataProvider}.
  * <p>
  * The int constants in the {@link CalendarKeys} class represent the instances that are supported by default. It is also possible to register
  * your own implementation of {@link MillisecondStoreDataProvider} and register it.
@@ -75,9 +74,11 @@ import static org.lukashian.store.CalendarKeys.*;
  * The default calendar instance will be used when {@link Year}, {@link Day} and {@link Instant} methods do not specify a calendar instance. By default,
  * the default is EARTH. It is possible to set a different default.
  * <p>
- * Data will only be requested from a {@link MillisecondStoreDataProvider} when the mechanism needs it, so no eager loading is done. Also, this
- * class stores the data for repeated use, so no caching is needed in the {@link MillisecondStoreDataProvider}.
+ * Data will only be requested from a {@link MillisecondStoreDataProvider} when the mechanism needs it, so no eager loading is done. Whenever data is
+ * requested, it is stored in a {@link MillisecondStoreData} object for repeated use, so {@link MillisecondStoreDataProvider}s don't need to implement
+ * caching themselves.
  *
+ * @see MillisecondStoreData
  * @see MillisecondStoreDataProvider
  */
 public final class MillisecondStore {
@@ -133,7 +134,7 @@ public final class MillisecondStore {
 
 	/**
 	 * Registers the given {@link MillisecondStoreDataProvider} under the given key. It is not advisable to overwrite the
-	 * standard keys, i.e. the int constants in this class, as other classes might depend on those constants to represent
+	 * standard keys, i.e. the int constants in the {@link CalendarKeys} class, as other classes might depend on those constants to represent
 	 * what they are intended to represent.
 	 */
 	public void registerProvider(int key, MillisecondStoreDataProvider provider) {

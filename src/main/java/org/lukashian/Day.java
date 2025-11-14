@@ -252,7 +252,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	}
 
 	/**
-	 * Returns whether this day is in the given non-null {@link Year}.
+	 * Returns whether this day is part of the given non-null {@link Year}. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean isIn(Year year) {
 		this.checkSameKeyAs(year);
@@ -261,7 +261,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	}
 
 	/**
-	 * Returns whether this day is not in the given non-null {@link Year}.
+	 * Returns whether this day is not part of the given non-null {@link Year}. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean isNotIn(Year year) {
 		this.checkSameKeyAs(year);

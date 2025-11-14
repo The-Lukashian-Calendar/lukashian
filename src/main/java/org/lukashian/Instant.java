@@ -145,9 +145,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
-	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day minus the given amount of years, for
-	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
-	 * resulting day.
+	 * Returns a new {@link Instant} that represents this instant's proportion of day, on this instant's day minus the given amount of years. For
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of
+	 * this instant's day minus the given amount of years.
 	 * <p>
 	 * To see what the resulting day will be, see {@link Day#minusYears(int)}, which will be applied to this instant's day.
 	 *
@@ -158,9 +158,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
-	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day plus the given amount of years, for
-	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
-	 * resulting day.
+	 * Returns a new {@link Instant} that represents this instant's proportion of day, on this instant's day plus the given amount of years. For
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of
+	 * this instant's day plus the given amount of years.
 	 * <p>
 	 * To see what the resulting day will be, see {@link Day#plusYears(int)}, which will be applied to this instant's day.
 	 *
@@ -171,9 +171,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
-	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day minus the given amount of days, for
-	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
-	 * resulting day.
+	 * Returns a new {@link Instant} that represents this instant's proportion of day, on this instant's day minus the given amount of days, for
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of
+	 * this instant's day minus the given amount of days.
 	 * <p>
 	 * Calling this method might result in a {@link Instant} that is in a different year.
 	 *
@@ -184,9 +184,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	}
 
 	/**
-	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day on this instant's day plus the given amount of days, for
-	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of the
-	 * resulting day.
+	 * Returns a new {@link Instant} that represents this instant's proportion of day, on this instant's day plus the given amount of days, for
+	 * example, if this instant represents a point at one third of its day, then calling this method will return an instant that represents one third of
+	 * this instant's day plus the given amount of days.
 	 * <p>
 	 * Calling this method might result in a {@link Instant} that is in a different year.
 	 */
@@ -274,8 +274,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * and a half days.
 	 * <p>
 	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are subtracted may vary if subtracting that proportion will
-	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.2 of the current day and 0.4 is subtracted, this will lead to an {@link Instant} that is
-	 * at 0.8 of the previous day. This means that the first 0.2 day that was subtracted has the duration of 20% of the current day and the last 0.2 day that was subtracted has the duration of 20%
+	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.2 of the current day and 0.5 is subtracted, this will lead to an {@link Instant} that is
+	 * at 0.7 of the previous day. This means that the first 0.2 day that was subtracted has the duration of 20% of the current day and the remaining 0.3 day that was subtracted has the duration of 30%
 	 * of the previous day.
 	 * <p>
 	 * The same principle applies if more than 1 day is subtracted.
@@ -303,9 +303,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Returns a new {@link Instant} that represents this instant minus the given amount of beeps. This might result in an {@link Instant} that is in a different day or year.
 	 * <p>
 	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are subtracted may vary if
-	 * subtracting those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and 4000 beeps are subtracted,
-	 * this will lead to an {@link Instant} that is at 8000 beeps of the previous day. This means that the first 2000 beeps that were subtracted have the duration of 2000/10000th of the current day
-	 * and the last 2000 beeps that were subtracted have the duration of 2000/10000th of the previous day.
+	 * subtracting those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and 5000 beeps are subtracted,
+	 * this will lead to an {@link Instant} that is at 7000 beeps of the previous day. This means that the first 2000 beeps that were subtracted have the duration of 2000/10000th of the current day
+	 * and the remaining 3000 beeps that were subtracted have the duration of 3000/10000th of the previous day.
 	 * <p>
 	 * The same principle applies if more than 1 day's worth of beeps are subtracted.
 	 * <p>
@@ -323,8 +323,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * and a half days.
 	 * <p>
 	 * Please note that since the duration of a day is not constant, the durations of the various parts of the proportion that are added may vary if adding that proportion will
-	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.8 of the current day and 0.4 is added, this will lead to an {@link Instant} that is
-	 * at 0.2 of the next day. This means that the first 0.2 day that was added has the duration of 20% of the current day and the last 0.2 day that was added has the duration of 20% of the next day.
+	 * lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 0.8 of the current day and 0.5 is added, this will lead to an {@link Instant} that is
+	 * at 0.3 of the next day. This means that the first 0.2 day that was added has the duration of 20% of the current day and the remaining 0.3 day that was added has the duration of 30% of the next day.
 	 * <p>
 	 * The same principle applies if more than 1 day is added.
 	 * <p>
@@ -344,9 +344,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Returns a new {@link Instant} that represents this instant plus the given amount of beeps. This might result in an {@link Instant} that is in a different day or year.
 	 * <p>
 	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that are added may vary if
-	 * adding those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 8000 beeps of the current day and 4000 beeps are added,
-	 * this will lead to an {@link Instant} that is at 2000 beeps of the next day. This means that the first 2000 beeps that were added have the duration of 2000/10000th of the current day
-	 * and the last 2000 beeps that were added have the duration of 2000/10000th of the next day.
+	 * adding those beeps will lead to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 8000 beeps of the current day and 5000 beeps are added,
+	 * this will lead to an {@link Instant} that is at 3000 beeps of the next day. This means that the first 2000 beeps that were added have the duration of 2000/10000th of the current day
+	 * and the remaining 3000 beeps that were added have the duration of 3000/10000th of the next day.
 	 * <p>
 	 * The same principle applies if more than 1 day's worth of beeps are added.
 	 * <p>
@@ -521,7 +521,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 
 	/**
 	 * Returns the same point in time on the given calendar instance. This is only possible for {@link Instant}s, not {@link Day}s and {@link Year}s, because
-	 * those don't have a one-on-one match between calendar instances, i.e. the  starting and ending points of days and years on one calendar instance may not
+	 * those don't have a one-on-one match between calendar instances, i.e. the starting and ending points of days and years on one calendar instance may not
 	 * coincide with those on another calendar instance, so they cannot be mapped onto one another.
 	 *
 	 * @see CalendarKeys
@@ -535,6 +535,9 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * Returns the amount of milliseconds between this instant and the given non-null {@link Instant}, directionally. Therefore, if this instant is after the other
 	 * instant, the result will be a positive number. If this instant is before the other instant, the result will be a negative number. If they represent the
 	 * same {@link Instant} on the timeline, the result will be 0.
+	 * <p>
+	 * This will compare the unique milliseconds on the timeline that the Instants represent. It will not compare the proportions of the respective days that the
+	 * Instants represent.
 	 */
 	public long differenceWith(Instant other) {
 		this.checkSameKeyAs(other);
@@ -549,8 +552,8 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * <p>
 	 * Please note that the duration of a beep is 1/10000th of a day. Since the duration of a day is not constant, the duration of the beeps that constitute the returned difference
 	 * may vary if this instant is compared to an {@link Instant} that is on a different day. For example, if this {@link Instant} is at 2000 beeps of the current day and
-	 * it is compared to an {@link Instant} that is at 8000 beeps of the previous day, the result will be 4000. 2000 of these beeps have the duration of 2000/10000th of the current day
-	 * and the other 2000 beeps have the duration of 2000/10000th of the previous day.
+	 * it is compared to an {@link Instant} that is at 7000 beeps of the previous day, the result will be 5000. 2000 of these beeps have the duration of 2000/10000th of the current day
+	 * and the remaining 3000 beeps have the duration of 3000/10000th of the previous day.
 	 * <p>
 	 * The same principle applies if there is more than 1 day between the compared {@link Instant}s.
 	 * <p>

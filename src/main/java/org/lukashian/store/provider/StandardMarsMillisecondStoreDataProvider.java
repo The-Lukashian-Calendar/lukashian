@@ -62,7 +62,7 @@ import org.lukashian.store.MillisecondStoreDataProvider;
  * 	<li>For <a href="https://en.wikipedia.org/wiki/Solar_time">True (or apparent) Solar Mars Days (not Mean Solar Mars Days)</a></li>
  * </ul>
  *
- * The standard Mars implementation of the Lukashian Calendar Mechanism ("The Lukashian Calendar") defines a year as a Solar Mars Year
+ * The standard Mars implementation of the Lukashian Calendar Mechanism defines a year as a Solar Mars Year
  * (or Tropical Mars Year), i.e. a single rotation of the Mars around the Sun, in terms of the cycle of the seasons.
  * <p>
  * Similarly, it defines a day as a True (or apparent) Solar Mars Day, i.e. a single rotation of the Mars around its own axis, in terms of its angle towards

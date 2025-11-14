@@ -65,6 +65,7 @@ import static org.lukashian.LukashianException.check;
  * <p>
  * {@link MillisecondStoreData} is an immutable object.
  *
+ * @see MillisecondStore
  * @see MillisecondStoreDataProvider
  */
 public final class MillisecondStoreData implements Serializable {

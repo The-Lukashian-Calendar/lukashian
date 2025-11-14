@@ -78,9 +78,15 @@ public class FormatterTest {
 		assertEquals("1-1 0000", Formatter.format(Instant.ofEpoch(1)));
 		assertEquals("1-1 9966", Formatter.format(Instant.ofEpoch(300)));
 		assertEquals("2-3 3300", Formatter.format(Instant.ofEpoch(1900)));
-		assertEquals("7 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.EPOCH, BigFraction::toString));
+
 		assertEquals("3/2 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_FIRST, "/", BigFraction::toString));
 		assertEquals("3 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_ONLY, "/", BigFraction::toString));
+		assertEquals("7 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.EPOCH, BigFraction::toString));
+		assertEquals("2-3 33 / 100", Formatter.format(Instant.ofEpoch(1900), BigFraction::toString));
+
+		assertEquals("3 3300", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_ONLY, "/"));
+		assertEquals("7 3300", Formatter.format(Instant.ofEpoch(1900), DayFormat.EPOCH));
+		assertEquals("2-3 3300", Formatter.format(Instant.ofEpoch(1900)));
 	}
 
 	@Test

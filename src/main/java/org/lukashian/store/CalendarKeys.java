@@ -57,7 +57,7 @@ import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondSto
 
 /**
  * This class contains the int keys that represent the various {@link MillisecondStoreDataProvider}s that can be used. When registering
- * your own {@link MillisecondStoreDataProvider} in the {@link MillisecondStore}, it is not recommended to use one of the int values
+ * your own {@link MillisecondStoreDataProvider} in the {@link MillisecondStore}, it is not advisable to use one of the int values
  * listed in this class.
  *
  * @see MillisecondStoreDataProvider

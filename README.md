@@ -40,7 +40,8 @@ In order to facilitate central maintenance and governance of the official number
 `ExternalResourceMillisecondStoreDataProvider` can load instances from external resources.
 
 The `FileMillisecondStoreDataProvider` and `HttpMillisecondStoreDataProvider` provide functionality for loading instances via files or HTTP URL's,
-respectively, whereas the `StandardEarthHttpMillisecondStoreDataProvider` loads the instance for Planet Earth directly from the official lukashian.org server.
+respectively. The `StandardEarthHttpMillisecondStoreDataProvider` and `StandardMarsHttpMillisecondStoreDataProvider` load the instance for Planet Earth
+or Planet Mars directly from the official lukashian.org server.
 
 Please see the [Javadoc](https://www.lukashian.org/javadoc/overview-tree.html) for full documentation on these classes.
 
@@ -58,7 +59,7 @@ Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lu
 ### 1.13.0:
 - Revamped the `MillisecondStore` mechanism, enabling the usage of multiple simultaneous implementations of `MillisecondStoreDataProvider`
 - Added a calendar instance for Planet Mars, via `StandardMarsMillisecondStoreDataProvider` and `StandardMarsHttpMillisecondStoreDataProvider`
-- Added additional `Formatter.format()` method
+- Added additional `Formatter.format()` methods
 - Switched from Java 21 LTS to Java 25 LTS
 - Updated versions of dependencies
 

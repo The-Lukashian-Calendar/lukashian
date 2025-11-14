@@ -210,7 +210,7 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	}
 
 	/**
-	 * Returns whether the given non-null {@link Day}, is part of this year. A {@link Day} is part of a year if it started in that year.
+	 * Returns whether the given non-null {@link Day} is part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean contains(Day day) {
 		this.checkSameKeyAs(day);
@@ -219,7 +219,7 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	}
 
 	/**
-	 * Returns whether the given non-null {@link Day}, is not part of this year. A {@link Day} is part of a year if it started in that year.
+	 * Returns whether the given non-null {@link Day} is not part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean containsNot(Day day) {
 		this.checkSameKeyAs(day);
@@ -230,8 +230,8 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	/**
 	 * Returns whether the given non-null {@link Instant}, is inside this year.
 	 * <p>
-	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the time component of the {@link Instant} may still
-	 * cause the {@link Instant} to not be part of this year, returning false.
+	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the {@link Instant} itself may not be
+	 * contained in this year, if its {@link Day} is the last day of this year and ends in the next year.
 	 */
 	public boolean contains(Instant instant) {
 		this.checkSameKeyAs(instant);
@@ -243,8 +243,8 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	/**
 	 * Returns whether the given non-null {@link Instant}, is not inside this year.
 	 * <p>
-	 * Please note that, even when the {@link Day} of the given {@link Instant} does not start within this year, the time component of the {@link Instant} may still
-	 * cause the {@link Instant} to be part of this year, returning false.
+	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the {@link Instant} itself may not be
+	 * contained in this year, if its {@link Day} is the last day of this year and ends in the next year.
 	 */
 	public boolean containsNot(Instant instant) {
 		this.checkSameKeyAs(instant);
@@ -282,7 +282,7 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	}
 
 	/**
-	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the previous year.
+	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the previous year or 0 if this is the very first year.
 	 */
 	public long getEpochMillisecondsPreviousYear() {
 		return epochMillisecondsPreviousYear;

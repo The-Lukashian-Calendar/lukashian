@@ -73,7 +73,7 @@ import org.lukashian.Year;
  * 		before any UNIX leap seconds were added.</li>
  * </ul>
  *
- * Please note that this allows for various instances of the Lukashian Calendar Mechanism. See {@link MillisecondStore} for the
+ * Please note that this allows for various instances of the Lukashian Calendar Mechanism. See {@link CalendarKeys} for the
  * various instances that are available by default.
  * <p>
  * The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e. there's a first millisecond,

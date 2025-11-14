@@ -69,7 +69,7 @@ import static java.lang.Math.*;
  * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
  * </ul>
  *
- * The standard Earth implementation of the Lukashian Calendar Mechanism ("The Lukashian Calendar") defines a year as a Solar Earth Year
+ * The standard Earth implementation of the Lukashian Calendar Mechanism defines a year as a Solar Earth Year
  * (or Tropical Earth Year), i.e. a single rotation of the Earth around the Sun, in terms of the cycle of the seasons. See
  * <a href="https://en.m.wikipedia.org/wiki/Tropical_year">here</a> for more details.
  * <p>

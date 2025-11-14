@@ -148,24 +148,35 @@ public final class Formatter {
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat, String)} and {@link #format(BigFraction, Function)}, using a space to separate
-	 * the two.
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat, String)} and {@link #format(BigFraction, Function)}, using a space to separate the two.
 	 */
 	public static String format(Instant instant, DayFormat dayFormat, String daySeparator, Function<BigFraction, String> formatter) {
 		return format(instant.getDay(), dayFormat, daySeparator) + " " + format(instant.getProportionOfDay(), formatter);
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigFraction, Function)}, using a space to separate the
-	 * two.
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigFraction, Function)}, using a space to separate the two.
 	 */
 	public static String format(Instant instant, DayFormat dayFormat, Function<BigFraction, String> formatter) {
 		return format(instant.getDay(), dayFormat) + " " + format(instant.getProportionOfDay(), formatter);
 	}
 
 	/**
-	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigFraction)}, using a space to separate the
-	 * two.
+	 * Formats the given {@link Instant} using {@link #format(Day)} and {@link #format(BigFraction, Function)}, using a space to separate the two.
+	 */
+	public static String format(Instant instant, Function<BigFraction, String> formatter) {
+		return format(instant.getDay()) + " " + format(instant.getProportionOfDay(), formatter);
+	}
+
+	/**
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat, String)} and {@link #format(BigFraction)}, using a space to separate the two.
+	 */
+	public static String format(Instant instant, DayFormat dayFormat, String daySeparator) {
+		return format(instant.getDay(), dayFormat, daySeparator) + " " + format(instant.getProportionOfDay());
+	}
+
+	/**
+	 * Formats the given {@link Instant} using {@link #format(Day, DayFormat)} and {@link #format(BigFraction)}, using a space to separate the two.
 	 */
 	public static String format(Instant instant, DayFormat dayFormat) {
 		return format(instant.getDay(), dayFormat) + " " + format(instant.getProportionOfDay());
