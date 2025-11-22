@@ -63,6 +63,13 @@ import static org.lukashian.LukashianException.check;
  * and the end of that day or year. It also stores the offset between the Lukashian epoch and the UNIX epoch. An implementation of
  * {@link MillisecondStoreDataProvider}, passed into the constructor, is used to obtain this data.
  * <p>
+ * This class also contains the calculations to convert between UNIX time and Terrestrial Time, which is done by correcting for the appropriate
+ * leap seconds. Other conversions are not done. Note that UNIX time is not equal to UTC (https://en.wikipedia.org/wiki/Unix_time#UTC_basis),
+ * so corrections for UNIX timestamps from before the leap second era are not necessary, because UNIX time is a fixed number of milliseconds
+ * since the UNIX epoch and that's what the mechanism needs; it does not need to know the UTC timestamp.
+ * <p>
+ * The constant TAI - TT difference is not corrected for, because that correction is included in the 'unixEpochOffsetMilliseconds'.
+ * <p>
  * {@link MillisecondStoreData} is an immutable object.
  *
  * @see MillisecondStore

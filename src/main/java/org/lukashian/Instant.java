@@ -585,7 +585,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * @throws LukashianException when the given number of milliseconds is lower than 0 or when the given calendar instance is not registered
 	 */
 	public static Instant ofEpoch(long epochMilliseconds, int calendarKey) {
-	Day day =  Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(epochMilliseconds), calendarKey);
+		Day day =  Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(epochMilliseconds), calendarKey);
 		long millisecondsOfDay = day.lengthInMilliseconds();
 
 		long millisecondsPassed = epochMilliseconds - day.getEpochMillisecondsAtStartOfDay(); //Use getEpochMillisecondsAtStartOfDay in order not to count the millisecond itself as having passed

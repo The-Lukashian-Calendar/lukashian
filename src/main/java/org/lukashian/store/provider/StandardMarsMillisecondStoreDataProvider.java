@@ -93,27 +93,202 @@ import org.lukashian.store.MillisecondStoreDataProvider;
  * This class uses the following NASA documentation to implement the calculations for the days and years:
  * <ul>
  * 	<li><a href="https://www.giss.nasa.gov/pubs/abs/al04000r.html">Allison 1997</a></li>
- * 	<li><a href="https://www.giss.nasa.gov/tools/mars24/help/notes.html">Technical Notes on Mars Solar Time as Adopted by the Mars24 Sunclock</a></li>
+ * 	<li><a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a></li>
+ * 	<li><a href="https://www.giss.nasa.gov/tools/mars24">Mars Solar Time as Adopted by the Mars24 Sunclock</a></li>
+ * 	<li><a href="https://marsclock.com/">Mars Clock by James Tauber</a></li>
  * </ul>
- *
- * For more information, also see <a href="https://www.planetary.org/articles/mars-calendar">this article</a> of the Planetary Society.
  */
 public class StandardMarsMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
 	@Override
 	public long loadUnixEpochOffsetMilliseconds() {
 		return 0; //TODO
+		//Calculate a known value with the same algorith as calculating the years.
+		//Perhaps do this by getting the constant indexed JDE (MJDE?) from the array (or a better known one? A more recent one?),
+		//then converting that to UTC, then pulling the LC as in Earth?
 	}
 
 	@Override
 	public long[] loadYearEpochMilliseconds() {
-		return new long[]{}; //TODO
+		int amountOfYears = MARTIAN_SOUTHERN_SOLSTICE_MJDS.length - (EPOCH_SOLSTICE_INDEX+1);
+		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
+		long[] yearEpochMilliseconds = new long[amountOfYears];
+		for (int year = 1; year <= amountOfYears; year++) {
+			yearEpochMilliseconds[year - 1] = this.getJdeMillisAtEndOfYear(year) - jdeMillisAtStartOfCalendar;
+		}
+		return yearEpochMilliseconds;
 	}
 
 	@Override
 	public long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds) {
 		return new long[]{}; //TODO
+
+		//Use similar day loop as for Earth, but now, instead of starting at 0 and using millis since most recent solstice and perihelion,
+		//actually use JDE (MJDE?) of epoch as a start, because you need the JDE (MJDE?) to calculate the EOT.
+		//Everything else is the same: get the mean solar day, calculate EOT and apply EOT, then next iteration by adding the MEAN once more (carefully check Earth algo!)
+		//We can then skip the UTC / JDE (MJDE?) conversion, because our starting point is already in JDE (MJDE?).
+		//This includes interpolation, because the Ls and P are always freshly calculated for each timestamp
 	}
+
+	private long getJdeMillisAtEndOfYear(int year) {
+		double mjd = MARTIAN_SOUTHERN_SOLSTICE_MJDS[EPOCH_SOLSTICE_INDEX + year];
+		double jde = mjd + 2400000.5;
+		return (long) (jde * 24 * 3600 * 1000);
+	}
+
+	/**
+	 * This is the index of the solstice that we choose to be the Lukashian Epoch on Mars. It is the one that took place around the Gregorian year 1950 and as
+	 * such creates a calendar that contains all of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">Human History on Mars</a>.
+	 *
+	 * //TODO: Check time of day at Acidalia Planitia, Ares III Hab and adjust accordingly
+	 */
+	private static final int EPOCH_SOLSTICE_INDEX = 40;
+
+	/**
+	 * These are taken from <a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a> and provide all Mars Southern Solstices from
+	 * 1874 Gregorian to 2127 Gregorian. They are in Modified Julian Date (MJD = JDE - 2400000.5) (JDE = MJD + 2400000.5)
+	 */
+	private static final double[] MARTIAN_SOUTHERN_SOLSTICE_MJDS = new double[] {
+		6197.109, //Gregorian: 1874-1875
+		6884.078,
+		7571.060,
+		8258.049,
+		8944.979,
+		9631.969,
+		10318.974,
+		11005.929,
+		11692.879,
+		12379.887,
+		13066.853,
+		13753.824,
+		14440.832,
+		15127.803,
+		15814.749,
+		16501.737,
+		17188.701,
+		17875.653,
+		18562.688,
+		19249.687,
+		19936.629,
+		20623.597,
+		21310.583,
+		21997.519,
+		22684.513,
+		23371.515,
+		24058.485,
+		24745.458,
+		25432.453,
+		26119.388,
+		26806.362,
+		27493.375,
+		28180.343,
+		28867.287,
+		29554.288,
+		30241.272,
+		30928.229,
+		31615.237,
+		32302.219,
+		32989.166,
+		33676.143,
+		34363.122,
+		35050.060,
+		35737.080,
+		36424.091,
+		37111.039,
+		37797.994,
+		38484.989,
+		39171.928,
+		39858.909,
+		40545.917,
+		41232.895,
+		41919.863,
+		42606.860,
+		43293.810,
+		43980.768,
+		44667.783,
+		45354.763,
+		46041.703,
+		46728.688,
+		47415.685,
+		48102.632,
+		48789.632,
+		49476.625,
+		50163.575,
+		50850.540,
+		51537.531,
+		52224.466,
+		52911.471,
+		53598.497,
+		54285.458,
+		54972.406,
+		55659.403,
+		56346.353,
+		57033.314,
+		57720.323,
+		58407.306,
+		59094.272,
+		59781.261,
+		60468.226,
+		61155.167,
+		61842.176,
+		62529.169,
+		63216.112,
+		63903.083,
+		64590.096,
+		65277.045,
+		65964.037,
+		66651.040,
+		67337.998,
+		68024.952,
+		68711.945,
+		69398.886,
+		70085.868,
+		70772.900,
+		71459.872,
+		72146.812,
+		72833.799,
+		73520.764,
+		74207.710,
+		74894.717,
+		75581.712,
+		76268.684,
+		76955.667,
+		77642.650,
+		78329.583,
+		79016.582,
+		79703.585,
+		80390.535,
+		81077.491,
+		81764.505,
+		82451.461,
+		83138.435,
+		83825.440,
+		84512.406,
+		85199.352,
+		85886.342,
+		86573.299,
+		87260.264,
+		87947.300,
+		88634.290,
+		89321.231,
+		90008.206,
+		90695.188,
+		91382.126,
+		92069.125,
+		92756.128,
+		93443.101,
+		94130.072,
+		94817.062,
+		95503.994,
+		96190.974,
+		96877.984,
+		97564.947,
+		98251.894 //Gregorian: 2126-2127
+	};
+
+
+
+
 }
 
 /*

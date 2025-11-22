@@ -102,7 +102,7 @@ import static java.lang.Math.*;
  * 	<li>The turn of day is at or around nighttime for the vast majority of the world's population (from westernmost Europe to easternmost Asia).</li>
  * </ul>
  *
- * This class uses the book "Astronomical Algorithms" by Jean Meeus to implement the calculations for the days and years.
+ * This class uses the book "Astronomical Algorithms, Second Edition" by Jean Meeus to implement the calculations for the days and years.
  */
 public class StandardEarthMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
@@ -122,6 +122,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//long lukashianWinterSolstice5870UnixEpochMillis = lukashianWinterSolstice5870.getUnixEpochMilliseconds();
 		//long unixEpochOffsetMilliseconds = lukashianWinterSolstice5870UnixEpochMillis - gregorianWinterSolstice1970UnixEpochMillis;
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
+		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
 		//if (true) return 0L; //For initial Unix offset calculation
 
 		return 185208761225352L;
@@ -131,7 +132,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 	public long[] loadYearEpochMilliseconds() {
 		//See https://stellafane.org/misc/equinox.html
 		//See http://www.astropixels.com/ephemeris/soleq2001.html
-		//See Chapter 27 of "Astronomical Algorithms" by Jean Meeus
+		//See Chapter 27 of "Astronomical Algorithms, Second Edition" by Jean Meeus
 
 		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
 		long[] yearEpochMilliseconds = new long[7000];
@@ -148,7 +149,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//See https://en.wikipedia.org/wiki/Earth%27s_rotation
 		//See https://en.wikipedia.org/wiki/Solar_time
 		//See https://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
-		//See Chapter 38 of "Astronomical Algorithms" by Jean Meeus
+		//See Chapter 38 of "Astronomical Algorithms, Second Edition" by Jean Meeus
 
 		//Calculating the true solar day length is done by using the mean solar day length as a basis and then adjusting each day with the Equation of Time.
 		//When determining the mean solar day length, we take into account lengthening of the days due to tidal forces.
@@ -196,6 +197,8 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 			long epochMillisOfMostRecentBaryCenterPerihelion = baryCenterPerihelionEpochMilliseconds[index]; //index should always be >= 0 for perihelion array
 
 			//Calculate Equation of Time and calculate true solar day
+
+			//Note: this method is based on the amount of days since the most recent solstice and perihelion, it is NOT based on actual JDE timestamps
 
 			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay.
 			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].
