@@ -50,7 +50,14 @@
  */
 package org.lukashian.store.provider;
 
+import org.lukashian.Formatter;
+import org.lukashian.Instant;
+import org.lukashian.store.CalendarKeys;
 import org.lukashian.store.MillisecondStoreDataProvider;
+
+import java.util.ArrayList;
+
+import static java.lang.Math.*;
 
 /**
  * An implementation of the {@link MillisecondStoreDataProvider} that implements the Lukashian Calendar Mechanism, resulting in a Lukashian Calendar:
@@ -100,12 +107,42 @@ import org.lukashian.store.MillisecondStoreDataProvider;
  */
 public class StandardMarsMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
+	private static final double[] ALPHA = new double[] { 0.0071, 0.0057, 0.0039, 0.0037, 0.0021, 0.0020, 0.0018 };
+	private static final double[] TAU =   new double[] { 2.2353, 2.7543, 1.1177, 15.7866, 2.1354, 2.4694, 32.8493 };
+	private static final double[] PHI =   new double[] { 49.409, 168.173, 191.837, 21.736, 15.704, 95.528, 49.095 };
+
 	@Override
 	public long loadUnixEpochOffsetMilliseconds() {
-		return 0; //TODO
-		//Calculate a known value with the same algorith as calculating the years.
-		//Perhaps do this by getting the constant indexed JDE (MJDE?) from the array (or a better known one? A more recent one?),
-		//then converting that to UTC, then pulling the LC as in Earth?
+		//This was calculated as follows:
+		//Generate known Gregorian Timestamp for the Mars Southern Solstice closest to UNIX Epoch:
+		//System.out.println((double) new StandardMarsMillisecondStoreDataProvider().getJdeMillisAtEndOfYear(11) / (24 * 3600 * 1000));
+		//This outputs 2441233.395, convert this with https://ssd.jpl.nasa.gov/tools/jdc/#/jd, which yields 1971-10-08 21:28:48
+
+		//Then, write following code in some main method, with this method returning 0 and no leap seconds in the MillisecondStoreData
+		//ZonedDateTime gregorianSolstice = ZonedDateTime.of(1971, 10, 8, 21, 28, 48, 0, ZoneId.of("Z"));
+		//Instant lukashianSolstice = Year.of(11, CalendarKeys.MARS).lastInstant();
+		//long gregorianSolsticeUnixEpochMillis = gregorianSolstice.toInstant().toEpochMilli();
+		//long lukashianSolsticeUnixEpochMillis = lukashianSolstice.getUnixEpochMilliseconds();
+		//long unixEpochOffsetMilliseconds = lukashianSolsticeUnixEpochMillis - gregorianSolsticeUnixEpochMillis;
+		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
+		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
+
+		return 597098044800L;
+	}
+
+	public static void main(String... args) {
+		/*
+			TODO: Test:
+
+			We plotted eotMinutes and checked it
+			We plotted true solar day length and checked it
+			We plotted year length and checked it
+			We plotted amount of days per year and checked it
+			We tested solstices against known values in Gregorian Calendar
+
+			Calculate difference for Earth too, see if they match 50secdiff/16syncdiff (should be 50 minutes syncdiff on mars)
+		 */
+		System.out.println(Formatter.format(Instant.now(CalendarKeys.MARS), Formatter.DayFormat.DAY_FIRST));
 	}
 
 	@Override
@@ -121,13 +158,62 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 
 	@Override
 	public long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds) {
-		return new long[]{}; //TODO
+		//See https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
+		//This algorithm is based on JDE, not on millis since most recent solstice / perihelion, so we keep track of JDE millis, not epoch millis
 
-		//Use similar day loop as for Earth, but now, instead of starting at 0 and using millis since most recent solstice and perihelion,
-		//actually use JDE (MJDE?) of epoch as a start, because you need the JDE (MJDE?) to calculate the EOT.
-		//Everything else is the same: get the mean solar day, calculate EOT and apply EOT, then next iteration by adding the MEAN once more (carefully check Earth algo!)
-		//We can then skip the UTC / JDE (MJDE?) conversion, because our starting point is already in JDE (MJDE?).
-		//This includes interpolation, because the Ls and P are always freshly calculated for each timestamp
+		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
+		long lengthOfMeanSolarDayInMillis = (long) (24 * 3600 * 1000 * 1.02749125D);
+
+		//Initialize ArrayList that will hold the days
+		ArrayList<Long> dayEpochMilliseconds = new ArrayList<>(yearEpochMilliseconds.length * 670); //Make sure there's enough capacity
+
+		//Initialize day loop
+		int currentDay = 1;
+		long jdeMillisOfCurrentMeanSolarDay = jdeMillisAtStartOfCalendar;
+		long epochMillisOfEndOfFinalYear = yearEpochMilliseconds[yearEpochMilliseconds.length - 1];
+		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.getLast() < epochMillisOfEndOfFinalYear) {
+			//Calculate JDE millis of Mean Solar Day
+			jdeMillisOfCurrentMeanSolarDay += lengthOfMeanSolarDayInMillis;
+
+			//Calculate Equation of Time and calculate true solar day
+			double deltaT = ((double) jdeMillisOfCurrentMeanSolarDay / (24 * 3600 * 1000)) - 2451545.0; //Days since J2000 Epoch
+			double m = 19.3871D + (0.52402073 * deltaT); //Mars Mean Anomaly
+			double alphaFMS = 270.3871D + (0.524038496 * deltaT); //Angle of Fictitious Mean Sun
+
+			double perturbers = 0;
+			for (int i = 0; i < 7; i++) {
+				perturbers += ALPHA[i] * cos(toRadians(((0.985626D * deltaT) / TAU[i]) + PHI[i]));
+			}
+
+			double vMinusM = //True minus Mean Anomaly
+				(10.691D + 0.0000003 * deltaT) * sin(toRadians(m)) +
+				0.623D * sin(toRadians(2 * m)) +
+				0.050D * sin(toRadians(3 * m)) +
+				0.005D * sin(toRadians(4 * m)) +
+          		0.0005D * sin(toRadians(5 * m)) +
+				perturbers;
+
+			double ls = alphaFMS + vMinusM; //Aereocentric Solar Longitude
+
+			double eotDegrees =
+				2.861D * sin(toRadians(2 * ls)) -
+				0.071D * sin(toRadians(4 * ls)) +
+          		0.002 * sin(toRadians(6 * ls)) -
+				vMinusM;
+
+			double eotHours = (eotDegrees * 24) / 360;
+			long eotMillis = (long) (eotHours * 3600 * 1000);
+
+			//Subtract eot, rather than add, because if eot is positive, apparent solar time is *ahead* of mean, which means that the *duration* of apparent is *shorter*, not longer
+			long jdeMillisOfCurrentTrueSolarDay = jdeMillisOfCurrentMeanSolarDay - eotMillis;
+
+			long epochMillisOfCurrentTrueSolarDay = jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar;
+
+			//Add to List
+			dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
+			currentDay++;
+		}
+		return dayEpochMilliseconds.stream().mapToLong(Long::longValue).toArray();
 	}
 
 	private long getJdeMillisAtEndOfYear(int year) {
@@ -145,7 +231,7 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	private static final int EPOCH_SOLSTICE_INDEX = 40;
 
 	/**
-	 * These are taken from <a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a> and provide all Mars Southern Solstices from
+	 * These are taken from <a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a> and provide all Martian Southern Solstices from
 	 * 1874 Gregorian to 2127 Gregorian. They are in Modified Julian Date (MJD = JDE - 2400000.5) (JDE = MJD + 2400000.5)
 	 */
 	private static final double[] MARTIAN_SOUTHERN_SOLSTICE_MJDS = new double[] {
@@ -285,131 +371,4 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 		97564.947,
 		98251.894 //Gregorian: 2126-2127
 	};
-
-
-
-
 }
-
-/*
-
-## Setup
-
-library(dplyr)
-library(lubridate)
-
-script.dir <- dirname(sys.frame(1)$ofile)
-source(paste0(script.dir, '/trig_degrees.R'))
-
-## Example arguments
-
-datetime = '2000-01-06 00:00:00'
-tzone = 'UTC'
-
-millis <- datetime  %>%
-  ymd_hms(tz = tzone) %>%
-  as.integer() * 1000
-
-## Mars24 algorithm
-
-Mars24 <- function(millis) {
-
-     ## A-2: Convert millis to Julian Date (UT)
-
-     jdUT <- 2440587.5 + (millis / (8.64 * 1e7))
-
-     ## A-3: Determine time offset from J2000 epoch (UT)
-
-     epoch.J2000 <- ymd_hms('2000-01-01 00:00:00')
-
-     T <- ifelse(as_datetime(millis/1000) < epoch.J2000, (jdUT - 2451545.0) / 36525, 0)
-
-     ## A-4: Determine UTC to TT conversion
-
-     tt.minus.ut <- 64.184 + (59 * T) - (51.2 * T^2) - (67.1 * T^3) - (16.4 * T^4)
-
-     ## A-5: Determine Julian Date (TT)
-
-     jdTT <- jdUT + (tt.minus.ut / 86400)
-
-     ## A-6: Determine time offset from J2000 Epoch (TT)
-
-     deltaTJ2000 <- jdTT - 2451545.0
-
-     ## B-1: Determine Mars mean anomaly
-
-     M <- 19.3871 + (0.52402073 * deltaTJ2000)
-
-     ## B-2: Determine angle of Fiction Mean Sun
-
-     alphaFMS <- 270.3871 + (0.524038496 * deltaTJ2000)
-
-     ## B-3: Determine perturbers
-
-     ### Note use of custom trig functions. Default trig functions in R only accept
-     ### arguments in radians.
-
-     alpha <- c(0.0071, 0.0057, 0.0039, 0.0037, 0.0021, 0.0020, 0.0018)
-     tau <- c(2.2353, 2.7543, 1.1177, 15.7866, 2.1354, 2.4694, 32.8493)
-     phi <- c(49.409, 168.173, 191.837, 21.736, 15.704, 95.528, 49.095)
-
-     PBS <- sum(alpha * cos_deg(((0.985626 * deltaTJ2000 / tau) + phi)))
-
-     ## B-4: Determine Equation of Center
-
-     v.minus.M <- (10.691 + 3.0 * 1e-7 * deltaTJ2000) * sin_deg(M) +
-          0.623 * sin_deg(2 * M) + 0.050 * sin_deg(3 * M) + 0.005 * sin_deg(4 * M) +
-          0.0005 * sin_deg(5 * M) + PBS
-
-     ## B-5: Determine aerocentric solar longitude
-
-     Ls <- alphaFMS + v.minus.M
-
-     ## C-1: Determine Equation of Time
-
-     EOT <- 2.861 * sin_deg(2 * Ls) - 0.071 * sin_deg(4 * Ls) +
-          0.002 * sin_deg(6 * Ls) - v.minus.M
-
-     ## C-2: Determine Coordinated Mars Time (ie Airy Mean Time)
-
-     MTC <- (24 * (((jdTT - 2451549.5) / 1.0274912517) + 44796.0 - 0.0009626)) %% 24
-
-     ## Return dataframe
-
-     equation <- c('A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'B-1', 'B-2',
-                   'B-3', 'B-4', 'B-5', 'C-1', 'C-2')
-
-     description <- c('Get a starting Earth time in millis',
-                      'Convert millis to Julian Date (UT)',
-                      'Determine time offset from J2000 epoch (UT)',
-                      'Determine UTC to TT conversion',
-                      'Determine Julian Date (TT)',
-                      'Determine time offset from JS2000 epoch (TT)',
-                      'Determine Mars mean anomaly',
-                      'Determine angle of Fiction Mean Sun',
-                      'Determine perturbers', 'Determine Equation of Center',
-                      'Determine aerocentric solar longitude',
-                      'Determine Equation of Time', 'Determine Coordinated Mars Time')
-
-     value <- c(millis, jdUT, T, tt.minus.ut, jdTT, deltaTJ2000, M, alphaFMS,
-                PBS, v.minus.M, Ls, EOT, MTC)
-
-         output <- data.frame(equation = equation, description = description,
-                               value = value)
-         return(output)
-
-}
-
-## Convert Earth to Mars
-
-earth2mars_convert <- function(millis, verbose=FALSE) {
-  calculations <- Mars24(millis)
-
-  if(verbose==TRUE) {
-    print(calculations)
-  }
-
-  return(calculations$value[13])
-}
-
- */

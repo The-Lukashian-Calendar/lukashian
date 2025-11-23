@@ -115,7 +115,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 	@Override
 	public long loadUnixEpochOffsetMilliseconds() {
-		//This was calculated as follows, with this method returning 0 and no leap seconds in the MillisecondStore (put this code in some main method):
+		//This was calculated as follows, with this method returning 0 and no leap seconds in the MillisecondStoreData (put this code in some main method):
 		//ZonedDateTime gregorianWinterSolstice1970 = ZonedDateTime.of(1970, 12, 22, 6, 35, 43, 0, ZoneId.of("Z")); //A known value
 		//Instant lukashianWinterSolstice5870 = Year.of(5870).lastInstant();
 		//long gregorianWinterSolstice1970UnixEpochMillis = gregorianWinterSolstice1970.toInstant().toEpochMilli();
