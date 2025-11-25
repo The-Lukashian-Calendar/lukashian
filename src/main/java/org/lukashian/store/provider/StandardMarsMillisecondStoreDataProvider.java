@@ -50,9 +50,10 @@
  */
 package org.lukashian.store.provider;
 
-import org.lukashian.Formatter;
-import org.lukashian.Instant;
+import org.lukashian.Day;
+import org.lukashian.Year;
 import org.lukashian.store.CalendarKeys;
+import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.MillisecondStoreDataProvider;
 
 import java.util.ArrayList;
@@ -131,18 +132,59 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	}
 
 	public static void main(String... args) {
+		MillisecondStore.store().setDefaultCalendarKey(CalendarKeys.MARS);
+
+		Year firstYear = Year.of(1);
+		Year currentYear = Year.now();
+		Year secondToLastYear = Year.of(94).previous();
+
+		Year year = currentYear;
+
+		long lengthOfMeanSolarDayInMillis = (long) (24 * 3600 * 1000 * 1.02749125D);
+
+		long maxDeviation = 0;
+		long minDeviation = 0;
+
+		long cumulativeDeviation = 0;
+		long maxCumulativeDeviation = 0;
+		long minCumulativeDeviation = 0;
+
+		for (Day day = year.firstDay(); day.isIn(year); day = day.next()) {
+			long lengthInMillis = day.lengthInMilliseconds();
+			long deviation = lengthInMillis - lengthOfMeanSolarDayInMillis;
+
+			maxDeviation = Math.max(maxDeviation, deviation);
+			minDeviation = Math.min(minDeviation, deviation);
+
+			cumulativeDeviation += deviation;
+			maxCumulativeDeviation = Math.max(maxCumulativeDeviation, cumulativeDeviation);
+			minCumulativeDeviation = Math.min(minCumulativeDeviation, cumulativeDeviation);
+
+			System.out.println((double) deviation / 1000);
+		}
+		System.out.println("Max deviation (s): " + (double) maxDeviation / 1000);
+		System.out.println("Min deviation (s): " + (double) minDeviation / 1000);
+		System.out.println("Difference between longest and shortest day of the year (s): " + ((double) (maxDeviation - minDeviation) / 1000));
+
+		//Note: it's mainly about the range, not the exact value, because we start the cumulative at 0, which is not correct
+		System.out.println("Max cumulative deviation (m): " + (double) maxCumulativeDeviation / 60000);
+		System.out.println("Min cumulative deviation (m): " + (double) minCumulativeDeviation / 60000);
+
 		/*
 			TODO: Test:
 
-			We plotted eotMinutes and checked it
-			We plotted true solar day length and checked it
+			-V- We plotted eotMinutes and checked it
+			-V- We plotted true solar day length and checked it
 			We plotted year length and checked it
 			We plotted amount of days per year and checked it
 			We tested solstices against known values in Gregorian Calendar
 
 			Calculate difference for Earth too, see if they match 50secdiff/16syncdiff (should be 50 minutes syncdiff on mars)
+
+			Acidalia Planitia, Ares III Hab
+
+			Save this main method somewhere! Perhaps in src/test/resources
 		 */
-		System.out.println(Formatter.format(Instant.now(CalendarKeys.MARS), Formatter.DayFormat.DAY_FIRST));
 	}
 
 	@Override
@@ -168,13 +210,11 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 		ArrayList<Long> dayEpochMilliseconds = new ArrayList<>(yearEpochMilliseconds.length * 670); //Make sure there's enough capacity
 
 		//Initialize day loop
-		int currentDay = 1;
+		int currentDay = 0;
+		long eotOffsetMillis = 0;
 		long jdeMillisOfCurrentMeanSolarDay = jdeMillisAtStartOfCalendar;
 		long epochMillisOfEndOfFinalYear = yearEpochMilliseconds[yearEpochMilliseconds.length - 1];
 		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.getLast() < epochMillisOfEndOfFinalYear) {
-			//Calculate JDE millis of Mean Solar Day
-			jdeMillisOfCurrentMeanSolarDay += lengthOfMeanSolarDayInMillis;
-
 			//Calculate Equation of Time and calculate true solar day
 			double deltaT = ((double) jdeMillisOfCurrentMeanSolarDay / (24 * 3600 * 1000)) - 2451545.0; //Days since J2000 Epoch
 			double m = 19.3871D + (0.52402073 * deltaT); //Mars Mean Anomaly
@@ -207,10 +247,43 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 			//Subtract eot, rather than add, because if eot is positive, apparent solar time is *ahead* of mean, which means that the *duration* of apparent is *shorter*, not longer
 			long jdeMillisOfCurrentTrueSolarDay = jdeMillisOfCurrentMeanSolarDay - eotMillis;
 
-			long epochMillisOfCurrentTrueSolarDay = jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar;
+			long epochMillisOfCurrentTrueSolarDay = (jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar) - eotOffsetMillis;
 
-			//Add to List
-			dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
+			//Use this code if you want to display details of certain days
+//			if (currentDay >= 26077 && currentDay <= 26744) {
+//				System.out.println(
+//					"Epoch day: " + currentDay + ", " +
+//					"deltaT: " + deltaT + ", " +
+//					"perturbers: " + perturbers + ", " +
+//					"vMinusM: " + vMinusM + ", " +
+//					"ls: " + ls + ", " +
+//					"eotDegrees: " + eotDegrees + ", " +
+//					"eotMillis: " + eotMillis + ", " +
+//					"jdeMillisOfCurrentMeanSolarDay: " + jdeMillisOfCurrentMeanSolarDay + ", " +
+//					"jdeMillisOfCurrentTrueSolarDay: " + jdeMillisOfCurrentTrueSolarDay + ", " +
+//					"epochMillisOfCurrentTrueSolarDay: " + epochMillisOfCurrentTrueSolarDay + ", "
+//				);
+//			}
+
+			// Situation with Too Short first True Solar Day, we want to add the offset
+			//                   Epoch \
+			//                         |----------Mean----------|----------Mean----------|----------Mean----------|
+			//                  |Offset|   TooShortTrue   |----------True----------|----------True----------|
+			//           EoT-0 /                     EoT /                    EoT /                    EoT /
+
+			// Situation with Too Long first True Solar Day, we want to subtract the offset
+			//                   Epoch \
+			//                         |----------Mean----------|----------Mean----------|----------Mean----------|
+			//                         |Offset|      TooLongTrue      |----------True----------|----------True----------|
+			//                         EoT-0 /                   EoT /                    EoT /                    EoT /
+			if (currentDay == 0) { //Calculate eotOffsetMillis in the first iteration
+				eotOffsetMillis = jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar; //Positive if too long, Negative if too short
+			} else {
+				//Add the first day and further to the List
+				dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
+			}
+
+			jdeMillisOfCurrentMeanSolarDay += lengthOfMeanSolarDayInMillis;
 			currentDay++;
 		}
 		return dayEpochMilliseconds.stream().mapToLong(Long::longValue).toArray();
