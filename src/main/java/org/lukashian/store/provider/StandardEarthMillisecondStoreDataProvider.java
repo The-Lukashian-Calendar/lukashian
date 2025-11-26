@@ -96,10 +96,10 @@ import static java.lang.Math.*;
  * This southern solstice was chosen for the following reasons:
  *
  * <ul>
- * 	<li>All of human history for which there exists a known, accurate time can be expressed in the Lukashian Calendar (see
- * 		<a href="https://en.m.wikipedia.org/wiki/Timeline_of_human_prehistory">here</a>).</li>
+ * 	<li>All of <a href="https://en.m.wikipedia.org/wiki/Timeline_of_human_prehistory">human history</a> for which there exists a known, accurate time can
+ * 		be expressed in the Lukashian Calendar.</li>
  * 	<li>The last 2 digits of the Lukashian year are the same as the Gregorian year for most of the year (simply change the '20' into a '59').</li>
- * 	<li>The turn of day is at or around nighttime for the vast majority of the world's population (from westernmost Europe to easternmost Asia).</li>
+ * 	<li>The turn of day is during nighttime for the vast majority of the world's population (from westernmost Europe to easternmost Asia).</li>
  * </ul>
  *
  * This class uses the book "Astronomical Algorithms, Second Edition" by Jean Meeus to implement the calculations for the days and years.

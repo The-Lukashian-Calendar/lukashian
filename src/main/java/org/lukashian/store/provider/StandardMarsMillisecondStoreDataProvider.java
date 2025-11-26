@@ -50,10 +50,6 @@
  */
 package org.lukashian.store.provider;
 
-import org.lukashian.Day;
-import org.lukashian.Year;
-import org.lukashian.store.CalendarKeys;
-import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.MillisecondStoreDataProvider;
 
 import java.util.ArrayList;
@@ -90,20 +86,24 @@ import static java.lang.Math.*;
  * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. The turn of every single day happens at the position
  * of the planet at the start of the calendar.
  * <p>
- * The southern solstice that was chosen to be the Lukashian Epoch is the one TODO
+ * The southern solstice that was chosen to be the Lukashian Epoch is the one that took place at 1952-12-17T02:55:40.801Z in the Gregorian Calendar.
  * This southern solstice was chosen for the following reasons:
  *
  * <ul>
- * 	<li>All of human history involving Mars can be expressed in the Lukashian Calendar (see <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">here</a>).</li>
- * 	<li>The turn of day is at or around nighttime for the inhabitants of the first Human Settlement on Mars.</li>
+ * 	<li>All of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">human history involving Mars</a> can be expressed in the Lukashian Calendar.</li>
+ * 	<li>Because the location of the Landing Site of the first Human Settlement isn't known yet, it cannot yet be ensured that the turn of day is during nighttime
+ * 		for its inhabitants. In the meantime, we have chosen the location of <a href="https://en.wikipedia.org/wiki/Mars_Pathfinder#Entry,_descent_and_landing">Pathfinder</a>,
+ * 		which happens to be close to the location of the <a href="https://www.nasa.gov/image-article/ares-3-landing-site-where-science-fact-meets-fiction/">Ares III
+ * 		Hab in Acidalia Planitia</a>, as a pretend Landing Site, in order to have an anchor point for ensuring that the turn of day is during nighttime at that location.</li>
  * </ul>
  *
- * This class uses the following NASA documentation to implement the calculations for the days and years:
+ * This class uses the following resources to implement the calculations for the days and years:
  * <ul>
  * 	<li><a href="https://www.giss.nasa.gov/pubs/abs/al04000r.html">Allison 1997</a></li>
  * 	<li><a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a></li>
  * 	<li><a href="https://www.giss.nasa.gov/tools/mars24">Mars Solar Time as Adopted by the Mars24 Sunclock</a></li>
- * 	<li><a href="https://marsclock.com/">Mars Clock by James Tauber</a></li>
+ * 	<li><a href="https://www.planetary.org/articles/mars-calendar">Mars Calendar by Planetary Society</a></li>
+ * 	<li><a href="https://marsclock.com">Mars Clock by James Tauber</a></li>
  * </ul>
  */
 public class StandardMarsMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
@@ -116,75 +116,19 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	public long loadUnixEpochOffsetMilliseconds() {
 		//This was calculated as follows:
 		//Generate known Gregorian Timestamp for the Mars Southern Solstice closest to UNIX Epoch:
-		//System.out.println((double) new StandardMarsMillisecondStoreDataProvider().getJdeMillisAtEndOfYear(11) / (24 * 3600 * 1000));
+		//System.out.println((double) new StandardMarsMillisecondStoreDataProvider().getJdeMillisAtEndOfYear(10) / (24 * 3600 * 1000));
 		//This outputs 2441233.395, convert this with https://ssd.jpl.nasa.gov/tools/jdc/#/jd, which yields 1971-10-08 21:28:48
 
 		//Then, write following code in some main method, with this method returning 0 and no leap seconds in the MillisecondStoreData
 		//ZonedDateTime gregorianSolstice = ZonedDateTime.of(1971, 10, 8, 21, 28, 48, 0, ZoneId.of("Z"));
-		//Instant lukashianSolstice = Year.of(11, CalendarKeys.MARS).lastInstant();
+		//Instant lukashianSolstice = Year.of(10, CalendarKeys.MARS).lastInstant();
 		//long gregorianSolsticeUnixEpochMillis = gregorianSolstice.toInstant().toEpochMilli();
 		//long lukashianSolsticeUnixEpochMillis = lukashianSolstice.getUnixEpochMilliseconds();
 		//long unixEpochOffsetMilliseconds = lukashianSolsticeUnixEpochMillis - gregorianSolsticeUnixEpochMillis;
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
 		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
 
-		return 597098044800L;
-	}
-
-	public static void main(String... args) {
-		MillisecondStore.store().setDefaultCalendarKey(CalendarKeys.MARS);
-
-		Year firstYear = Year.of(1);
-		Year currentYear = Year.now();
-		Year secondToLastYear = Year.of(94).previous();
-
-		Year year = currentYear;
-
-		long lengthOfMeanSolarDayInMillis = (long) (24 * 3600 * 1000 * 1.02749125D);
-
-		long maxDeviation = 0;
-		long minDeviation = 0;
-
-		long cumulativeDeviation = 0;
-		long maxCumulativeDeviation = 0;
-		long minCumulativeDeviation = 0;
-
-		for (Day day = year.firstDay(); day.isIn(year); day = day.next()) {
-			long lengthInMillis = day.lengthInMilliseconds();
-			long deviation = lengthInMillis - lengthOfMeanSolarDayInMillis;
-
-			maxDeviation = Math.max(maxDeviation, deviation);
-			minDeviation = Math.min(minDeviation, deviation);
-
-			cumulativeDeviation += deviation;
-			maxCumulativeDeviation = Math.max(maxCumulativeDeviation, cumulativeDeviation);
-			minCumulativeDeviation = Math.min(minCumulativeDeviation, cumulativeDeviation);
-
-			System.out.println((double) deviation / 1000);
-		}
-		System.out.println("Max deviation (s): " + (double) maxDeviation / 1000);
-		System.out.println("Min deviation (s): " + (double) minDeviation / 1000);
-		System.out.println("Difference between longest and shortest day of the year (s): " + ((double) (maxDeviation - minDeviation) / 1000));
-
-		//Note: it's mainly about the range, not the exact value, because we start the cumulative at 0, which is not correct
-		System.out.println("Max cumulative deviation (m): " + (double) maxCumulativeDeviation / 60000);
-		System.out.println("Min cumulative deviation (m): " + (double) minCumulativeDeviation / 60000);
-
-		/*
-			TODO: Test:
-
-			-V- We plotted eotMinutes and checked it
-			-V- We plotted true solar day length and checked it
-			We plotted year length and checked it
-			We plotted amount of days per year and checked it
-			We tested solstices against known values in Gregorian Calendar
-
-			Calculate difference for Earth too, see if they match 50secdiff/16syncdiff (should be 50 minutes syncdiff on mars)
-
-			Acidalia Planitia, Ares III Hab
-
-			Save this main method somewhere! Perhaps in src/test/resources
-		 */
+		return 537743059200L;
 	}
 
 	@Override
@@ -250,8 +194,9 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 			long epochMillisOfCurrentTrueSolarDay = (jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar) - eotOffsetMillis;
 
 			//Use this code if you want to display details of certain days
-//			if (currentDay >= 26077 && currentDay <= 26744) {
+//			if (currentDay >= 25408 && currentDay <= 26076) {
 //				System.out.println(
+//					eotHours * 60
 //					"Epoch day: " + currentDay + ", " +
 //					"deltaT: " + deltaT + ", " +
 //					"perturbers: " + perturbers + ", " +
@@ -296,12 +241,11 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	}
 
 	/**
-	 * This is the index of the solstice that we choose to be the Lukashian Epoch on Mars. It is the one that took place around the Gregorian year 1950 and as
-	 * such creates a calendar that contains all of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">Human History on Mars</a>.
-	 *
-	 * //TODO: Check time of day at Acidalia Planitia, Ares III Hab and adjust accordingly
+	 * This is the index of the solstice that we choose to be the Lukashian Epoch on Mars.
+	 * <p>
+	 * Whenever this value changes, the {@link #loadUnixEpochOffsetMilliseconds()} method needs to be reevaluated.
 	 */
-	private static final int EPOCH_SOLSTICE_INDEX = 40;
+	private static final int EPOCH_SOLSTICE_INDEX = 41;
 
 	/**
 	 * These are taken from <a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a> and provide all Martian Southern Solstices from
