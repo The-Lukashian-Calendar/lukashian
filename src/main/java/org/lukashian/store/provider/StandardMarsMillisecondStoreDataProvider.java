@@ -93,7 +93,7 @@ import static java.lang.Math.*;
  * 	<li>All of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">human history involving Mars</a> can be expressed in the Lukashian Calendar.</li>
  * 	<li>Because the location of the Landing Site of the first Human Settlement isn't known yet, it cannot yet be ensured that the turn of day is during nighttime
  * 		for its inhabitants. In the meantime, we have chosen the location of <a href="https://en.wikipedia.org/wiki/Mars_Pathfinder#Entry,_descent_and_landing">Pathfinder</a>,
- * 		which happens to be close to the location of the <a href="https://www.nasa.gov/image-article/ares-3-landing-site-where-science-fact-meets-fiction/">Ares III
+ * 		which happens to be close to the location of the <a href="https://www.nasa.gov/image-article/ares-3-landing-site-where-science-fact-meets-fiction">Ares III
  * 		Hab in Acidalia Planitia</a>, as a pretend Landing Site, in order to have an anchor point for ensuring that the turn of day is during nighttime at that location.</li>
  * </ul>
  *
