@@ -86,15 +86,25 @@ import static java.lang.Math.*;
  * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. The turn of every single day happens at the position
  * of the planet at the start of the calendar.
  * <p>
- * The southern solstice that was chosen to be the Lukashian Epoch is the one that took place at 1952-12-17T02:55:40.801Z in the Gregorian Calendar.
+ * The southern solstice that was chosen to be the Lukashian Epoch is the one that took place at 1947-04-27T05:15:21.600Z in the Gregorian Calendar.
  * This southern solstice was chosen for the following reasons:
  *
  * <ul>
- * 	<li>All of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">human history involving Mars</a> can be expressed in the Lukashian Calendar.</li>
- * 	<li>Because the location of the Landing Site of the first Human Settlement isn't known yet, it cannot yet be ensured that the turn of day is during nighttime
+ * 	<li>
+ * 	    All of <a href="https://en.wikipedia.org/wiki/Human_mission_to_Mars">human history involving Mars</a> can be expressed in the Lukashian Calendar.
+ * 	    Satisfying this constraint means choosing a southern solstice that took place before approximately 1960 Gregorian.
+ * 		<br><br>
+ * 	</li>
+ * 	<li>
+ * 	    Because the location of the Landing Site of the first Human Settlement isn't known yet, it cannot yet be ensured that the turn of day is during nighttime
  * 		for its inhabitants. In the meantime, we have chosen the location of <a href="https://en.wikipedia.org/wiki/Mars_Pathfinder#Entry,_descent_and_landing">Pathfinder</a>,
  * 		which happens to be close to the location of the <a href="https://www.nasa.gov/image-article/ares-3-landing-site-where-science-fact-meets-fiction">Ares III
- * 		Hab in Acidalia Planitia</a>, as a pretend Landing Site, in order to have an anchor point for ensuring that the turn of day is during nighttime at that location.</li>
+ * 		Hab in Acidalia Planitia</a>, as a pretend Landing Site, in order to have an anchor point for ensuring that the turn of day is during nighttime at that location.
+ * 		<br><br>
+ * 		Pathfinder landed in the middle of the night on Mars. We want the turn of day (0000 beeps) to be as close as possible to the middle of the night at a certain location.
+ * 		The chosen southern solstice Epoch leads to Pathfinder landing at 0452, which is the closest to 0000 of any of the Mars southern solstices that happened from 1940 to 1960
+ * 		Gregorian.
+ * 	</li>
  * </ul>
  *
  * This class uses the following resources to implement the calculations for the days and years:
@@ -116,19 +126,19 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	public long loadUnixEpochOffsetMilliseconds() {
 		//This was calculated as follows:
 		//Generate known Gregorian Timestamp for the Mars Southern Solstice closest to UNIX Epoch:
-		//System.out.println((double) new StandardMarsMillisecondStoreDataProvider().getJdeMillisAtEndOfYear(10) / (24 * 3600 * 1000));
+		//System.out.println((double) new StandardMarsMillisecondStoreDataProvider().getJdeMillisAtEndOfYear(51 - EPOCH_SOLSTICE_INDEX) / (24 * 3600 * 1000));
 		//This outputs 2441233.395, convert this with https://ssd.jpl.nasa.gov/tools/jdc/#/jd, which yields 1971-10-08 21:28:48
 
 		//Then, write following code in some main method, with this method returning 0 and no leap seconds in the MillisecondStoreData
 		//ZonedDateTime gregorianSolstice = ZonedDateTime.of(1971, 10, 8, 21, 28, 48, 0, ZoneId.of("Z"));
-		//Instant lukashianSolstice = Year.of(10, CalendarKeys.MARS).lastInstant();
+		//Instant lukashianSolstice = Year.of(51 - EPOCH_SOLSTICE_INDEX, CalendarKeys.MARS).lastInstant();
 		//long gregorianSolsticeUnixEpochMillis = gregorianSolstice.toInstant().toEpochMilli();
 		//long lukashianSolsticeUnixEpochMillis = lukashianSolstice.getUnixEpochMilliseconds();
 		//long unixEpochOffsetMilliseconds = lukashianSolsticeUnixEpochMillis - gregorianSolsticeUnixEpochMillis;
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
 		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
 
-		return 537743059200L;
+		return 715805078401L;
 	}
 
 	@Override
@@ -194,7 +204,7 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 			long epochMillisOfCurrentTrueSolarDay = (jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar) - eotOffsetMillis;
 
 			//Use this code if you want to display details of certain days
-//			if (currentDay >= 25408 && currentDay <= 26076) {
+//			if (currentDay >= 27414 && currentDay <= 28081) {
 //				System.out.println(
 //					eotHours * 60
 //					"Epoch day: " + currentDay + ", " +
@@ -245,7 +255,7 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	 * <p>
 	 * Whenever this value changes, the {@link #loadUnixEpochOffsetMilliseconds()} method needs to be reevaluated.
 	 */
-	private static final int EPOCH_SOLSTICE_INDEX = 41;
+	private static final int EPOCH_SOLSTICE_INDEX = 38;
 
 	/**
 	 * These are taken from <a href="https://www.giss.nasa.gov/pubs/abs/al05000n.html">Allison/McEwen 2000</a> and provide all Martian Southern Solstices from
