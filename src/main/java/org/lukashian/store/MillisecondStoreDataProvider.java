@@ -73,33 +73,18 @@ import org.lukashian.Year;
  * 		before any UNIX leap seconds were added.</li>
  * </ul>
  *
- * Please note that this allows for various implementations of the Lukashian Calendar Mechanism. The standard implementation ("The
- * Lukashian Calendar"), represented by the {@link StandardEarthMillisecondStoreDataProvider}, stores data that makes the Lukashian
- * Calendar:
- *
- * <ul>
- * 	<li>For <a href="https://en.wikipedia.org/wiki/Tropical_year">Solar Earth Years</a> that run from
- * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a> to
- * 		<a href="https://en.wikipedia.org/wiki/Southern_solstice">Southern Solstice</a></li>
- * 	<li>For <a href="https://en.wikipedia.org/wiki/Solar_time">True Solar Earth Days</a></li>
- * 	<li>With the year number approximately 3900 higher than the Gregorian Calendar</li>
- * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
- * </ul>
- *
- * It is also, for example, perfectly possibly to create a {@link MillisecondStoreDataProvider} that loads the data for Astronomical Mars years,
- * Astronomical Mars days, starting 10000 Mars years in the past and measured according to Barycentric Coordinate Time. Please refer to
- * {@link MillisecondStore} for information on how to specify which instance of {@link MillisecondStoreDataProvider} to use.
+ * Please note that this allows for various instances of the Lukashian Calendar Mechanism. See {@link CalendarKeys} for the
+ * various instances that are available by default.
  * <p>
- * This implementation of The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e.
- * there's a first millisecond, a last one and at least one in between. It might work for years and days that last less than 3 milliseconds,
- * but this has not been tested and is not guaranteed.
+ * The Lukashian Calendar Mechanism assumes that each year and each day is at least 3 milliseconds long, i.e. there's a first millisecond,
+ * a last one and at least one in between. It might work for years and days that last less than 3 milliseconds, but this has not been tested
+ * and is not guaranteed.
  * <p>
- * Following the previous constraint, this implementation of The Lukashian Calendar Mechanism also assumes that each year is at least 3
+ * Following the previous constraint, The Lukashian Calendar Mechanism also assumes that each year is at least 3
  * days long, i.e. there's a first day, a last one and at least one in between.
  * <p>
  * Implementations of this interface do not have to provide any caching functionality: each method is called only once and the result is
- * stored for future reference by the {@link MillisecondStore}. This happens when the singleton instance of the {@link MillisecondStore} is
- * initialized, which happens during most interactions with any of the calendar classes.
+ * stored for future reference by the {@link MillisecondStore}.
  */
 public interface MillisecondStoreDataProvider {
 

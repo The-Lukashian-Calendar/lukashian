@@ -51,29 +51,46 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.Formatter.DayFormat;
+import org.lukashian.store.MillisecondStore;
+import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
  * Unit tests for the {@link Formatter} class.
  */
 public class FormatterTest {
 
+	@BeforeAll
+	public static void setUp() {
+		//Running the tests in this file with the test calendar
+		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
+		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	}
+
 	@Test
 	public void testFormat() {
-		assertEquals("1-1 0000", Formatter.format(Instant.of(1)));
-		assertEquals("1-1 9966", Formatter.format(Instant.of(300)));
-		assertEquals("2-3 3300", Formatter.format(Instant.of(1900)));
-		assertEquals("7 33 / 100", Formatter.format(Instant.of(1900), DayFormat.EPOCH, BigFraction::toString));
-		assertEquals("3/2 33 / 100", Formatter.format(Instant.of(1900), DayFormat.DAY_FIRST, "/", BigFraction::toString));
-		assertEquals("3 33 / 100", Formatter.format(Instant.of(1900), DayFormat.DAY_ONLY, "/", BigFraction::toString));
+		assertEquals("1-1 0000", Formatter.format(Instant.ofEpoch(1)));
+		assertEquals("1-1 9966", Formatter.format(Instant.ofEpoch(300)));
+		assertEquals("2-3 3300", Formatter.format(Instant.ofEpoch(1900)));
+
+		assertEquals("3/2 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_FIRST, "/", BigFraction::toString));
+		assertEquals("3 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_ONLY, "/", BigFraction::toString));
+		assertEquals("7 33 / 100", Formatter.format(Instant.ofEpoch(1900), DayFormat.EPOCH, BigFraction::toString));
+		assertEquals("2-3 33 / 100", Formatter.format(Instant.ofEpoch(1900), BigFraction::toString));
+
+		assertEquals("3 3300", Formatter.format(Instant.ofEpoch(1900), DayFormat.DAY_ONLY, "/"));
+		assertEquals("7 3300", Formatter.format(Instant.ofEpoch(1900), DayFormat.EPOCH));
+		assertEquals("2-3 3300", Formatter.format(Instant.ofEpoch(1900)));
 	}
 
 	@Test
 	public void testFormat_NoDayFormat() {
-		assertThrows(IllegalStateException.class, () -> Formatter.format(Day.of(1), null));
+		assertThrows(IllegalStateException.class, () -> Formatter.format(Day.ofEpoch(1), null));
 	}
 }

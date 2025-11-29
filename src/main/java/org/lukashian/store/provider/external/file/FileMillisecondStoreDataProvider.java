@@ -48,32 +48,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
+package org.lukashian.store.provider.external.file;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.ExternalResourceMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardEarthHttpMillisecondStoreDataProvider;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.CalendarKeys.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from a file.
+ * <p>
+ * Please see {@link ExternalResourceMillisecondStoreDataProvider} for more details regarding the external resource mechanism.
+ * <p>
+ * The {@link FileMillisecondStoreDataProvider} is useful for applications that want to load the numbers of milliseconds from
+ * the official lukashian.org server, but don't have access to the Internet. If you want to use this class to load the exact same
+ * numbers as the {@link StandardEarthHttpMillisecondStoreDataProvider}, then you can simply perform requests to the location specified
+ * in the {@link StandardEarthHttpMillisecondStoreDataProvider}, extended with the default locations specified in
+ * {@link ExternalResourceMillisecondStoreDataProvider}, for example:
+ * <pre>
+ *     curl -L https://lukashian.org/millisecondstore/standardearth/unixEpochOffset -o unixEpochOffset
+ * </pre>
+ * Alternatively, you can simply use a browser to obtain the file at the above example url.
  */
-public class DayRealCalendarTest {
+public class FileMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	public FileMillisecondStoreDataProvider(String basePath, String unixEpochOffsetPathExtension, String yearEpochMillisecondsPathExtension, String dayEpochMillisecondsPathExtension) {
+		super(basePath, unixEpochOffsetPathExtension, yearEpochMillisecondsPathExtension, dayEpochMillisecondsPathExtension);
 	}
 
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
+	public FileMillisecondStoreDataProvider(String basePath) {
+		super(basePath);
+	}
+
+	protected byte[] loadMillisecondsByteArray(String path) throws IOException {
+		try (FileInputStream fis = new FileInputStream(path)) {
+			return fis.readAllBytes();
+		}
 	}
 }

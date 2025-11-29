@@ -50,15 +50,18 @@
  */
 package org.lukashian;
 
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
+import org.lukashian.store.CalendarKeys;
+import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-import static org.lukashian.store.MillisecondStore.store;
+import static org.lukashian.LukashianException.check;
+import static org.lukashian.store.MillisecondStore.data;
+import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
 
 /**
- * Represents a year in the Lukashian Calendar Mechanism. For the meaning of a year in the standard implementation of the Lukashian Calendar, see
- * {@link StandardEarthMillisecondStoreDataProvider}.
+ * Represents a year in the Lukashian Calendar Mechanism.
  * <p>
  * The first year is year 1 and years before year 1 are not defined. This is consistent with the numbering of days, since they also start at 1. Also, there's
  * a subtle difference between numbering and counting and when it comes to years, numbering is more appropriate, since numbering is giving each year a numeric
@@ -79,19 +82,20 @@ import static org.lukashian.store.MillisecondStore.store;
  * <p>
  * {@link Year} is an immutable object. New instances are always created when calling one of the mutation methods.
  */
-public final class Year implements Comparable<Year>, Serializable {
+public final class Year extends CalendarObject implements Comparable<Year>, Serializable {
 
-	private int year;
-	private long epochMilliseconds;
-	private long epochMillisecondsPreviousYear;
+	private final int year;
+	private final long epochMilliseconds;
+	private final long epochMillisecondsPreviousYear;
 
-	private Year(int year) {
-		if (year < 1) {
-			throw new LukashianException(year + " is not a valid year, the minimum is 1");
-		}
+	private Year(int year, int calendarKey) {
+		super(calendarKey);
+
+		check(year >= 1, () -> year + " is not a valid year, the minimum is 1");
+
 		this.year = year;
-		this.epochMilliseconds = store().getEpochMillisecondsForYear(year);
-		this.epochMillisecondsPreviousYear = year == 1 ? 0 : store().getEpochMillisecondsForYear(year - 1);
+		this.epochMilliseconds = data(calendarKey).getEpochMillisecondsForYear(year);
+		this.epochMillisecondsPreviousYear = year == 1 ? 0 : data(calendarKey).getEpochMillisecondsForYear(year - 1);
 	}
 
 	/**
@@ -103,7 +107,7 @@ public final class Year implements Comparable<Year>, Serializable {
 		if (yearsToSubtract < 0) { //To not have to deal with negatives
 			return this.plusYears(Math.negateExact(yearsToSubtract));
 		}
-		return Year.of(Math.subtractExact(year, yearsToSubtract));
+		return Year.of(Math.subtractExact(year, yearsToSubtract), calendarKey);
 	}
 
 	/**
@@ -113,7 +117,7 @@ public final class Year implements Comparable<Year>, Serializable {
 		if (yearsToAdd < 0) { //To not have to deal with negatives
 			return this.minusYears(Math.negateExact(yearsToAdd));
 		}
-		return Year.of(Math.addExact(year, yearsToAdd));
+		return Year.of(Math.addExact(year, yearsToAdd), calendarKey);
 	}
 
 	/**
@@ -152,27 +156,29 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns a new {@link Day} that represents the last {@link Day} of this year. Please note that this {@link Day} may end in the next year.
 	 */
 	public Day lastDay() {
-		return Day.of(store().getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()));
+		return Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(this.getEpochMilliseconds()), calendarKey);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents the first {@link Instant} of this year. This is not necessarily at the start of a day.
 	 */
 	public Instant firstInstant() {
-		return Instant.of(this.getEpochMillisecondsAtStartOfYear());
+		return Instant.ofEpoch(this.getEpochMillisecondsAtStartOfYear(), calendarKey);
 	}
 
 	/**
 	 * Returns a new {@link Instant} that represents the last {@link Instant} of this year. This is not necessarily at the end of a day.
 	 */
 	public Instant lastInstant() {
-		return Instant.of(this.getEpochMilliseconds());
+		return Instant.ofEpoch(this.getEpochMilliseconds(), calendarKey);
 	}
 
 	/**
 	 * Returns whether this year is before the given non-null {@link Year}.
 	 */
 	public boolean isBefore(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year < other.year;
 	}
 
@@ -180,6 +186,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is the same or before the given non-null {@link Year}.
 	 */
 	public boolean isSameOrBefore(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year <= other.year;
 	}
 
@@ -187,6 +195,8 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is after the given non-null {@link Year}.
 	 */
 	public boolean isAfter(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year > other.year;
 	}
 
@@ -194,30 +204,38 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * Returns whether this year is the same or after the given non-null {@link Year}.
 	 */
 	public boolean isSameOrAfter(Year other) {
+		this.checkSameKeyAs(other);
+
 		return year >= other.year;
 	}
 
 	/**
-	 * Returns whether the given non-null {@link Day}, is part of this year. A {@link Day} is part of a year if it started in that year.
+	 * Returns whether the given non-null {@link Day} is part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean contains(Day day) {
+		this.checkSameKeyAs(day);
+
 		return this.equals(day.getYear());
 	}
 
 	/**
-	 * Returns whether the given non-null {@link Day}, is not part of this year. A {@link Day} is part of a year if it started in that year.
+	 * Returns whether the given non-null {@link Day} is not part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean containsNot(Day day) {
+		this.checkSameKeyAs(day);
+
 		return !this.contains(day);
 	}
 
 	/**
 	 * Returns whether the given non-null {@link Instant}, is inside this year.
 	 * <p>
-	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the time component of the {@link Instant} may still
-	 * cause the {@link Instant} to not be part of this year, returning false.
+	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the {@link Instant} itself may not be
+	 * contained in this year, if its {@link Day} is the last day of this year and ends in the next year.
 	 */
 	public boolean contains(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		long instantEpochMilliseconds = instant.getEpochMilliseconds();
 		return instantEpochMilliseconds >= this.getEpochMillisecondsAtStartOfYear() && instantEpochMilliseconds <= epochMilliseconds;
 	}
@@ -225,10 +243,12 @@ public final class Year implements Comparable<Year>, Serializable {
 	/**
 	 * Returns whether the given non-null {@link Instant}, is not inside this year.
 	 * <p>
-	 * Please note that, even when the {@link Day} of the given {@link Instant} does not start within this year, the time component of the {@link Instant} may still
-	 * cause the {@link Instant} to be part of this year, returning false.
+	 * Please note that, even when the {@link Day} of the given {@link Instant} starts within this year, the {@link Instant} itself may not be
+	 * contained in this year, if its {@link Day} is the last day of this year and ends in the next year.
 	 */
 	public boolean containsNot(Instant instant) {
+		this.checkSameKeyAs(instant);
+
 		return !this.contains(instant);
 	}
 
@@ -262,7 +282,7 @@ public final class Year implements Comparable<Year>, Serializable {
 	}
 
 	/**
-	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the previous year.
+	 * Gets the total number of milliseconds from the start of the Lukashian Calendar, up to the final point of the previous year or 0 if this is the very first year.
 	 */
 	public long getEpochMillisecondsPreviousYear() {
 		return epochMillisecondsPreviousYear;
@@ -281,23 +301,50 @@ public final class Year implements Comparable<Year>, Serializable {
 	 * will be a negative number. If they represent the same year, the result will be 0.
 	 */
 	public int differenceWith(Year other) {
+		this.checkSameKeyAs(other);
+
 		return Math.subtractExact(year, other.year);
 	}
 
 	/**
-	 * Creates a new {@link Year} representing the given year.
+	 * Creates a new {@link Year} representing the given year of the given calendar instance.
 	 *
-	 * @throws LukashianException when the given year is 0 or lower
+	 * @see CalendarKeys
+	 * @see MillisecondStore
+	 * @throws LukashianException when the given year is 0 or lower or when the given calendar instance is not registered
 	 */
-	public static Year of(int year) {
-		return new Year(year);
+	public static Year of(int year, int calendarKey) {
+		return new Year(year, calendarKey);
 	}
 
 	/**
-	 * Returns the current {@link Year}.
+	 * Creates a new {@link Year} representing the given year of the default calendar instance.
+	 *
+	 * @see MillisecondStore
+	 * @throws LukashianException when the given year is 0 or lower
+	 */
+	public static Year of(int year) {
+		return Year.of(year, defaultCalendarKey());
+	}
+
+	/**
+	 * Returns the current {@link Year} of the given calendar instance.
+	 *
+	 * @see CalendarKeys
+	 * @see MillisecondStore
+	 * @throws LukashianException when the given calendar instance is not registered
+	 */
+	public static Year now(int calendarKey) {
+		return Year.of(data(calendarKey).getYearForEpochMilliseconds(data(calendarKey).getCurrentEpochMilliseconds()), calendarKey);
+	}
+
+	/**
+	 * Returns the current {@link Year} of the default calendar instance.
+	 *
+	 * @see MillisecondStore
 	 */
 	public static Year now() {
-		return Year.of(store().getYearForEpochMilliseconds(store().getCurrentEpochMilliseconds()));
+		return Year.now(defaultCalendarKey());
 	}
 
 	@Override
@@ -307,12 +354,14 @@ public final class Year implements Comparable<Year>, Serializable {
 
 	@Override
 	public int hashCode() {
-		return year;
+		return Objects.hash(year, calendarKey);
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		return object instanceof Year && ((Year) object).year == year;
+		return object instanceof Year &&
+			   ((Year) object).year == year &&
+			   ((Year) object).calendarKey == calendarKey;
 	}
 
 	@Override

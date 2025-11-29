@@ -51,30 +51,26 @@
 package org.lukashian;
 
 import org.apache.commons.numbers.fraction.BigFraction;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.StandardEarthMillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
+import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.lukashian.store.CalendarKeys.EARTH;
+import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
- * Unit tests for the {@link Instant} class that use the {@link StandardEarthMillisecondStoreDataProvider} instead of the @{@link TestMillisecondStoreDataProvider}.
+ * Unit tests for the {@link Instant} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
+ * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
  */
 public class InstantRealCalendarTest {
 
 	@BeforeAll
 	public static void setUp() {
-		//Running the tests in this file with the actual calendar
-		MillisecondStore.store().setMillisecondStoreDataProvider(new StandardEarthMillisecondStoreDataProvider());
-	}
-
-	@AfterAll
-	public static void tearDown() {
-		//After this test, switch back to the test calendar again
-		MillisecondStore.store().setMillisecondStoreDataProvider(new TestMillisecondStoreDataProvider());
+		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
+		MillisecondStore.store().setDefaultCalendarKey(TEST);
 	}
 
 	@Test
@@ -85,7 +81,7 @@ public class InstantRealCalendarTest {
 		}
 
 		//For the periods overlapping the start and end of this day
-		Day today = Day.now();
+		Day today = Day.now(EARTH);
 		long start = today.getEpochMillisecondsAtStartOfDay();
 		long end = today.getEpochMilliseconds();
 		for (long i = start - 100000; i <= start + 100000; i++) {
@@ -103,102 +99,108 @@ public class InstantRealCalendarTest {
 	}
 
 	private void testInstantEquality(long epochMillis) {
-		Instant instant = Instant.of(epochMillis);
+		Instant instant = Instant.ofEpoch(epochMillis, EARTH);
+		assertEquals(EARTH, instant.getCalendarKey());
 		assertEquals(epochMillis, instant.getEpochMilliseconds());
 
 		Instant copy = Instant.of(instant.getDay(), instant.getProportionOfDay());
+		assertEquals(instant.getCalendarKey(), copy.getCalendarKey());
 		assertEquals(instant.getEpochMilliseconds(), copy.getEpochMilliseconds());
 		assertEquals(instant.getProportionOfDay(), copy.getProportionOfDay());
 		assertEquals(instant.getBeeps(), copy.getBeeps());
 		assertEquals(instant, copy);
 
 		Instant beepCopy = Instant.of(instant.getDay(), instant.getBeeps());
+		assertEquals(instant.getCalendarKey(), beepCopy.getCalendarKey());
 		assertEquals(instant.getBeeps(), beepCopy.getBeeps());
 	}
 
 	@Test
 	public void testMinusProportionOfDay() {
-		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(4), 0), realInstant.minusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L)));
-		assertEquals(Instant.of(Day.of(3), 5001), realInstant.minusProportionOfDay(BigFraction.of(9999, 10000)));
-		assertEquals(Instant.of(Day.of(3), 5000), realInstant.minusProportionOfDay(BigFraction.of(999999999999999999L, 1000000000000000000L)));
+		//Equals looks at the millisecond that an Instant represents; if two proportions are close enough to represent the same millisecond, then they are considered equal
+		Instant realInstant = Instant.of(Day.ofEpoch(4, EARTH), 5000);
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 0), realInstant.minusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L)));
+		assertEquals(Instant.of(Day.ofEpoch(3, EARTH), 5001), realInstant.minusProportionOfDay(BigFraction.of(9999, 10000)));
+		assertEquals(Instant.of(Day.ofEpoch(3, EARTH), 5000), realInstant.minusProportionOfDay(BigFraction.of(999999999999999999L, 1000000000000000000L)));
 	}
 
 	@Test
 	public void testMinusBeeps() {
-		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(1), 9999), realInstant.minusBeeps(25001));
-		assertEquals(Instant.of(Day.of(2), 0), realInstant.minusBeeps(25000));
-		assertEquals(Instant.of(Day.of(2), 1), realInstant.minusBeeps(24999));
-		assertEquals(Instant.of(Day.of(2), 5000), realInstant.minusBeeps(20000));
-		assertEquals(Instant.of(Day.of(3), 5000), realInstant.minusBeeps(10000));
-		assertEquals(Instant.of(Day.of(3), 9999), realInstant.minusBeeps(5001));
-		assertEquals(Instant.of(Day.of(4), 0), realInstant.minusBeeps(5000));
-		assertEquals(Instant.of(Day.of(4), 1), realInstant.minusBeeps(4999));
-		assertEquals(Instant.of(Day.of(4), 4000), realInstant.minusBeeps(1000));
-		assertEquals(Instant.of(Day.of(4), 4999), realInstant.minusBeeps(1));
-		assertEquals(Instant.of(Day.of(4), 5000), realInstant.minusBeeps(0));
+		Instant realInstant = Instant.of(Day.ofEpoch(4, EARTH), 5000);
+		assertEquals(Instant.of(Day.ofEpoch(1, EARTH), 9999), realInstant.minusBeeps(25001));
+		assertEquals(Instant.of(Day.ofEpoch(2, EARTH), 0), realInstant.minusBeeps(25000));
+		assertEquals(Instant.of(Day.ofEpoch(2, EARTH), 1), realInstant.minusBeeps(24999));
+		assertEquals(Instant.of(Day.ofEpoch(2, EARTH), 5000), realInstant.minusBeeps(20000));
+		assertEquals(Instant.of(Day.ofEpoch(3, EARTH), 5000), realInstant.minusBeeps(10000));
+		assertEquals(Instant.of(Day.ofEpoch(3, EARTH), 9999), realInstant.minusBeeps(5001));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 0), realInstant.minusBeeps(5000));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 1), realInstant.minusBeeps(4999));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 4000), realInstant.minusBeeps(1000));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 4999), realInstant.minusBeeps(1));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 5000), realInstant.minusBeeps(0));
 	}
 
 	@Test
 	public void testPlusProportionOfDay() {
-		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(5), 4999), realInstant.plusProportionOfDay(BigFraction.of(9999, 10000)));
-		//Can't test the 'plus' version of the testcases with many BigDecimals, because overflow into the next beep is prevented and therefore the resulting Instant cannot be expressed with a whole number of beeps
+		//Equals looks at the millisecond that an Instant represents; if two proportions are close enough to represent the same millisecond, then they are considered equal
+		Instant realInstant = Instant.of(Day.ofEpoch(4, EARTH), 5000);
+		assertEquals(Day.ofEpoch(4, EARTH).lastInstant(), realInstant.plusProportionOfDay(BigFraction.of(499999999999999999L, 1000000000000000000L))); //Proportion is not enough to "reach" the next day
+		assertEquals(Instant.of(Day.ofEpoch(5, EARTH), 4999), realInstant.plusProportionOfDay(BigFraction.of(9999, 10000)));
+		assertEquals(Instant.of(Day.ofEpoch(5, EARTH), 5000), realInstant.plusProportionOfDay(BigFraction.of(999999999999999999L, 1000000000000000000L)));
 	}
 
 	@Test
 	public void testPlusBeeps() {
-		Instant realInstant = Instant.of(Day.of(4), 5000);
-		assertEquals(Instant.of(Day.of(7), 1), realInstant.plusBeeps(25001));
-		assertEquals(Instant.of(Day.of(7), 0), realInstant.plusBeeps(25000));
-		assertEquals(Instant.of(Day.of(6), 9999), realInstant.plusBeeps(24999));
-		assertEquals(Instant.of(Day.of(6), 5000), realInstant.plusBeeps(20000));
-		assertEquals(Instant.of(Day.of(5), 5000), realInstant.plusBeeps(10000));
-		assertEquals(Instant.of(Day.of(5), 1), realInstant.plusBeeps(5001));
-		assertEquals(Instant.of(Day.of(5), 0), realInstant.plusBeeps(5000));
-		assertEquals(Instant.of(Day.of(4), 9999), realInstant.plusBeeps(4999));
-		assertEquals(Instant.of(Day.of(4), 6000), realInstant.plusBeeps(1000));
-		assertEquals(Instant.of(Day.of(4), 5001), realInstant.plusBeeps(1));
-		assertEquals(Instant.of(Day.of(4), 5000), realInstant.plusBeeps(0));
+		Instant realInstant = Instant.of(Day.ofEpoch(4, EARTH), 5000);
+		assertEquals(Instant.of(Day.ofEpoch(7, EARTH), 1), realInstant.plusBeeps(25001));
+		assertEquals(Instant.of(Day.ofEpoch(7, EARTH), 0), realInstant.plusBeeps(25000));
+		assertEquals(Instant.of(Day.ofEpoch(6, EARTH), 9999), realInstant.plusBeeps(24999));
+		assertEquals(Instant.of(Day.ofEpoch(6, EARTH), 5000), realInstant.plusBeeps(20000));
+		assertEquals(Instant.of(Day.ofEpoch(5, EARTH), 5000), realInstant.plusBeeps(10000));
+		assertEquals(Instant.of(Day.ofEpoch(5, EARTH), 1), realInstant.plusBeeps(5001));
+		assertEquals(Instant.of(Day.ofEpoch(5, EARTH), 0), realInstant.plusBeeps(5000));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 9999), realInstant.plusBeeps(4999));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 6000), realInstant.plusBeeps(1000));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 5001), realInstant.plusBeeps(1));
+		assertEquals(Instant.of(Day.ofEpoch(4, EARTH), 5000), realInstant.plusBeeps(0));
 	}
 
 	@Test
 	public void testDifferenceInBeepsWith() {
-		assertEquals(-24999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 9999)));
-		assertEquals(-20001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 5001)));
-		assertEquals(-20000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 5000)));
-		assertEquals(-19999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 4999)));
-		assertEquals(-15000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(5), 0)));
+		assertEquals(-24999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(5, EARTH), 9999)));
+		assertEquals(-20001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(5, EARTH), 5001)));
+		assertEquals(-20000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(5, EARTH), 5000)));
+		assertEquals(-19999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(5, EARTH), 4999)));
+		assertEquals(-15000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(5, EARTH), 0)));
 
-		assertEquals(-14999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 9999)));
-		assertEquals(-10001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 5001)));
-		assertEquals(-10000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 5000)));
-		assertEquals(-9999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 4999)));
-		assertEquals(-5000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(4), 0)));
+		assertEquals(-14999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(4, EARTH), 9999)));
+		assertEquals(-10001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(4, EARTH), 5001)));
+		assertEquals(-10000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(4, EARTH), 5000)));
+		assertEquals(-9999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(4, EARTH), 4999)));
+		assertEquals(-5000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(4, EARTH), 0)));
 
-		assertEquals(-4999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 9999)));
-		assertEquals(-1000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 6000)));
-		assertEquals(-1, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 5001)));
-		assertEquals(0, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 5000)));
-		assertEquals(1, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 4999)));
-		assertEquals(1000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 4000)));
-		assertEquals(4999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 1)));
-		assertEquals(5000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(3), 0)));
+		assertEquals(-4999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 9999)));
+		assertEquals(-1000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 6000)));
+		assertEquals(-1, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 5001)));
+		assertEquals(0, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 5000)));
+		assertEquals(1, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 4999)));
+		assertEquals(1000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 4000)));
+		assertEquals(4999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 1)));
+		assertEquals(5000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), 0)));
 
-		assertEquals(5001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 9999)));
-		assertEquals(9999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 5001)));
-		assertEquals(10000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 5000)));
-		assertEquals(10001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 4999)));
-		assertEquals(15000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(2), 0)));
+		assertEquals(5001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(2, EARTH), 9999)));
+		assertEquals(9999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(2, EARTH), 5001)));
+		assertEquals(10000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(2, EARTH), 5000)));
+		assertEquals(10001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(2, EARTH), 4999)));
+		assertEquals(15000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(2, EARTH), 0)));
 
-		assertEquals(15001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 9999)));
-		assertEquals(19999, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 5001)));
-		assertEquals(20000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 5000)));
-		assertEquals(20001, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 4999)));
-		assertEquals(25000, Instant.of(Day.of(3), 5000).differenceInBeepsWith(Instant.of(Day.of(1), 0)));
+		assertEquals(15001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(1, EARTH), 9999)));
+		assertEquals(19999, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(1, EARTH), 5001)));
+		assertEquals(20000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(1, EARTH), 5000)));
+		assertEquals(20001, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(1, EARTH), 4999)));
+		assertEquals(25000, Instant.of(Day.ofEpoch(3, EARTH), 5000).differenceInBeepsWith(Instant.of(Day.ofEpoch(1, EARTH), 0)));
 
-		assertEquals(-2000, Instant.of(Day.of(3), 3000).differenceInBeepsWith(Instant.of(Day.of(3), BigFraction.of(500099999, 1000000000))));
-		assertEquals(0, Instant.of(Day.of(3), 3000).differenceInBeepsWith(Instant.of(Day.of(3), BigFraction.of(300099999, 1000000000))));
+		assertEquals(-2000, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(500099999, 1000000000))));
+		assertEquals(0, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(300099999, 1000000000))));
 	}
 }

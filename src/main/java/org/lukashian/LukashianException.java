@@ -50,6 +50,8 @@
  */
 package org.lukashian;
 
+import java.util.function.Supplier;
+
 /**
  * An {@link Exception} in the Lukashian Calendar.
  */
@@ -57,5 +59,11 @@ public final class LukashianException extends RuntimeException {
 
 	public LukashianException(String message) {
 		super(message);
+	}
+
+	public static void check(boolean condition, Supplier<String> message) {
+		if (!condition) {
+			throw new LukashianException(message.get());
+		}
 	}
 }

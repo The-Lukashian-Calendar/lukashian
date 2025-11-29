@@ -48,42 +48,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store.external.file;
+package org.lukashian;
 
-import org.lukashian.store.external.ExternalResourceMillisecondStoreDataProvider;
-import org.lukashian.store.external.http.StandardEarthHttpMillisecondStoreDataProvider;
+import java.io.Serializable;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import static org.lukashian.LukashianException.check;
 
 /**
- * This implementation of {@link ExternalResourceMillisecondStoreDataProvider} loads binary streams of long values from a file.
- * <p>
- * Please see {@link ExternalResourceMillisecondStoreDataProvider} for more details regarding the external resource mechanism.
- * <p>
- * The {@link FileMillisecondStoreDataProvider} is useful for applications that want to load the numbers of milliseconds from
- * the official lukashian.org server, but don't have access to the Internet. If you want to use this class to load the exact same
- * numbers as the {@link StandardEarthHttpMillisecondStoreDataProvider}, then you can simply perform requests to the location specified
- * in the {@link StandardEarthHttpMillisecondStoreDataProvider}, extended with the default locations specified in
- * {@link ExternalResourceMillisecondStoreDataProvider}, for example:
- * <pre>
- *     curl -L https://lukashian.org/millisecondstore/standardearth/unixEpochOffset -o unixEpochOffset
- * </pre>
- * Alternatively, you can simply use a browser to obtain the file at the above example url.
+ * Common superclass of {@link Year}, {@link Day} and {@link Instant}.
  */
-public class FileMillisecondStoreDataProvider extends ExternalResourceMillisecondStoreDataProvider {
+public sealed abstract class CalendarObject implements Serializable permits Year, Day, Instant {
 
-	public FileMillisecondStoreDataProvider(String basePath, String unixEpochOffsetPathExtension, String yearEpochMillisecondsPathExtension, String dayEpochMillisecondsPathExtension) {
-		super(basePath, unixEpochOffsetPathExtension, yearEpochMillisecondsPathExtension, dayEpochMillisecondsPathExtension);
+	protected final int calendarKey;
+
+	protected CalendarObject(int calendarKey) {
+		this.calendarKey = calendarKey;
 	}
 
-	public FileMillisecondStoreDataProvider(String basePath) {
-		super(basePath);
+	/**
+	 * Gets the calendar key of this {@link CalendarObject}.
+	 */
+	public int getCalendarKey() {
+		return calendarKey;
 	}
 
-	protected byte[] loadMillisecondsByteArray(String path) throws IOException {
-		try (FileInputStream fis = new FileInputStream(path)) {
-			return fis.readAllBytes();
-		}
+	/**
+	 * Checks whether this {@link CalendarObject} has the same calendar key as the given {@link CalendarObject}.
+	 *
+	 * @throws LukashianException when this CalendarObject has a different calendar key than the given CalendarObject
+	 */
+	public void checkSameKeyAs(CalendarObject other) {
+		check(this.getCalendarKey() == other.getCalendarKey(), () -> "Calendar keys of CalendarObjects do not match");
 	}
 }

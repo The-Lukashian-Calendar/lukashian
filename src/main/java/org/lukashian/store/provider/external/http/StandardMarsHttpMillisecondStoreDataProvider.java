@@ -48,32 +48,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
+package org.lukashian.store.provider.external.http;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.CalendarKeys.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import org.lukashian.store.provider.StandardMarsMillisecondStoreDataProvider;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * This implementation of {@link HttpMillisecondStoreDataProvider} loads binary streams of long values from the official lukashian.org server.
+ * The values that are returned by this server are generated server side by an instance of {@link StandardMarsMillisecondStoreDataProvider}.
  */
-public class DayRealCalendarTest {
+public class StandardMarsHttpMillisecondStoreDataProvider extends HttpMillisecondStoreDataProvider {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
-	}
-
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
+	public StandardMarsHttpMillisecondStoreDataProvider() {
+		super("https://lukashian.org/millisecondstore/standardmars/");
 	}
 }

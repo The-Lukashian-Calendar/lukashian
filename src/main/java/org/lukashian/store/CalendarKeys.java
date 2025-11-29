@@ -48,32 +48,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
+package org.lukashian.store;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
 import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.CalendarKeys.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import org.lukashian.store.provider.StandardMarsMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardEarthHttpMillisecondStoreDataProvider;
+import org.lukashian.store.provider.external.http.StandardMarsHttpMillisecondStoreDataProvider;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * This class contains the int keys that represent the various {@link MillisecondStoreDataProvider}s that can be used. When registering
+ * your own {@link MillisecondStoreDataProvider} in the {@link MillisecondStore}, it is not advisable to use one of the int values
+ * listed in this class.
+ *
+ * @see MillisecondStoreDataProvider
  */
-public class DayRealCalendarTest {
+public final class CalendarKeys {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
-	}
+	/**
+	 * Represents the {@link StandardEarthMillisecondStoreDataProvider}
+	 */
+	public static final int EARTH = 1;
 
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
-	}
+	/**
+	 * Represents the {@link StandardEarthHttpMillisecondStoreDataProvider}
+	 */
+	public static final int EARTH_HTTP_LUKASHIAN_ORG = 2;
+
+	/**
+	 * Represents the {@link StandardMarsMillisecondStoreDataProvider}
+	 */
+	public static final int MARS = 3;
+
+	/**
+	 * Represents the {@link StandardMarsHttpMillisecondStoreDataProvider}
+	 */
+	public static final int MARS_HTTP_LUKASHIAN_ORG = 4;
 }

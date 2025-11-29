@@ -48,32 +48,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
+package org.lukashian.store;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.CalendarKeys.EARTH;
+import static org.lukashian.LukashianAssert.assertLukashianException;
+import static org.lukashian.store.MillisecondStore.data;
+import static org.lukashian.store.MillisecondStore.store;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * Unit tests for the {@link MillisecondStore} class.
  */
-public class DayRealCalendarTest {
-
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
-	}
+public class MillisecondStoreTest {
 
 	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
+	public void testDataLoading() {
+		AtomicLong counter = new AtomicLong();
+
+		MillisecondStoreDataProvider loadCounterProvider = new TestMillisecondStoreDataProvider() {
+			@Override
+			public long loadUnixEpochOffsetMilliseconds() {
+				counter.incrementAndGet();
+				return super.loadUnixEpochOffsetMilliseconds();
+			}
+		};
+		MillisecondStore.store().registerProvider(TEST + 2, loadCounterProvider);
+
+		assertLukashianException(() -> data(TEST + 3));
+
+		data(TEST + 2);
+		assertEquals(1, counter.get());
+
+		data(TEST + 2);
+		assertEquals(1, counter.get());
+
+		store().clearData(TEST + 2);
+		data(TEST + 2);
+		assertEquals(2, counter.get());
+
+		store().clearAllData();
+		data(TEST + 2);
+		assertEquals(3, counter.get());
 	}
 }

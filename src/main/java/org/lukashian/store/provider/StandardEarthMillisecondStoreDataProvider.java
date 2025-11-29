@@ -48,7 +48,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store;
+package org.lukashian.store.provider;
+
+import org.lukashian.store.MillisecondStoreDataProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +69,7 @@ import static java.lang.Math.*;
  * 	<li>All measured according to <a href="https://en.wikipedia.org/wiki/Terrestrial_Time">Terrestrial Time</a></li>
  * </ul>
  *
- * The standard implementation of the Lukashian Calendar Mechanism ("The Lukashian Calendar") defines a year as a Solar Earth Year
+ * The standard Earth implementation of the Lukashian Calendar Mechanism defines a year as a Solar Earth Year
  * (or Tropical Earth Year), i.e. a single rotation of the Earth around the Sun, in terms of the cycle of the seasons. See
  * <a href="https://en.m.wikipedia.org/wiki/Tropical_year">here</a> for more details.
  * <p>
@@ -83,24 +85,24 @@ import static java.lang.Math.*;
  * Solar Year, the Lukashian Epoch is likely to be the only case where a day starts at the same instant as a year.
  * <p>
  * By definition, the Lukashian Epoch is at the exact instant of a particular southern solstice. So, which southern solstice was chosen to be the first one?
- * In other words: when does the Lukashian Calendar start?
+ * In other words: when does the Earth instance of the Lukashian Calendar start?
  * <p>
  * Since the very first day starts at the same instant as the very first year, the southern solstice that is chosen as the start of the calendar also
  * determines when the turn of the day will be, since there are no time zones in the Lukashian Calendar. The turn of every single day happens at the position
  * of the planet at the start of the calendar.
  * <p>
- * The southern solstice that was chosen to be the Lukashian Epoch is the one with the current year approximately 3900 higher than the current year in the
- * Gregorian Calendar. Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice. This southern solstice
- * was chosen for the following reasons:
+ * The southern solstice that was chosen to be the Lukashian Epoch for the Earth instance is the one with the current year approximately 3900 higher than the
+ * current year in the Gregorian Calendar. Approximately, because the turn of the year of the Gregorian Calendar does not coincide with Southern Solstice.
+ * This southern solstice was chosen for the following reasons:
  *
  * <ul>
- * 	<li>All of human history for which there exists a known, accurate time can be expressed in the Lukashian Calendar (see
- * 		<a href="https://en.m.wikipedia.org/wiki/Timeline_of_human_prehistory">here</a>).</li>
+ * 	<li>All of <a href="https://en.m.wikipedia.org/wiki/Timeline_of_human_prehistory">human history</a> for which there exists a known, accurate time can
+ * 		be expressed in the Lukashian Calendar.</li>
  * 	<li>The last 2 digits of the Lukashian year are the same as the Gregorian year for most of the year (simply change the '20' into a '59').</li>
- * 	<li>The turn of day is at or around nighttime for the vast majority of the world's population (from westernmost Europe to easternmost Asia).</li>
+ * 	<li>The turn of day is during nighttime for the vast majority of the world's population (from westernmost Europe to easternmost Asia).</li>
  * </ul>
  *
- * This class uses the book "Astronomical Algorithms" by Jean Meeus to implement the calculations for the days and years.
+ * This class uses the book "Astronomical Algorithms, Second Edition" by Jean Meeus to implement the calculations for the days and years.
  */
 public class StandardEarthMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
@@ -113,13 +115,14 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 	@Override
 	public long loadUnixEpochOffsetMilliseconds() {
-		//This was calculated as follows, with this method returning 0 and no leap seconds in the MillisecondStore (put this code in some main method):
+		//This was calculated as follows, with this method returning 0 and no leap seconds in the MillisecondStoreData (put this code in some main method):
 		//ZonedDateTime gregorianWinterSolstice1970 = ZonedDateTime.of(1970, 12, 22, 6, 35, 43, 0, ZoneId.of("Z")); //A known value
 		//Instant lukashianWinterSolstice5870 = Year.of(5870).lastInstant();
 		//long gregorianWinterSolstice1970UnixEpochMillis = gregorianWinterSolstice1970.toInstant().toEpochMilli();
 		//long lukashianWinterSolstice5870UnixEpochMillis = lukashianWinterSolstice5870.getUnixEpochMilliseconds();
 		//long unixEpochOffsetMilliseconds = lukashianWinterSolstice5870UnixEpochMillis - gregorianWinterSolstice1970UnixEpochMillis;
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
+		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
 		//if (true) return 0L; //For initial Unix offset calculation
 
 		return 185208761225352L;
@@ -129,7 +132,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 	public long[] loadYearEpochMilliseconds() {
 		//See https://stellafane.org/misc/equinox.html
 		//See http://www.astropixels.com/ephemeris/soleq2001.html
-		//See Chapter 27 of "Astronomical Algorithms" by Jean Meeus
+		//See Chapter 27 of "Astronomical Algorithms, Second Edition" by Jean Meeus
 
 		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
 		long[] yearEpochMilliseconds = new long[7000];
@@ -146,7 +149,7 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//See https://en.wikipedia.org/wiki/Earth%27s_rotation
 		//See https://en.wikipedia.org/wiki/Solar_time
 		//See https://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
-		//See Chapter 38 of "Astronomical Algorithms" by Jean Meeus
+		//See Chapter 38 of "Astronomical Algorithms, Second Edition" by Jean Meeus
 
 		//Calculating the true solar day length is done by using the mean solar day length as a basis and then adjusting each day with the Equation of Time.
 		//When determining the mean solar day length, we take into account lengthening of the days due to tidal forces.
@@ -194,6 +197,8 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 			long epochMillisOfMostRecentBaryCenterPerihelion = baryCenterPerihelionEpochMilliseconds[index]; //index should always be >= 0 for perihelion array
 
 			//Calculate Equation of Time and calculate true solar day
+
+			//Note: this method is based on the amount of days since the most recent solstice and perihelion, it is NOT based on actual JDE timestamps
 
 			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay.
 			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].

@@ -48,7 +48,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian.store.external;
+package org.lukashian.store.provider.external;
 
 import org.lukashian.store.MillisecondStoreDataProvider;
 
@@ -63,7 +63,7 @@ import java.nio.LongBuffer;
  * A {@link MillisecondStoreDataProvider} needs to provide three things: the unix epoch offset, the milliseconds of the years and the milliseconds of the days.
  * Please see the javadoc of {@link MillisecondStoreDataProvider} for more details.
  * <p>
- * An {@link ExternalResourceMillisecondStoreDataProvider} requires a base location and three extensions, one for each method of @{@link MillisecondStoreDataProvider}.
+ * An {@link ExternalResourceMillisecondStoreDataProvider} requires a base location and three extensions, one for each method of {@link MillisecondStoreDataProvider}.
  * It then loads the required values by combining the base location with each extension. The base location can, for example, be a directory or a url. The
  * extensions then point to individual files at that base location. <b>The base location should always end with a path separator, because the extensions are
  * added to the base location as is</b>.

@@ -69,15 +69,18 @@ public class LukashianAssert {
 		fail();
 	}
 
-	public static void assertYear(int expectedYear, Year actual) {
+	public static void assertYear(int expectedYear, int expectedCalendarKey, Year actual) {
 		assertEquals(expectedYear, actual.getYearNumber());
+		assertEquals(expectedCalendarKey, actual.getCalendarKey());
 	}
 
-	public static void assertDay(int expectedEpochDay, Day actual) {
+	public static void assertDay(int expectedEpochDay, int expectedCalendarKey, Day actual) {
 		assertEquals(expectedEpochDay, actual.getEpochDay());
+		assertEquals(expectedCalendarKey, actual.getCalendarKey());
 	}
 
-	public static void assertInstant(int expectedEpochMilliseconds, Instant actual) {
+	public static void assertInstant(int expectedEpochMilliseconds, int expectedCalendarKey, Instant actual) {
 		assertEquals(expectedEpochMilliseconds, actual.getEpochMilliseconds());
+		assertEquals(expectedCalendarKey, actual.getCalendarKey());
 	}
 }

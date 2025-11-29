@@ -64,6 +64,8 @@ package org.lukashian.store;
  */
 public class TestMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
+	public static final int TEST = 100;
+
 	@Override
 	public long loadUnixEpochOffsetMilliseconds() {
 		return 1350 - System.currentTimeMillis(); //For testing purposes, it's not a fixed value, to always know what time it is now

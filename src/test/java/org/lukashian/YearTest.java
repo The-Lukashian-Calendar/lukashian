@@ -50,15 +50,26 @@
  */
 package org.lukashian;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.lukashian.store.MillisecondStore;
+import org.lukashian.store.TestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
+import static org.lukashian.store.CalendarKeys.EARTH;
+import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
  * Unit tests for the {@link Year} class.
  */
 public class YearTest {
+
+	@BeforeAll
+	public static void setUp() {
+		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
+		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	}
 
 	@Test
 	public void testMinusYears() {
@@ -66,10 +77,10 @@ public class YearTest {
 
 		assertLukashianException(() -> year.minusYears(3));
 		assertLukashianException(() -> year.minusYears(2));
-		assertYear(1, year.minusYears(1));
-		assertYear(2, year.minusYears(0));
-		assertYear(3, year.minusYears(-1));
-		assertYear(4, year.minusYears(-2));
+		assertYear(1, TEST, year.minusYears(1));
+		assertYear(2, TEST, year.minusYears(0));
+		assertYear(3, TEST, year.minusYears(-1));
+		assertYear(4, TEST, year.minusYears(-2));
 		assertLukashianException(() -> year.minusYears(-7));
 	}
 
@@ -78,134 +89,134 @@ public class YearTest {
 		Year year = Year.of(2);
 
 		assertLukashianException(() -> year.plusYears(7));
-		assertYear(4, year.plusYears(2));
-		assertYear(3, year.plusYears(1));
-		assertYear(2, year.plusYears(0));
-		assertYear(1, year.plusYears(-1));
+		assertYear(4, TEST, year.plusYears(2));
+		assertYear(3, TEST, year.plusYears(1));
+		assertYear(2, TEST, year.plusYears(0));
+		assertYear(1, TEST, year.plusYears(-1));
 		assertLukashianException(() -> year.plusYears(-2));
 		assertLukashianException(() -> year.plusYears(-3));
 	}
 
 	@Test
 	public void testPrevious() {
-		assertYear(1, Year.of(2).previous());
+		assertYear(1, TEST, Year.of(2).previous());
 	}
 
 	@Test
 	public void testNext() {
-		assertYear(3, Year.of(2).next());
+		assertYear(3, TEST, Year.of(2).next());
 	}
 
 	@Test
 	public void testAtDay() {
 		assertLukashianException(() -> Year.of(1).atDay(-1));
 		assertLukashianException(() -> Year.of(1).atDay(0));
-		assertDay(1, Year.of(1).atDay(1));
-		assertDay(2, Year.of(1).atDay(2));
-		assertDay(3, Year.of(1).atDay(3));
-		assertDay(4, Year.of(1).atDay(4));
+		assertDay(1, TEST, Year.of(1).atDay(1));
+		assertDay(2, TEST, Year.of(1).atDay(2));
+		assertDay(3, TEST, Year.of(1).atDay(3));
+		assertDay(4, TEST, Year.of(1).atDay(4));
 		assertLukashianException(() -> Year.of(1).atDay(5));
-		assertDay(5, Year.of(2).atDay(1));
-		assertDay(6, Year.of(2).atDay(2));
-		assertDay(7, Year.of(2).atDay(3));
+		assertDay(5, TEST, Year.of(2).atDay(1));
+		assertDay(6, TEST, Year.of(2).atDay(2));
+		assertDay(7, TEST, Year.of(2).atDay(3));
 		assertLukashianException(() -> Year.of(2).atDay(4));
-		assertDay(8, Year.of(3).atDay(1));
-		assertDay(9, Year.of(3).atDay(2));
-		assertDay(10, Year.of(3).atDay(3));
+		assertDay(8, TEST, Year.of(3).atDay(1));
+		assertDay(9, TEST, Year.of(3).atDay(2));
+		assertDay(10, TEST, Year.of(3).atDay(3));
 		assertLukashianException(() -> Year.of(3).atDay(4));
-		assertDay(11, Year.of(4).atDay(1));
-		assertDay(12, Year.of(4).atDay(2));
-		assertDay(13, Year.of(4).atDay(3));
-		assertDay(14, Year.of(4).atDay(4));
+		assertDay(11, TEST, Year.of(4).atDay(1));
+		assertDay(12, TEST, Year.of(4).atDay(2));
+		assertDay(13, TEST, Year.of(4).atDay(3));
+		assertDay(14, TEST, Year.of(4).atDay(4));
 		assertLukashianException(() -> Year.of(4).atDay(5));
-		assertDay(15, Year.of(5).atDay(1));
+		assertDay(15, TEST, Year.of(5).atDay(1));
 		assertLukashianException(() -> Year.of(5).atDay(2));
-		assertDay(16, Year.of(6).atDay(1));
-		assertDay(17, Year.of(6).atDay(2));
+		assertDay(16, TEST, Year.of(6).atDay(1));
+		assertDay(17, TEST, Year.of(6).atDay(2));
 		assertLukashianException(() -> Year.of(6).atDay(3));
-		assertDay(18, Year.of(7).atDay(1));
+		assertDay(18, TEST, Year.of(7).atDay(1));
 		assertLukashianException(() -> Year.of(7).atDay(2));
 		assertLukashianException(() -> Year.of(8).atDay(1));
 	}
 
 	@Test
 	public void testFirstDay() {
-		assertDay(1, Year.of(1).firstDay());
-		assertDay(5, Year.of(2).firstDay());
-		assertDay(8, Year.of(3).firstDay());
-		assertDay(11, Year.of(4).firstDay());
-		assertDay(15, Year.of(5).firstDay());
-		assertDay(16, Year.of(6).firstDay());
-		assertDay(18, Year.of(7).firstDay());
+		assertDay(1, TEST, Year.of(1).firstDay());
+		assertDay(5, TEST, Year.of(2).firstDay());
+		assertDay(8, TEST, Year.of(3).firstDay());
+		assertDay(11, TEST, Year.of(4).firstDay());
+		assertDay(15, TEST, Year.of(5).firstDay());
+		assertDay(16, TEST, Year.of(6).firstDay());
+		assertDay(18, TEST, Year.of(7).firstDay());
 		assertLukashianException(() -> Year.of(8).firstDay());
 
-		assertYear(1, Year.of(1).firstDay().getYear());
-		assertYear(2, Year.of(2).firstDay().getYear());
-		assertYear(3, Year.of(3).firstDay().getYear());
-		assertYear(4, Year.of(4).firstDay().getYear());
-		assertYear(5, Year.of(5).firstDay().getYear());
-		assertYear(6, Year.of(6).firstDay().getYear());
-		assertYear(7, Year.of(7).firstDay().getYear());
+		assertYear(1, TEST, Year.of(1).firstDay().getYear());
+		assertYear(2, TEST, Year.of(2).firstDay().getYear());
+		assertYear(3, TEST, Year.of(3).firstDay().getYear());
+		assertYear(4, TEST, Year.of(4).firstDay().getYear());
+		assertYear(5, TEST, Year.of(5).firstDay().getYear());
+		assertYear(6, TEST, Year.of(6).firstDay().getYear());
+		assertYear(7, TEST, Year.of(7).firstDay().getYear());
 	}
 
 	@Test
 	public void testLastDay() {
-		assertDay(4, Year.of(1).lastDay());
-		assertDay(7, Year.of(2).lastDay());
-		assertDay(10, Year.of(3).lastDay());
-		assertDay(14, Year.of(4).lastDay());
-		assertDay(15, Year.of(5).lastDay());
-		assertDay(17, Year.of(6).lastDay());
-		assertDay(18, Year.of(7).lastDay());
+		assertDay(4, TEST, Year.of(1).lastDay());
+		assertDay(7, TEST, Year.of(2).lastDay());
+		assertDay(10, TEST, Year.of(3).lastDay());
+		assertDay(14, TEST, Year.of(4).lastDay());
+		assertDay(15, TEST, Year.of(5).lastDay());
+		assertDay(17, TEST, Year.of(6).lastDay());
+		assertDay(18, TEST, Year.of(7).lastDay());
 		assertLukashianException(() -> Year.of(8).lastDay());
 
-		assertYear(1, Year.of(1).lastDay().getYear());
-		assertYear(2, Year.of(2).lastDay().getYear());
-		assertYear(3, Year.of(3).lastDay().getYear());
-		assertYear(4, Year.of(4).lastDay().getYear());
-		assertYear(5, Year.of(5).lastDay().getYear());
-		assertYear(6, Year.of(6).lastDay().getYear());
-		assertYear(7, Year.of(7).lastDay().getYear());
+		assertYear(1, TEST, Year.of(1).lastDay().getYear());
+		assertYear(2, TEST, Year.of(2).lastDay().getYear());
+		assertYear(3, TEST, Year.of(3).lastDay().getYear());
+		assertYear(4, TEST, Year.of(4).lastDay().getYear());
+		assertYear(5, TEST, Year.of(5).lastDay().getYear());
+		assertYear(6, TEST, Year.of(6).lastDay().getYear());
+		assertYear(7, TEST, Year.of(7).lastDay().getYear());
 	}
 
 	@Test
 	public void testFirstInstant() {
-		assertInstant(1, Year.of(1).firstInstant());
-		assertInstant(1001, Year.of(2).firstInstant());
-		assertInstant(2001, Year.of(3).firstInstant());
-		assertInstant(3001, Year.of(4).firstInstant());
-		assertInstant(4001, Year.of(5).firstInstant());
-		assertInstant(4500, Year.of(6).firstInstant());
-		assertInstant(4801, Year.of(7).firstInstant());
-		assertInstant(5001, Year.of(8).firstInstant());
+		assertInstant(1, TEST, Year.of(1).firstInstant());
+		assertInstant(1001, TEST, Year.of(2).firstInstant());
+		assertInstant(2001, TEST, Year.of(3).firstInstant());
+		assertInstant(3001, TEST, Year.of(4).firstInstant());
+		assertInstant(4001, TEST, Year.of(5).firstInstant());
+		assertInstant(4500, TEST, Year.of(6).firstInstant());
+		assertInstant(4801, TEST, Year.of(7).firstInstant());
+		assertInstant(5001, TEST, Year.of(8).firstInstant());
 
-		assertYear(1, Year.of(1).firstInstant().getYear());
-		assertYear(2, Year.of(2).firstInstant().getYear());
-		assertYear(3, Year.of(3).firstInstant().getYear());
-		assertYear(4, Year.of(4).firstInstant().getYear());
-		assertYear(5, Year.of(5).firstInstant().getYear());
-		assertYear(6, Year.of(6).firstInstant().getYear());
-		assertYear(7, Year.of(7).firstInstant().getYear());
-		assertYear(8, Year.of(8).firstInstant().getYear());
+		assertYear(1, TEST, Year.of(1).firstInstant().getYear());
+		assertYear(2, TEST, Year.of(2).firstInstant().getYear());
+		assertYear(3, TEST, Year.of(3).firstInstant().getYear());
+		assertYear(4, TEST, Year.of(4).firstInstant().getYear());
+		assertYear(5, TEST, Year.of(5).firstInstant().getYear());
+		assertYear(6, TEST, Year.of(6).firstInstant().getYear());
+		assertYear(7, TEST, Year.of(7).firstInstant().getYear());
+		assertYear(8, TEST, Year.of(8).firstInstant().getYear());
 	}
 
 	@Test
 	public void testLastInstant() {
-		assertInstant(1000, Year.of(1).lastInstant());
-		assertInstant(2000, Year.of(2).lastInstant());
-		assertInstant(3000, Year.of(3).lastInstant());
-		assertInstant(4000, Year.of(4).lastInstant());
-		assertInstant(4499, Year.of(5).lastInstant());
-		assertInstant(4800, Year.of(6).lastInstant());
-		assertInstant(5000, Year.of(7).lastInstant());
+		assertInstant(1000, TEST, Year.of(1).lastInstant());
+		assertInstant(2000, TEST, Year.of(2).lastInstant());
+		assertInstant(3000, TEST, Year.of(3).lastInstant());
+		assertInstant(4000, TEST, Year.of(4).lastInstant());
+		assertInstant(4499, TEST, Year.of(5).lastInstant());
+		assertInstant(4800, TEST, Year.of(6).lastInstant());
+		assertInstant(5000, TEST, Year.of(7).lastInstant());
 
-		assertYear(1, Year.of(1).lastInstant().getYear());
-		assertYear(2, Year.of(2).lastInstant().getYear());
-		assertYear(3, Year.of(3).lastInstant().getYear());
-		assertYear(4, Year.of(4).lastInstant().getYear());
-		assertYear(5, Year.of(5).lastInstant().getYear());
-		assertYear(6, Year.of(6).lastInstant().getYear());
-		assertYear(7, Year.of(7).lastInstant().getYear());
+		assertYear(1, TEST, Year.of(1).lastInstant().getYear());
+		assertYear(2, TEST, Year.of(2).lastInstant().getYear());
+		assertYear(3, TEST, Year.of(3).lastInstant().getYear());
+		assertYear(4, TEST, Year.of(4).lastInstant().getYear());
+		assertYear(5, TEST, Year.of(5).lastInstant().getYear());
+		assertYear(6, TEST, Year.of(6).lastInstant().getYear());
+		assertYear(7, TEST, Year.of(7).lastInstant().getYear());
 	}
 
 	@Test
@@ -213,6 +224,7 @@ public class YearTest {
 		assertTrue(Year.of(1).isBefore(Year.of(2)));
 		assertFalse(Year.of(1).isBefore(Year.of(1)));
 		assertFalse(Year.of(2).isBefore(Year.of(1)));
+		assertLukashianException(() -> Year.of(1).isBefore(Year.of(2, EARTH)));
 	}
 
 	@Test
@@ -220,6 +232,7 @@ public class YearTest {
 		assertTrue(Year.of(1).isSameOrBefore(Year.of(2)));
 		assertTrue(Year.of(1).isSameOrBefore(Year.of(1)));
 		assertFalse(Year.of(2).isSameOrBefore(Year.of(1)));
+		assertLukashianException(() -> Year.of(1).isSameOrBefore(Year.of(2, EARTH)));
 	}
 
 	@Test
@@ -227,6 +240,7 @@ public class YearTest {
 		assertFalse(Year.of(1).isAfter(Year.of(2)));
 		assertFalse(Year.of(1).isAfter(Year.of(1)));
 		assertTrue(Year.of(2).isAfter(Year.of(1)));
+		assertLukashianException(() -> Year.of(1).isAfter(Year.of(2, EARTH)));
 	}
 
 	@Test
@@ -234,6 +248,7 @@ public class YearTest {
 		assertFalse(Year.of(1).isSameOrAfter(Year.of(2)));
 		assertTrue(Year.of(1).isSameOrAfter(Year.of(1)));
 		assertTrue(Year.of(2).isSameOrAfter(Year.of(1)));
+		assertLukashianException(() -> Year.of(1).isSameOrAfter(Year.of(2, EARTH)));
 	}
 
 	@Test
@@ -243,24 +258,27 @@ public class YearTest {
 		assertTrue(year.contains(year.firstInstant()));
 		assertTrue(year.contains(year.lastInstant()));
 
-		assertTrue(Year.of(1).contains(Day.of(1)));
-		assertTrue(Year.of(1).contains(Day.of(4)));
-		assertFalse(Year.of(1).contains(Day.of(5)));
+		assertTrue(Year.of(1).contains(Day.ofEpoch(1, TEST)));
+		assertTrue(Year.of(1).contains(Day.ofEpoch(4, TEST)));
+		assertFalse(Year.of(1).contains(Day.ofEpoch(5, TEST)));
 
-		assertTrue(Year.of(1).contains(Instant.of(1)));
-		assertTrue(Year.of(1).contains(Instant.of(999)));
-		assertTrue(Year.of(1).contains(Instant.of(1000)));
-		assertFalse(Year.of(1).contains(Instant.of(1001)));
+		assertTrue(Year.of(1).contains(Instant.ofEpoch(1, TEST)));
+		assertTrue(Year.of(1).contains(Instant.ofEpoch(999, TEST)));
+		assertTrue(Year.of(1).contains(Instant.ofEpoch(1000, TEST)));
+		assertFalse(Year.of(1).contains(Instant.ofEpoch(1001, TEST)));
 
-		assertTrue(Year.of(3).contains(Instant.of(2999)));
-		assertTrue(Year.of(3).contains(Instant.of(3000)));
-		assertFalse(Year.of(3).contains(Instant.of(3001)));
+		assertTrue(Year.of(3).contains(Instant.ofEpoch(2999, TEST)));
+		assertTrue(Year.of(3).contains(Instant.ofEpoch(3000, TEST)));
+		assertFalse(Year.of(3).contains(Instant.ofEpoch(3001, TEST)));
 
-		assertFalse(Year.of(4).contains(Instant.of(2999)));
-		assertFalse(Year.of(4).contains(Instant.of(3000)));
-		assertTrue(Year.of(4).contains(Instant.of(3001)));
-		assertTrue(Year.of(4).contains(Instant.of(4000)));
-		assertFalse(Year.of(4).contains(Instant.of(4001)));
+		assertFalse(Year.of(4).contains(Instant.ofEpoch(2999, TEST)));
+		assertFalse(Year.of(4).contains(Instant.ofEpoch(3000, TEST)));
+		assertTrue(Year.of(4).contains(Instant.ofEpoch(3001, TEST)));
+		assertTrue(Year.of(4).contains(Instant.ofEpoch(4000, TEST)));
+		assertFalse(Year.of(4).contains(Instant.ofEpoch(4001, TEST)));
+
+		assertLukashianException(() -> Year.of(1).contains(Day.ofEpoch(2, EARTH)));
+		assertLukashianException(() -> Year.of(1).contains(Instant.ofEpoch(2, EARTH)));
 	}
 
 	@Test
@@ -270,24 +288,27 @@ public class YearTest {
 		assertFalse(year.containsNot(year.firstInstant()));
 		assertFalse(year.containsNot(year.lastInstant()));
 
-		assertFalse(Year.of(1).containsNot(Day.of(1)));
-		assertFalse(Year.of(1).containsNot(Day.of(4)));
-		assertTrue(Year.of(1).containsNot(Day.of(5)));
+		assertFalse(Year.of(1).containsNot(Day.ofEpoch(1, TEST)));
+		assertFalse(Year.of(1).containsNot(Day.ofEpoch(4, TEST)));
+		assertTrue(Year.of(1).containsNot(Day.ofEpoch(5, TEST)));
 
-		assertFalse(Year.of(1).containsNot(Instant.of(1)));
-		assertFalse(Year.of(1).containsNot(Instant.of(999)));
-		assertFalse(Year.of(1).containsNot(Instant.of(1000)));
-		assertTrue(Year.of(1).containsNot(Instant.of(1001)));
+		assertFalse(Year.of(1).containsNot(Instant.ofEpoch(1, TEST)));
+		assertFalse(Year.of(1).containsNot(Instant.ofEpoch(999, TEST)));
+		assertFalse(Year.of(1).containsNot(Instant.ofEpoch(1000, TEST)));
+		assertTrue(Year.of(1).containsNot(Instant.ofEpoch(1001, TEST)));
 
-		assertFalse(Year.of(3).containsNot(Instant.of(2999)));
-		assertFalse(Year.of(3).containsNot(Instant.of(3000)));
-		assertTrue(Year.of(3).containsNot(Instant.of(3001)));
+		assertFalse(Year.of(3).containsNot(Instant.ofEpoch(2999, TEST)));
+		assertFalse(Year.of(3).containsNot(Instant.ofEpoch(3000, TEST)));
+		assertTrue(Year.of(3).containsNot(Instant.ofEpoch(3001, TEST)));
 
-		assertTrue(Year.of(4).containsNot(Instant.of(2999)));
-		assertTrue(Year.of(4).containsNot(Instant.of(3000)));
-		assertFalse(Year.of(4).containsNot(Instant.of(3001)));
-		assertFalse(Year.of(4).containsNot(Instant.of(4000)));
-		assertTrue(Year.of(4).containsNot(Instant.of(4001)));
+		assertTrue(Year.of(4).containsNot(Instant.ofEpoch(2999, TEST)));
+		assertTrue(Year.of(4).containsNot(Instant.ofEpoch(3000, TEST)));
+		assertFalse(Year.of(4).containsNot(Instant.ofEpoch(3001, TEST)));
+		assertFalse(Year.of(4).containsNot(Instant.ofEpoch(4000, TEST)));
+		assertTrue(Year.of(4).containsNot(Instant.ofEpoch(4001, TEST)));
+
+		assertLukashianException(() -> Year.of(1).containsNot(Day.ofEpoch(2, EARTH)));
+		assertLukashianException(() -> Year.of(1).containsNot(Instant.ofEpoch(2, EARTH)));
 	}
 
 	@Test
@@ -365,11 +386,13 @@ public class YearTest {
 		assertEquals(2, Year.of(4).differenceWith(Year.of(2)));
 		assertEquals(1, Year.of(4).differenceWith(Year.of(3)));
 		assertEquals(0, Year.of(4).differenceWith(Year.of(4)));
+		assertLukashianException(() -> Year.of(8).differenceWith(Year.of(4, EARTH)));
 	}
 
 	@Test
 	public void testNow() {
-		assertNotNull(Year.now());
+		assertEquals(TEST, Year.now().getCalendarKey());
+		assertEquals(EARTH, Year.now(EARTH).getCalendarKey());
 	}
 
 	@Test
@@ -382,19 +405,23 @@ public class YearTest {
 		assertEquals(2, Year.of(4).compareTo(Year.of(2)));
 		assertEquals(1, Year.of(4).compareTo(Year.of(3)));
 		assertEquals(0, Year.of(4).compareTo(Year.of(4)));
+		assertLukashianException(() -> Year.of(8).compareTo(Year.of(4, EARTH)));
 	}
 
 	@Test
 	public void testHashCode() {
-		assertEquals(2, Year.of(2).hashCode());
+		assertEquals(Year.of(2, TEST).hashCode(), Year.of(2, TEST).hashCode());
+		assertNotEquals(Year.of(2, TEST).hashCode(), Year.of(2, EARTH).hashCode());
+		assertNotEquals(Year.of(2, TEST).hashCode(), Year.of(3, TEST).hashCode());
 	}
 
 	@SuppressWarnings({"unlikely-arg-type", "SimplifiableAssertion", "EqualsBetweenInconvertibleTypes"})
 	@Test
 	public void testEquals() {
-		assertTrue(Year.of(1).equals(Year.of(1)));
-		assertFalse(Year.of(1).equals(Year.of(2)));
-		assertFalse(Year.of(1).equals(Day.of(1)));
+		assertTrue(Year.of(1, TEST).equals(Year.of(1, TEST)));
+		assertFalse(Year.of(1, TEST).equals(Year.of(1, EARTH)));
+		assertFalse(Year.of(1, TEST).equals(Year.of(2, TEST)));
+		assertFalse(Year.of(1, TEST).equals(Day.ofEpoch(1, TEST)));
 	}
 
 	@Test
