@@ -56,6 +56,9 @@ be loadable from the official lukashian.org server.
 ## Changelog
 Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
 
+### 1.14.0:
+- Improved Equation of Time calculation of Earth instance (`StandardEarthMillisecondStoreDataProvider`)
+
 ### 1.13.0:
 - Revamped the `MillisecondStore` mechanism, enabling the usage of multiple simultaneous implementations of `MillisecondStoreDataProvider`
 - Added a calendar instance for Planet Mars, via `StandardMarsMillisecondStoreDataProvider` and `StandardMarsHttpMillisecondStoreDataProvider`
