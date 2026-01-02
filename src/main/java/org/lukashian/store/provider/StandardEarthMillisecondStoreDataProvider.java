@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
+ * Copyright (c) 2018-2026 (5918-5926 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -53,7 +53,6 @@ package org.lukashian.store.provider;
 import org.lukashian.store.MillisecondStoreDataProvider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static java.lang.Math.*;
 
@@ -123,7 +122,6 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//long unixEpochOffsetMilliseconds = lukashianWinterSolstice5870UnixEpochMillis - gregorianWinterSolstice1970UnixEpochMillis;
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
 		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
-		//if (true) return 0L; //For initial Unix offset calculation
 
 		return 185208761225352L;
 	}
@@ -144,26 +142,14 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 
 	@Override
 	public long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds) {
-		//See https://en.wikipedia.org/wiki/Day#Leap_seconds
-		//See https://en.wikipedia.org/wiki/Leap_second#Slowing_rotation_of_the_Earth
-		//See https://en.wikipedia.org/wiki/Earth%27s_rotation
 		//See https://en.wikipedia.org/wiki/Solar_time
-		//See https://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
-		//See Chapter 38 of "Astronomical Algorithms, Second Edition" by Jean Meeus
+		//See https://en.wikipedia.org/wiki/Equation_of_time
+		//See https://en.wikipedia.org/wiki/Earth%27s_rotation
+		//See Chapters 22, 25, 28 of "Astronomical Algorithms, Second Edition" by Jean Meeus
 
-		//Calculating the true solar day length is done by using the mean solar day length as a basis and then adjusting each day with the Equation of Time.
-		//When determining the mean solar day length, we take into account lengthening of the days due to tidal forces.
-		//This method of calculation achieves a certain level of stability, because any discrepancy in the equation-of-time-adjustment will only affect
-		//the respective day and will never accumulate throughout the calendar; the next day will have a "fresh" calculation starting from its mean solar day length again.
-
-		//Initialize perihelion array
 		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
-		long[] baryCenterPerihelionEpochMilliseconds = new long[yearEpochMilliseconds.length + 2]; //+2 to make sure that last few days of last year also have a perihelion
-		for (int year = 0; year < baryCenterPerihelionEpochMilliseconds.length; year++) { //Start at 0, because we want the days of the first year to also have a most recent perihelion
-			baryCenterPerihelionEpochMilliseconds[year] = this.getJdeMillisForBaryCenterPerihelion(year) - jdeMillisAtStartOfCalendar;
-		}
 
-		//Initialize variables for calculating the duration of a Mean Solar Day, taking into account the slowing rotation of the Earth, but not taking into account the Equation of Time
+		//Initialize variables for calculating the duration of a Mean Solar Day, taking into account the slowing rotation of the Earth
 		long centurialIncreaseInNanos = 1_700_000L; //Known value
 		double dailyIncreaseInNanos = centurialIncreaseInNanos / (100 * 365.25);
 
@@ -175,66 +161,149 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		ArrayList<Long> dayEpochMilliseconds = new ArrayList<>(yearEpochMilliseconds.length * 370); //Make sure there's enough capacity
 
 		//Initialize day loop
-		int currentDay = 1;
-		double epochNanosOfCurrentMeanSolarDay = 0;
+		int currentDay = 0;
+		long eotOffsetMillis = 0;
+		double jdeNanosOfCurrentMeanSolarDay = (double) jdeMillisAtStartOfCalendar * 1_000_000;
 		long epochMillisOfEndOfFinalYear = yearEpochMilliseconds[yearEpochMilliseconds.length - 1];
 		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.getLast() < epochMillisOfEndOfFinalYear) {
-			//Calculate mean solar day length for this day
-			double increaseSinceEpochInNanos = dailyIncreaseInNanos * (currentDay - 1);
-			double lengthOfCurrentMeanSolarDayInNanos = lengthOfMeanSolarDayAtEpochInNanos + increaseSinceEpochInNanos;
-
-			epochNanosOfCurrentMeanSolarDay += lengthOfCurrentMeanSolarDayInNanos;
-			long epochMillisOfCurrentMeanSolarDay = (long) (epochNanosOfCurrentMeanSolarDay / 1_000_000);
-
-			//Get the most recent solstice
-			int index = Arrays.binarySearch(yearEpochMilliseconds, epochMillisOfCurrentMeanSolarDay);
-			index = index >= 0 ? index - 1 : -index - 2;
-			long epochMillisOfMostRecentSolstice = index < 0 ? 0L : yearEpochMilliseconds[index];
-
-			//Get the most recent perihelion
-			index = Arrays.binarySearch(baryCenterPerihelionEpochMilliseconds, epochMillisOfCurrentMeanSolarDay);
-			index = index >= 0 ? index - 1 : -index - 2;
-			long epochMillisOfMostRecentBaryCenterPerihelion = baryCenterPerihelionEpochMilliseconds[index]; //index should always be >= 0 for perihelion array
+			long jdeMillisOfCurrentMeanSolarDay = (long) (jdeNanosOfCurrentMeanSolarDay / 1_000_000);
 
 			//Calculate Equation of Time and calculate true solar day
+			double deltaT = ((double) jdeMillisOfCurrentMeanSolarDay / (24 * 3600 * 1000)) - 2451545.0; //Days since J2000 Epoch
 
-			//Note: this method is based on the amount of days since the most recent solstice and perihelion, it is NOT based on actual JDE timestamps
+			double deltaTC = deltaT / 36525; //Julian centuries since J2000 Epoch
+			double deltaTC2 = deltaTC * deltaTC;
+			double deltaTC3 = deltaTC2 * deltaTC;
 
-			//Note: whenever there's a rollover to the next most recent solstice or perihelion, there's a slight hiccup of around 300ms in the calculated epochMillisOfCurrentTrueSolarDay.
-			//This is because the decimal part of daysSinceSolstice and daysSincePerihelion will shift by quite a bit (sometimes almost half a day), e.g. it goes from [363.48..., 364.48..., 365.48...] to [0.15..., 1.15..., 2.15...].
-			//This discrepancy will then propagate through the calculation. Truncating the decimal part, or setting it to a fixed value (eg. 0.5) makes the hiccup larger and therefore does not provide a solution.
-			//This issue is expected to disappear when we switch to a more comprehensive EOT based calculation or to a VSOP based calculation.
-			//Another potential way to solve it, is not to rollover to the next most recent solstice or perihelion once a year, but interpolating the current position of the solstice and perihelion for every individual day.
+			double deltaTM = deltaTC / 10; //Julian millennia since J2000 Epoch
+			double deltaTM2 = deltaTM * deltaTM;
+			double deltaTM3 = deltaTM2 * deltaTM;
+			double deltaTM4 = deltaTM3 * deltaTM;
+			double deltaTM5 = deltaTM4 * deltaTM;
 
-			long millisSinceSolstice = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentSolstice;
-			long millisSincePerihelion = epochMillisOfCurrentMeanSolarDay - epochMillisOfMostRecentBaryCenterPerihelion;
+			double deltaT10M = deltaTM / 10; //10 Julian millennia since J2000 Epoch
+			double deltaT10M2 = deltaT10M * deltaT10M;
+			double deltaT10M3 = deltaT10M2 * deltaT10M;
+			double deltaT10M4 = deltaT10M3 * deltaT10M;
+			double deltaT10M5 = deltaT10M4 * deltaT10M;
+			double deltaT10M6 = deltaT10M5 * deltaT10M;
+			double deltaT10M7 = deltaT10M6 * deltaT10M;
+			double deltaT10M8 = deltaT10M7 * deltaT10M;
+			double deltaT10M9 = deltaT10M8 * deltaT10M;
+			double deltaT10M10 = deltaT10M9 * deltaT10M;
 
-			double daysSinceSolstice = ((double) millisSinceSolstice) / (1000D * 3600 * 24);
-			double daysSincePerihelion = ((double) millisSincePerihelion) / (1000D * 3600 * 24);
+			double lSun = normalize( //Sun's mean longitude (28.2 / normalized degrees)
+				280.4664567 +
+				360007.6982779 * deltaTM +
+				0.03032028 * deltaTM2 +
+				deltaTM3 / 49931 -
+				deltaTM4 / 15300 -
+				deltaTM5 / 2000000
+			);
 
-			double n = 360D / 365.24;
-			double a = n * daysSinceSolstice;
-			double b = a + 1.914 * sin(toRadians(n * daysSincePerihelion));
-			double c = (a - (toDegrees(atan(tan(toRadians(b)) / cos(toRadians(23.44D)))))) / 180;
-			double eotMinutes = 720D * (c - round(c));
+			double omega = //Longitude of ascending node of Moon's mean orbit on ecliptic (22 / degrees)
+				125.04452 -
+				1934.136261 * deltaTC +
+				0.0020708 * deltaTC2 +
+				deltaTC3 / 450000;
+
+			double lMoon = 218.3165 + 481267.8813 * deltaTC; //Moon's mean longitude (22 / degrees)
+
+			double deltaPsi = arcsecToDegree( //Nutation in longitude (22 (errata) / degrees)
+				-17.20 * sin(toRadians(omega)) -
+				1.32 * sin(toRadians(2 * lSun)) -
+				0.23 * sin(toRadians(2 * lMoon)) +
+				0.21 * sin(toRadians(2 * omega))
+			);
+
+			double deltaEpsilon = arcsecToDegree( //Nutation in obliquity (22 / degrees)
+				9.20 * cos(toRadians(omega)) +
+				0.57 * cos(toRadians(2 * lSun)) +
+				0.10 * cos(toRadians(2 * lMoon)) -
+				0.09 * cos(toRadians(2 * omega))
+			);
+
+			double epsilonZero = arcsecToDegree( //Mean obliquity of ecliptic (22.2 / degrees)
+				82800 + //23 degrees
+				1560 + //26 arcminutes
+				21.448 -
+				4680.93 * deltaT10M -
+				1.55 * deltaT10M2 +
+				1999.25 * deltaT10M3 -
+				51.38 * deltaT10M4 -
+				249.67 * deltaT10M5 -
+				39.05 * deltaT10M6 +
+				7.12 * deltaT10M7 +
+				27.87 * deltaT10M8 +
+				5.79 * deltaT10M9 +
+				2.45 * deltaT10M10
+			);
+
+			double epsilon = epsilonZero + deltaEpsilon; //True obliquity of ecliptic (22 / degrees)
+
+			double m = //Sun's mean anomaly (25.3 / degrees)
+				357.52911 +
+				35999.05029 * deltaTC -
+				0.0001537 * deltaTC2;
+
+			double c = //Sun's equation of the centre (25 / degrees)
+				(1.914602 - 0.004817 * deltaTC - 0.000014 * deltaTC2) * sin(toRadians(m)) +
+				(0.019993 - 0.000101 * deltaTC) * sin(toRadians(2 * m)) +
+				0.000289 * sin(toRadians(3 * m));
+
+			double dot = lSun + c; //Sun's true longitude (25 / degrees)
+
+			double gamma = dot - 0.00569 - 0.00478 * sin(toRadians(omega)); //Sun's apparent longitude (25 / degrees)
+
+			double alpha = normalize(toDegrees(atan2( //Sun's apparent right ascension (25.6 / normalized degrees)
+				cos(toRadians(epsilon)) * sin(toRadians(gamma)), //Correction from 25.8 already contained in epsilon (25.8 is simplified version of deltaEpsilon)
+				cos(toRadians(gamma))
+			)));
+
+			double eotDegrees = lSun - 0.0057183 - alpha + deltaPsi * cos(toRadians(epsilon)); //Equation of Time (28.1 / degrees)
+
+			double eotMinutes = (eotDegrees * 24 * 60) / 360;
+			if (eotMinutes > 20) {
+				eotMinutes -= 24 * 60;
+			} else if (eotMinutes < -20) {
+				eotMinutes += 24 * 60;
+			}
+			if (eotMinutes > 20 || eotMinutes < -20) {
+				throw new IllegalStateException("eotMinutes is " + eotMinutes + " for currentDay " + currentDay);
+			}
+
 			long eotMillis = (long) (eotMinutes * 60 * 1000);
 
 			//Subtract eot, rather than add, because if eot is positive, apparent solar time is *ahead* of mean, which means that the *duration* of apparent is *shorter*, not longer
-			long epochMillisOfCurrentTrueSolarDay = epochMillisOfCurrentMeanSolarDay - eotMillis;
+			long jdeMillisOfCurrentTrueSolarDay = jdeMillisOfCurrentMeanSolarDay - eotMillis;
+
+			long epochMillisOfCurrentTrueSolarDay = (jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar) - eotOffsetMillis;
 
 			//Use this code if you want to display details of certain days
-//			if (currentDay >= 2162615 && currentDay <= 2162619) {
+//			if (currentDay >= 2164066 && currentDay <= 2164430) {
 //				System.out.println(
-//					"Epoch day: " + currentDay + ", " +
-//					"epochMillisOfCurrentMeanSolarDay: " + epochMillisOfCurrentMeanSolarDay + ", " +
-//					"daysSinceSolstice: " + daysSinceSolstice + ", " +
-//					"daysSincePerihelion: " + daysSincePerihelion + ", " +
-//					"epochMillisOfCurrentTrueSolarDay: " + epochMillisOfCurrentTrueSolarDay
+//					eotMinutes
+//					"currentDay: " + currentDay + ", " +
+//					"lSun: " + lSun + ", " +
+//					"alpha: " + alpha + ", " +
+//					"deltaPsi: " + deltaPsi + ", " +
+//					"epsilon: " + epsilon + ", "
 //				);
 //			}
 
-			//Add to List
-			dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
+			//See StandardMarsMillisecondStoreDataProvider comments for an explanation of construct below
+			if (currentDay == 0) { //Calculate eotOffsetMillis in the first iteration
+				eotOffsetMillis = jdeMillisOfCurrentTrueSolarDay - jdeMillisAtStartOfCalendar; //Positive if too long, Negative if too short
+			} else {
+				//Add the first day and further to the List
+				dayEpochMilliseconds.add(epochMillisOfCurrentTrueSolarDay);
+			}
+
+			//Calculate mean solar day length for this day
+			double increaseSinceEpochInNanos = dailyIncreaseInNanos * currentDay;
+			double lengthOfCurrentMeanSolarDayInNanos = lengthOfMeanSolarDayAtEpochInNanos + increaseSinceEpochInNanos;
+
+			jdeNanosOfCurrentMeanSolarDay += lengthOfCurrentMeanSolarDayInNanos;
 			currentDay++;
 		}
 		return dayEpochMilliseconds.stream().mapToLong(Long::longValue).toArray();
@@ -280,9 +349,12 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		return (long) (jde * 24 * 3600 * 1000);
 	}
 
-	private long getJdeMillisForBaryCenterPerihelion(int year) {
-		long k = round(0.99997 * ((double) year - 5900.01));
-		double jde = 2451547.507D + 365.2596358D * k + 0.0000000156D * k * k;
-		return (long) (jde * 24 * 3600 * 1000);
+	private double normalize(double degrees) {
+		double mod = degrees % 360;
+		return mod < 0 ? mod + 360 : mod;
+	}
+
+	private double arcsecToDegree(double arcseconds) {
+		return arcseconds / 3600;
 	}
 }

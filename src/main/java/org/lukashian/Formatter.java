@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
+ * Copyright (c) 2018-2026 (5918-5926 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -144,7 +144,7 @@ public final class Formatter {
 	 * For a detailed explanation on how the proportion is interpreted, see {@link Instant#getBeeps()}.
 	 */
 	public static String format(BigFraction proportionOfDay) {
-		return format(proportionOfDay, bd -> String.format("%04d", proportionOfDay.multiply(Instant.BEEPS_PER_DAY).intValue()));
+		return format(proportionOfDay, bd -> String.format("%04d", bd.multiply(Instant.BEEPS_PER_DAY).intValue()));
 	}
 
 	/**

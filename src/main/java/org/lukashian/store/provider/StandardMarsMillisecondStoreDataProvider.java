@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
+ * Copyright (c) 2018-2026 (5918-5926 in Lukashian years)
  * All rights reserved.
  *
  * The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -155,10 +155,9 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 	@Override
 	public long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds) {
 		//See https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
-		//This algorithm is based on JDE, not on millis since most recent solstice / perihelion, so we keep track of JDE millis, not epoch millis
 
 		long jdeMillisAtStartOfCalendar = this.getJdeMillisAtEndOfYear(0);
-		long lengthOfMeanSolarDayInMillis = (long) (24 * 3600 * 1000 * 1.02749125D);
+		long lengthOfMeanSolarDayInMillis = (long) (24 * 3600 * 1000 * 1.02749125);
 
 		//Initialize ArrayList that will hold the days
 		ArrayList<Long> dayEpochMilliseconds = new ArrayList<>(yearEpochMilliseconds.length * 670); //Make sure there's enough capacity
@@ -171,27 +170,28 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 		while (dayEpochMilliseconds.isEmpty() || dayEpochMilliseconds.getLast() < epochMillisOfEndOfFinalYear) {
 			//Calculate Equation of Time and calculate true solar day
 			double deltaT = ((double) jdeMillisOfCurrentMeanSolarDay / (24 * 3600 * 1000)) - 2451545.0; //Days since J2000 Epoch
-			double m = 19.3871D + (0.52402073 * deltaT); //Mars Mean Anomaly
-			double alphaFMS = 270.3871D + (0.524038496 * deltaT); //Angle of Fictitious Mean Sun
+
+			double m = 19.3871 + (0.52402073 * deltaT); //Mars Mean Anomaly
+			double alphaFMS = 270.3871 + (0.524038496 * deltaT); //Angle of Fictitious Mean Sun
 
 			double perturbers = 0;
 			for (int i = 0; i < 7; i++) {
-				perturbers += ALPHA[i] * cos(toRadians(((0.985626D * deltaT) / TAU[i]) + PHI[i]));
+				perturbers += ALPHA[i] * cos(toRadians(((0.985626 * deltaT) / TAU[i]) + PHI[i]));
 			}
 
 			double vMinusM = //True minus Mean Anomaly
-				(10.691D + 0.0000003 * deltaT) * sin(toRadians(m)) +
-				0.623D * sin(toRadians(2 * m)) +
-				0.050D * sin(toRadians(3 * m)) +
-				0.005D * sin(toRadians(4 * m)) +
-          		0.0005D * sin(toRadians(5 * m)) +
+				(10.691 + 0.0000003 * deltaT) * sin(toRadians(m)) +
+				0.623 * sin(toRadians(2 * m)) +
+				0.050 * sin(toRadians(3 * m)) +
+				0.005 * sin(toRadians(4 * m)) +
+          		0.0005 * sin(toRadians(5 * m)) +
 				perturbers;
 
 			double ls = alphaFMS + vMinusM; //Aereocentric Solar Longitude
 
 			double eotDegrees =
-				2.861D * sin(toRadians(2 * ls)) -
-				0.071D * sin(toRadians(4 * ls)) +
+				2.861 * sin(toRadians(2 * ls)) -
+				0.071 * sin(toRadians(4 * ls)) +
           		0.002 * sin(toRadians(6 * ls)) -
 				vMinusM;
 

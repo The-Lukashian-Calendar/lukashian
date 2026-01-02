@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
-    Copyright (c) 2018-2025 (5918-5925 in Lukashian years)
+    Copyright (c) 2018-2026 (5918-5926 in Lukashian years)
     All rights reserved.
 
     The Lukashian Calendar and The Lukashian Calendar Mechanism are registered
@@ -62,7 +62,7 @@
 	<!-- Main system data -->
 	<groupId>org.lukashian</groupId>
 	<artifactId>lukashian</artifactId>
-	<version>1.13.0</version>
+	<version>1.14.0</version>
 	<packaging>jar</packaging>
 
 
