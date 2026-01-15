@@ -184,7 +184,7 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 				0.623 * sin(toRadians(2 * m)) +
 				0.050 * sin(toRadians(3 * m)) +
 				0.005 * sin(toRadians(4 * m)) +
-          		0.0005 * sin(toRadians(5 * m)) +
+				0.0005 * sin(toRadians(5 * m)) +
 				perturbers;
 
 			double ls = alphaFMS + vMinusM; //Aereocentric Solar Longitude
@@ -192,7 +192,7 @@ public class StandardMarsMillisecondStoreDataProvider implements MillisecondStor
 			double eotDegrees =
 				2.861 * sin(toRadians(2 * ls)) -
 				0.071 * sin(toRadians(4 * ls)) +
-          		0.002 * sin(toRadians(6 * ls)) -
+				0.002 * sin(toRadians(6 * ls)) -
 				vMinusM;
 
 			double eotHours = (eotDegrees * 24) / 360;
