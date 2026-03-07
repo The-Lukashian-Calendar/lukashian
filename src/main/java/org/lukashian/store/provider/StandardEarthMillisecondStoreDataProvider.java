@@ -123,8 +123,6 @@ public class StandardEarthMillisecondStoreDataProvider implements MillisecondSto
 		//System.out.println("UNIX Epoch Offset Milliseconds: " + unixEpochOffsetMilliseconds);
 		//This way of "pulling" the Lukashian Calendar in sync with the System Clock also takes into account the difference between TAI and TT
 
-		System.out.println("Hello");
-
 		return 185208761225352L;
 	}
 
