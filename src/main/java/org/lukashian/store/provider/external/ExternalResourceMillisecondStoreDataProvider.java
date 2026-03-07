@@ -37,7 +37,7 @@
  *    change the functional behaviour of the Lukashian Calendar Mechanism as
  *    implemented by source code.
  *
- * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
@@ -132,6 +132,9 @@ public abstract class ExternalResourceMillisecondStoreDataProvider implements Mi
 			byte[] byteArray = this.loadMillisecondsByteArray(baseLocation + extension);
 			if (byteArray == null || byteArray.length == 0) {
 				throw new IOException("No bytes could be loaded from '" + baseLocation + extension + "'");
+			}
+			if (byteArray.length % 8 != 0) {
+				throw new IllegalArgumentException("Number of bytes is not a multiple of 8, which is required for reading long values");
 			}
 
 			LongBuffer longBuffer = ByteBuffer.wrap(byteArray).asLongBuffer();

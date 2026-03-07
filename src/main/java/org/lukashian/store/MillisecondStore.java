@@ -37,7 +37,7 @@
  *    change the functional behaviour of the Lukashian Calendar Mechanism as
  *    implemented by source code.
  *
- * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
@@ -136,9 +136,12 @@ public final class MillisecondStore {
 	 * Registers the given {@link MillisecondStoreDataProvider} under the given key. It is not advisable to overwrite the
 	 * standard keys, i.e. the int constants in the {@link CalendarKeys} class, as other classes might depend on those constants to represent
 	 * what they are intended to represent.
+	 * <p>
+	 * Registering a provider under a key also clears the {@link MillisecondStoreData} corresponding to the given key, see {@link #clearData(int)}.
 	 */
 	public void registerProvider(int key, MillisecondStoreDataProvider provider) {
 		providers.put(key, provider);
+		this.clearData(key);
 	}
 
 	/**

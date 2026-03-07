@@ -37,7 +37,7 @@
  *    change the functional behaviour of the Lukashian Calendar Mechanism as
  *    implemented by source code.
  *
- * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
@@ -96,7 +96,7 @@ public final class MillisecondStoreData implements Serializable {
 	public long getUnixEpochMilliseconds(long lukashianEpochMilliseconds) {
 		long unixEpochMilliseconds = Math.subtractExact(lukashianEpochMilliseconds, unixEpochOffsetMilliseconds);
 
-		//We have the correct value, now we need to make it incorrect, so that it matches the incorrect UNIX time standard
+		//We have the value that matches reality, now we need to adjust for leap seconds, so that it matches the UNIX time standard
 		int index = Arrays.binarySearch(unixTimestampsWithLeapSecond, unixEpochMilliseconds);
 		int numberOfLeapSeconds = index >= 0 ? index + 1 : -index - 1;
 
@@ -107,7 +107,7 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the given number of milliseconds from the UNIX Epoch.
 	 */
 	public long getLukashianEpochMilliseconds(long unixEpochMilliseconds) {
-		//We have the incorrect value, now we need to make it correct, to compensate for the the incorrect UNIX time standard
+		//We have the value adjusted for leap seconds, now we need to unadjust it, so that it matches reality
 		int index = Arrays.binarySearch(unixTimestampsWithLeapSecond, unixEpochMilliseconds);
 		int numberOfLeapSeconds = index >= 0 ? index + 1 : -index - 1;
 
@@ -125,6 +125,7 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the number of milliseconds from the start of the Lukashian Calendar until the final point of the given year.
 	 */
 	public long getEpochMillisecondsForYear(int year) {
+		check(year >= 1, () -> year + " is not a valid year, the minimum is 1");
 		check(year <= yearEpochMilliseconds.length, () -> "Year " + year + " isn't supported yet by this Lukashian Calendar instance");
 
 		return yearEpochMilliseconds[year - 1];
@@ -135,6 +136,7 @@ public final class MillisecondStoreData implements Serializable {
 	 * form, i.e. the how manieth day it is since the start of the Lukashian Calendar, irrespective of the year of the day.
 	 */
 	public long getEpochMillisecondsForEpochDay(int epochDay) {
+		check(epochDay >= 1, () -> epochDay + " is not a valid epoch day, the minimum is 1");
 		check(epochDay <= dayEpochMilliseconds.length, () -> "Epoch day " + epochDay + " isn't supported yet by this Lukashian Calendar instance");
 
 		return dayEpochMilliseconds[epochDay - 1];
@@ -144,6 +146,7 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the year that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
 	 */
 	public int getYearForEpochMilliseconds(long epochMilliseconds) {
+		check(epochMilliseconds >= 1, () -> epochMilliseconds + " is not valid, the minimum is 1");
 		check(epochMilliseconds <= yearEpochMilliseconds[yearEpochMilliseconds.length - 1], () -> "Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar instance");
 
 		int index = Arrays.binarySearch(yearEpochMilliseconds, epochMilliseconds);
@@ -154,6 +157,7 @@ public final class MillisecondStoreData implements Serializable {
 	 * Gets the epoch day that overlaps with the point where the given number of milliseconds have passed since the start of the Lukashian Calendar.
 	 */
 	public int getEpochDayForEpochMilliseconds(long epochMilliseconds) {
+		check(epochMilliseconds >= 1, () -> epochMilliseconds + " is not valid, the minimum is 1");
 		check(epochMilliseconds <= dayEpochMilliseconds[dayEpochMilliseconds.length - 1], () -> "Epoch millisecond " + epochMilliseconds + " isn't supported yet by this Lukashian Calendar instance");
 
 		int index = Arrays.binarySearch(dayEpochMilliseconds, epochMilliseconds);
