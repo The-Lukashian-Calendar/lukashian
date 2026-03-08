@@ -528,7 +528,10 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * @see MillisecondStore
 	 */
 	public Instant toCalendar(int calendarKey) {
-		return Instant.ofUnixEpochMilliseconds(this.getUnixEpochMilliseconds(), calendarKey);
+		long offset = data(this.calendarKey).getUnixEpochOffsetMilliseconds();
+		long otherOffset = data(calendarKey).getUnixEpochOffsetMilliseconds();
+		long difference = Math.subtractExact(offset, otherOffset);
+		return Instant.ofEpoch(this.getEpochMilliseconds() - difference, calendarKey);
 	}
 
 	/**

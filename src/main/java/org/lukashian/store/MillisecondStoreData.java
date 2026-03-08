@@ -91,6 +91,16 @@ public final class MillisecondStoreData implements Serializable {
 	}
 
 	/**
+	 * Gets the offset between the UNIX epoch and the Lukashian epoch of the calendar instance corresponding to this
+	 * {@link MillisecondStoreData}.
+	 * <p>
+	 * For more information regarding this value, see {@link MillisecondStoreDataProvider}.
+	 */
+	public long getUnixEpochOffsetMilliseconds() {
+		return unixEpochOffsetMilliseconds;
+	}
+
+	/**
 	 * Gets the number of milliseconds from the UNIX Epoch until the given number of milliseconds from the Lukashian Epoch.
 	 */
 	public long getUnixEpochMilliseconds(long lukashianEpochMilliseconds) {

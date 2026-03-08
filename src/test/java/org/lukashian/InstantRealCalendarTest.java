@@ -53,12 +53,14 @@ package org.lukashian;
 import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
+import org.lukashian.store.MillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
 import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.lukashian.store.CalendarKeys.EARTH;
+import static org.lukashian.store.MillisecondStore.data;
+import static org.lukashian.store.MillisecondStore.store;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
 
 /**
@@ -69,8 +71,8 @@ public class InstantRealCalendarTest {
 
 	@BeforeAll
 	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
+		store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
+		store().setDefaultCalendarKey(TEST);
 	}
 
 	@Test
@@ -202,5 +204,41 @@ public class InstantRealCalendarTest {
 
 		assertEquals(-2000, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(500099999, 1000000000))));
 		assertEquals(0, Instant.of(Day.ofEpoch(3, EARTH), 3000).differenceInBeepsWith(Instant.of(Day.ofEpoch(3, EARTH), BigFraction.of(300099999, 1000000000))));
+	}
+
+	@Test
+	public void testToCalendar() {
+		MillisecondStoreDataProvider oneSecondBehindProvider = new StandardEarthMillisecondStoreDataProvider() {
+			@Override
+			public long loadUnixEpochOffsetMilliseconds() {
+				return super.loadUnixEpochOffsetMilliseconds() + 1000;
+			}
+		};
+		int oneSecondBehindKey = 6;
+		store().registerProvider(oneSecondBehindKey, oneSecondBehindProvider);
+
+		//First, test the current time
+		long currentOffset = data(EARTH).getUnixEpochOffsetMilliseconds() + System.currentTimeMillis();
+
+		Instant now = Instant.ofEpoch(currentOffset, EARTH);
+		Instant oneSecondBehind = now.toCalendar(oneSecondBehindKey);
+
+		assertEquals(now.getEpochMilliseconds() + 1000, oneSecondBehind.getEpochMilliseconds());
+		assertEquals(oneSecondBehindKey, oneSecondBehind.getCalendarKey());
+
+		//Then, test an Instant overlapping a UNIX leap second
+		long leapOffset = data(EARTH).getUnixEpochOffsetMilliseconds() + 78796800000L;
+
+		Instant leap = Instant.ofEpoch(leapOffset - 1, EARTH);
+		oneSecondBehind = leap.toCalendar(oneSecondBehindKey);
+		assertEquals(leap.getEpochMilliseconds() + 1000, oneSecondBehind.getEpochMilliseconds());
+
+		leap = Instant.ofEpoch(leapOffset, EARTH);
+		oneSecondBehind = leap.toCalendar(oneSecondBehindKey);
+		assertEquals(leap.getEpochMilliseconds() + 1000, oneSecondBehind.getEpochMilliseconds());
+
+		leap = Instant.ofEpoch(leapOffset + 1, EARTH);
+		oneSecondBehind = leap.toCalendar(oneSecondBehindKey);
+		assertEquals(leap.getEpochMilliseconds() + 1000, oneSecondBehind.getEpochMilliseconds());
 	}
 }
