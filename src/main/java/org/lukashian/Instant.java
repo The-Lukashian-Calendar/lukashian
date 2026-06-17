@@ -37,7 +37,7 @@
  *    change the functional behaviour of the Lukashian Calendar Mechanism as
  *    implemented by source code.
  *
- * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
@@ -528,7 +528,10 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * @see MillisecondStore
 	 */
 	public Instant toCalendar(int calendarKey) {
-		return Instant.ofUnixEpochMilliseconds(this.getUnixEpochMilliseconds(), calendarKey);
+		long offset = data(this.calendarKey).getUnixEpochOffsetMilliseconds();
+		long otherOffset = data(calendarKey).getUnixEpochOffsetMilliseconds();
+		long difference = Math.subtractExact(offset, otherOffset);
+		return Instant.ofEpoch(this.getEpochMilliseconds() - difference, calendarKey);
 	}
 
 	/**
@@ -582,7 +585,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 *
 	 * @see CalendarKeys
 	 * @see MillisecondStore
-	 * @throws LukashianException when the given number of milliseconds is lower than 0 or when the given calendar instance is not registered
+	 * @throws LukashianException when the given number of milliseconds is lower than 1 or when the given calendar instance is not registered
 	 */
 	public static Instant ofEpoch(long epochMilliseconds, int calendarKey) {
 		Day day =  Day.ofEpoch(data(calendarKey).getEpochDayForEpochMilliseconds(epochMilliseconds), calendarKey);
@@ -598,7 +601,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 * {@link Instant} for an explanation of how a millisecond is translated to a proportion of a day.
 	 *
 	 * @see MillisecondStore
-	 * @throws LukashianException when the given number of milliseconds is lower than 0
+	 * @throws LukashianException when the given number of milliseconds is lower than 1
 	 */
 	public static Instant ofEpoch(long epochMilliseconds) {
 		return Instant.ofEpoch(epochMilliseconds, defaultCalendarKey());

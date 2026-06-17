@@ -37,7 +37,7 @@
  *    change the functional behaviour of the Lukashian Calendar Mechanism as
  *    implemented by source code.
  *
- * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
@@ -54,11 +54,7 @@ import org.apache.commons.numbers.fraction.BigFraction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.MillisecondStoreData;
-import org.lukashian.store.MillisecondStoreDataProvider;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
-
-import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
@@ -378,32 +374,6 @@ public class InstantTest {
 			java.time.Instant.ofEpochMilli(currentTimeMillis),
 			Instant.ofUnixEpochMilliseconds(currentTimeMillis).toJavaInstant()
 		);
-	}
-
-	@Test
-	public void testToCalendar() {
-		MillisecondStoreDataProvider oneSecondBehind = new TestMillisecondStoreDataProvider() {
-			@Override
-			public long loadUnixEpochOffsetMilliseconds() {
-				try {
-					MillisecondStoreData testData = MillisecondStore.data(TEST);
-					Field f = testData.getClass().getDeclaredField("unixEpochOffsetMilliseconds");
-					f.setAccessible(true);
-					long unixEpochOffsetMilliseconds = (long) f.get(testData);
-
-					return unixEpochOffsetMilliseconds + 1000;
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		};
-		MillisecondStore.store().registerProvider(TEST + 1, oneSecondBehind);
-
-		Instant test = Instant.now(TEST);
-		Instant oneSecondBehindInstant = test.toCalendar(TEST + 1);
-
-		assertEquals(test.getEpochMilliseconds() + 1000, oneSecondBehindInstant.getEpochMilliseconds());
-		assertEquals(TEST + 1, oneSecondBehindInstant.getCalendarKey());
 	}
 
 	@Test

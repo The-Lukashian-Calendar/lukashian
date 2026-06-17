@@ -1,5 +1,5 @@
 This is the Java Reference Implementation of The Lukashian Calendar, a calendar that is exceptionally simple, highly accurate and radically different. It provides a
-universal mechanism for every planet, moon or space station that we'll ever inhabit and is the calendar of choice for the upcoming Mars Settlement!
+universal mechanism for every planet, moon or space station that we'll ever inhabit and is the calendar of choice for the upcoming Mars Settlement.
 
 For the artifacts, please visit the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian).
 
@@ -56,6 +56,12 @@ be loadable from the official lukashian.org server.
 &nbsp;
 ## Changelog
 Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
+
+### 1.15.0:
+- Added various parameter validation checks in the code
+- Registering a MillisecondStoreDataProvider under a certain key now clears the previously stored data for that key
+- Conversion of an Instant that takes place during a UNIX leap second from one calendar instance to another is no longer affected by said leap second
+- Improved Javadoc documentation
 
 ### 1.14.0:
 - Improved Equation of Time calculation of Earth instance (`StandardEarthMillisecondStoreDataProvider`)
