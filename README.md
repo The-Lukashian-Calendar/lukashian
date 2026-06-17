@@ -3,7 +3,7 @@ universal mechanism for every planet, moon or space station that we'll ever inha
 
 For the artifacts, please visit the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian).
 
-For more information on the calendar mechanism itself, please visit [lukashian.org](https://www.lukashian.org)!
+For more information on the calendar mechanism itself, please visit [lukashian.org](https://www.lukashian.org).
 
 &nbsp;
 ## How to use the Lukashian Calendar
