@@ -115,7 +115,7 @@ import static org.lukashian.store.MillisecondStore.*;
  * of the translations above), meaning that we won't get 0.5, but something like 0.499999999....... If this then gets truncated to beeps, we get 4999 instead of the
  * original 5000 (rounding cannot solve the problem, see {@link #getBeeps()} for details).
  * <p>
- * By storing the {@link Day} and the proportion with which the Instant was created, we do not have this problem.
+ * By storing the {@link Day} and the proportion with which the Instant was created, the problem is resolved.
  * <p>
  * The other way around is not a problem either. BigFraction has exact precision for any rational number, so translating a unique millisecond on the timeline to a
  * proportion, and then back again, is guaranteed to yield the original value.
