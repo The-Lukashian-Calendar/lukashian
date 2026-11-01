@@ -52,6 +52,8 @@ import org.lukashian.store.CalendarKeys;
 import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 import static org.lukashian.Instant.BEEPS_PER_DAY;
@@ -264,6 +266,139 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 		this.checkSameKeyAs(year);
 
 		return year.containsNot(this);
+	}
+
+	/**
+	 * Gets the week of this day.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 * <p>
+	 * This method simply returns the day number of this day, divided by 10 and then rounded up.
+	 */
+	public int getWeek() {
+		return new BigDecimal(this.getDayNumber()).divide(BigDecimal.TEN, RoundingMode.UP).intValue();
+	}
+
+	/**
+	 * Gets which day of its week this day is.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 * <p>
+	 * This method simply returns the day number of this day modulo 10, and 10 if that result is 0.
+	 */
+	public int getWeekday() {
+		int weekDay = this.getDayNumber() % 10;
+		return weekDay == 0 ? 10 : weekDay;
+	}
+
+	/**
+	 * Gets a {@link Day} that is this day next week. For example, if this day is day 205, then this method will return day 215. If the
+	 * next week does not contain a day with this day's weekday (which can happen if the next week is the last week of the year with less
+	 * than 10 days), then a {@link LukashianException} is thrown. This can be prevented by checking {@link #existsNextWeek()}.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the next week does not contain a day with this day's weekday.
+	 */
+	public Day inNextWeek() {
+		check(this.existsNextWeek(), () -> "Day " + this + " does not have an equivalent day in the next week");
+
+		int thisWeek = this.getWeek();
+		boolean nextWeekInThisYear = this.getYear().getNumberOfWeeks() > thisWeek;
+
+		int nextWeek = nextWeekInThisYear ? thisWeek + 1 : 1;
+		Year nextWeekYear = nextWeekInThisYear ? this.getYear() : this.getYear().next();
+
+		int dayNumber = ((nextWeek - 1) * 10) + this.getWeekday();
+		return Day.of(nextWeekYear, dayNumber);
+	}
+
+	/**
+	 * Gets a {@link Day} that is this day previous week. For example, if this day is day 205, then this method will return day 215. If the
+	 * previous week does not contain a day with this day's weekday (which can happen if the previous week is the last week of the previous
+	 * year with less than 10 days), then a {@link LukashianException} is thrown. This can be prevented by checking {@link #existsPreviousWeek()}.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the previous week does not contain a day with this day's weekday.
+	 */
+	public Day inPreviousWeek() {
+		check(this.existsPreviousWeek(), () -> "Day " + this + " does not have an equivalent day in the previous week");
+
+		int thisWeek = this.getWeek();
+		boolean previousWeekInThisYear = thisWeek > 1;
+
+		int previousWeek = previousWeekInThisYear ? thisWeek - 1 : this.getYear().previous().getNumberOfWeeks();
+		Year previousWeekYear = previousWeekInThisYear ? this.getYear() : this.getYear().previous();
+
+		int dayNumber = ((previousWeek - 1) * 10) + this.getWeekday();
+		return Day.of(previousWeekYear, dayNumber);
+	}
+
+	/**
+	 * Returns whether the next week contains a day with the same weekday as this day.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 */
+	public boolean existsNextWeek() {
+		int thisWeek = this.getWeek();
+		boolean nextWeekInThisYear = this.getYear().getNumberOfWeeks() > thisWeek;
+
+		int nextWeek = nextWeekInThisYear ? thisWeek + 1 : 1;
+		Year nextWeekYear = nextWeekInThisYear ? this.getYear() : this.getYear().next();
+
+		return this.existsInWeek(nextWeekYear, nextWeek);
+	}
+
+	/**
+	 * Returns whether the previous week contains a day with the same weekday as this day.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when there is no previous week (near the start of the calendar instance)
+	 */
+	public boolean existsPreviousWeek() {
+		int thisWeek = this.getWeek();
+		boolean previousWeekInThisYear = thisWeek > 1;
+
+		int previousWeek = previousWeekInThisYear ? thisWeek - 1 : this.getYear().previous().getNumberOfWeeks();
+		Year previousWeekYear = previousWeekInThisYear ? this.getYear() : this.getYear().previous();
+
+		return this.existsInWeek(previousWeekYear, previousWeek);
+	}
+
+	/**
+	 * Returns whether the the given week of the given {@link Year} contains a {@link Day} with the same weekday as this day.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the given week number is smaller than 1 or when the given year does not have the specified number of weeks.
+	 */
+	public boolean existsInWeek(Year year, int week) {
+		check(week >= 1, () -> week + " is not a valid week, the minimum is 1");
+		check(year.getNumberOfWeeks() >= week, () -> "Week " + week + " does not exist in year " + year.getYearNumber());
+
+		int dayNumberToCheck = ((week - 1) * 10) + this.getWeekday();
+		return year.getNumberOfDays() >= dayNumberToCheck;
+	}
+
+	/**
+	 * Returns whether the the given week of this day's {@link Year} contains a {@link Day} with the same weekday as this day.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the given week number is smaller than 1 or when this day's year does not have the specified number of weeks.
+	 */
+	public boolean existsInWeek(int week) {
+		return this.existsInWeek(this.getYear(), week);
 	}
 
 	/**

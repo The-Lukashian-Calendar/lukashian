@@ -45,32 +45,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.lukashian;
+package org.lukashian.store;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.lukashian.store.MillisecondStore;
-import org.lukashian.store.TestMillisecondStoreDataProvider;
-import org.lukashian.store.provider.StandardEarthMillisecondStoreDataProvider;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lukashian.store.CalendarKeys.EARTH;
-import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import java.util.stream.LongStream;
 
 /**
- * Unit tests for the {@link Day} class that use the {@link StandardEarthMillisecondStoreDataProvider}.
- * We set the {@link TestMillisecondStoreDataProvider} anyway, to test the manual override mechanism.
+ * An implementation of the {@link MillisecondStoreDataProvider} that implements the Lukashian Calendar Mechanism, resulting in a Lukashian
+ * Calendar for unit test purposes. The Calendar implemented in this file has years alternating between 100 and 101 days per year, so that
+ * the final week of the year has 10 days, like all other weeks, or only a single day.
  */
-public class DayRealCalendarTest {
+public class WeeksTestMillisecondStoreDataProvider implements MillisecondStoreDataProvider {
 
-	@BeforeAll
-	public static void setUp() {
-		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
-		MillisecondStore.store().setDefaultCalendarKey(TEST);
+	public static final int WEEKS_TEST = 101;
+
+	@Override
+	public long loadUnixEpochOffsetMilliseconds() {
+		return -System.currentTimeMillis(); //For testing purposes, it's not a fixed value, to always know what time it is now
 	}
 
-	@Test
-	public void testGetLengthOfBeepInMilliseconds() {
-		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
+	@Override
+	public long[] loadYearEpochMilliseconds() {
+		long[] days = this.loadDayEpochMilliseconds(null);
+		return new long[] {
+			days[100], days[200], days[301], days[401], days[502]
+		};
+	}
+
+	@Override
+	public long[] loadDayEpochMilliseconds(long[] yearEpochMilliseconds) {
+		return LongStream.range(0, 503).map(i -> (i+1) * 50).toArray(); //50 milliseconds per day
 	}
 }

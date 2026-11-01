@@ -51,6 +51,8 @@ import org.lukashian.store.CalendarKeys;
 import org.lukashian.store.MillisecondStore;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.lukashian.LukashianException.check;
@@ -207,6 +209,17 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	}
 
 	/**
+	 * Returns a {@link List} containing all {@link Day}s of this year, in chronological order.
+	 */
+	public List<Day> getDays() {
+		List<Day> days = new ArrayList<>();
+		for (Day day = this.firstDay(); this.contains(day); day = day.next()) {
+			days.add(day);
+		}
+		return days;
+	}
+
+	/**
 	 * Returns whether the given non-null {@link Day} is part of this year. A {@link Day} is part of a year if it started in that year.
 	 */
 	public boolean contains(Day day) {
@@ -262,6 +275,18 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	 */
 	public int getNumberOfDays() {
 		return this.lastDay().getDayNumber();
+	}
+
+	/**
+	 * Gets the number of weeks in this year.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 * <p>
+	 * This method simply returns the week number of the last day of this year.
+	 */
+	public int getNumberOfWeeks() {
+		return this.lastDay().getWeek();
 	}
 
 	/**

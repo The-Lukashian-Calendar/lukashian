@@ -52,11 +52,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
+import org.lukashian.store.WeeksTestMillisecondStoreDataProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
+import static org.lukashian.LukashianAssert.assertLukashianException;
 import static org.lukashian.store.CalendarKeys.EARTH;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import static org.lukashian.store.WeeksTestMillisecondStoreDataProvider.WEEKS_TEST;
 
 /**
  * Unit tests for the {@link Day} class.
@@ -67,6 +70,8 @@ public class DayTest {
 	public static void setUp() {
 		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
 		MillisecondStore.store().setDefaultCalendarKey(TEST);
+
+		MillisecondStore.store().registerProvider(WEEKS_TEST, new WeeksTestMillisecondStoreDataProvider());
 	}
 
 	@Test
@@ -251,6 +256,206 @@ public class DayTest {
 		assertTrue(Day.ofEpoch(5, TEST).isNotIn(Year.of(1)));
 
 		assertLukashianException(() -> Day.ofEpoch(1).isNotIn(Year.of(2, EARTH)));
+	}
+
+	@Test
+	public void testGetWeek() {
+		assertEquals(1, Day.ofEpoch(1).getWeek());
+		assertEquals(1, Day.ofEpoch(17).getWeek());
+
+		assertEquals(1, Day.of(5926, 1, EARTH).getWeek());
+		assertEquals(1, Day.of(5926, 10, EARTH).getWeek());
+		assertEquals(2, Day.of(5926, 11, EARTH).getWeek());
+		assertEquals(36, Day.of(5926, 360, EARTH).getWeek());
+		assertEquals(37, Day.of(5926, 361, EARTH).getWeek());
+		assertEquals(37, Day.of(5926, 365, EARTH).getWeek());
+
+		//Year 1 has 101 days
+		assertEquals(1, Day.of(1, 1, WEEKS_TEST).getWeek());
+		assertEquals(1, Day.of(1, 10, WEEKS_TEST).getWeek());
+		assertEquals(2, Day.of(1, 11, WEEKS_TEST).getWeek());
+		assertEquals(10, Day.of(1, 100, WEEKS_TEST).getWeek());
+		assertEquals(11, Day.of(1, 101, WEEKS_TEST).getWeek());
+
+		//Year 2 has 100 days
+		assertEquals(1, Day.of(2, 1, WEEKS_TEST).getWeek());
+		assertEquals(1, Day.of(2, 10, WEEKS_TEST).getWeek());
+		assertEquals(2, Day.of(2, 11, WEEKS_TEST).getWeek());
+		assertEquals(10, Day.of(2, 100, WEEKS_TEST).getWeek());
+	}
+
+	@Test
+	public void testGetWeekday() {
+		assertEquals(1, Day.ofEpoch(1).getWeekday());
+		assertEquals(2, Day.ofEpoch(2).getWeekday());
+		assertEquals(3, Day.ofEpoch(3).getWeekday());
+		assertEquals(4, Day.ofEpoch(4).getWeekday());
+		assertEquals(1, Day.ofEpoch(5).getWeekday());
+
+		assertEquals(1, Day.of(5926, 1, EARTH).getWeekday());
+		assertEquals(10, Day.of(5926, 10, EARTH).getWeekday());
+		assertEquals(1, Day.of(5926, 11, EARTH).getWeekday());
+		assertEquals(10, Day.of(5926, 360, EARTH).getWeekday());
+		assertEquals(1, Day.of(5926, 361, EARTH).getWeekday());
+		assertEquals(5, Day.of(5926, 365, EARTH).getWeekday());
+
+		//Year 1 has 101 days
+		assertEquals(1, Day.of(1, 1, WEEKS_TEST).getWeekday());
+		assertEquals(9, Day.of(1, 9, WEEKS_TEST).getWeekday());
+		assertEquals(10, Day.of(1, 10, WEEKS_TEST).getWeekday());
+		assertEquals(1, Day.of(1, 11, WEEKS_TEST).getWeekday());
+		assertEquals(10, Day.of(1, 100, WEEKS_TEST).getWeekday());
+		assertEquals(1, Day.of(1, 101, WEEKS_TEST).getWeekday());
+
+		//Year 2 has 100 days
+		assertEquals(1, Day.of(2, 1, WEEKS_TEST).getWeekday());
+		assertEquals(10, Day.of(2, 10, WEEKS_TEST).getWeekday());
+		assertEquals(1, Day.of(2, 11, WEEKS_TEST).getWeekday());
+		assertEquals(10, Day.of(2, 100, WEEKS_TEST).getWeekday());
+	}
+
+	@Test
+	public void testInNextWeek() {
+		assertEquals(Day.ofEpoch(5), Day.ofEpoch(1).inNextWeek());
+		assertEquals(Day.ofEpoch(6), Day.ofEpoch(2).inNextWeek());
+		assertEquals(Day.ofEpoch(7), Day.ofEpoch(3).inNextWeek());
+		assertLukashianException(() -> Day.ofEpoch(4).inNextWeek());
+		assertEquals(Day.ofEpoch(8), Day.ofEpoch(5).inNextWeek());
+
+		assertEquals(Day.of(5926, 11, EARTH), Day.of(5926, 1, EARTH).inNextWeek());
+		assertEquals(Day.of(5926, 15, EARTH), Day.of(5926, 5, EARTH).inNextWeek());
+		assertEquals(Day.of(5926, 20, EARTH), Day.of(5926, 10, EARTH).inNextWeek());
+		assertEquals(Day.of(5926, 360, EARTH), Day.of(5926, 350, EARTH).inNextWeek());
+		assertEquals(Day.of(5926, 365, EARTH), Day.of(5926, 355, EARTH).inNextWeek());
+		assertLukashianException(() -> Day.of(5926, 356, EARTH).inNextWeek());
+		assertLukashianException(() -> Day.of(5926, 360, EARTH).inNextWeek());
+		assertEquals(Day.of(5927, 1, EARTH), Day.of(5926, 361, EARTH).inNextWeek());
+		assertEquals(Day.of(5927, 5, EARTH), Day.of(5926, 365, EARTH).inNextWeek());
+
+		//Year 1 has 101 days
+		assertEquals(Day.of(1, 11, WEEKS_TEST), Day.of(1, 1, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(1, 100, WEEKS_TEST), Day.of(1, 90, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(1, 101, WEEKS_TEST), Day.of(1, 91, WEEKS_TEST).inNextWeek());
+		assertLukashianException(() -> Day.of(1, 92, WEEKS_TEST).inNextWeek());
+		assertLukashianException(() -> Day.of(1, 99, WEEKS_TEST).inNextWeek());
+		assertLukashianException(() -> Day.of(1, 100, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(2, 1, WEEKS_TEST), Day.of(1, 101, WEEKS_TEST).inNextWeek());
+
+		//Year 2 has 100 days
+		assertEquals(Day.of(2, 11, WEEKS_TEST), Day.of(2, 1, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(2, 100, WEEKS_TEST), Day.of(2, 90, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(3, 1, WEEKS_TEST), Day.of(2, 91, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(3, 9, WEEKS_TEST), Day.of(2, 99, WEEKS_TEST).inNextWeek());
+		assertEquals(Day.of(3, 10, WEEKS_TEST), Day.of(2, 100, WEEKS_TEST).inNextWeek());
+	}
+
+	@Test
+	public void testInPreviousWeek() {
+		assertEquals(Day.ofEpoch(8), Day.ofEpoch(11).inPreviousWeek());
+		assertEquals(Day.ofEpoch(9), Day.ofEpoch(12).inPreviousWeek());
+		assertEquals(Day.ofEpoch(10), Day.ofEpoch(13).inPreviousWeek());
+		assertLukashianException(() -> Day.ofEpoch(14).inPreviousWeek());
+		assertEquals(Day.ofEpoch(11), Day.ofEpoch(15).inPreviousWeek());
+
+		assertEquals(Day.of(5927, 1, EARTH), Day.of(5927, 11, EARTH).inPreviousWeek());
+		assertLukashianException(() -> Day.of(5927, 10, EARTH).inPreviousWeek());
+		assertLukashianException(() -> Day.of(5927, 6, EARTH).inPreviousWeek());
+		assertEquals(Day.of(5926, 365, EARTH), Day.of(5927, 5, EARTH).inPreviousWeek());
+		assertEquals(Day.of(5926, 361, EARTH), Day.of(5927, 1, EARTH).inPreviousWeek());
+		assertEquals(Day.of(5926, 355, EARTH), Day.of(5926, 365, EARTH).inPreviousWeek());
+		assertEquals(Day.of(5926, 350, EARTH), Day.of(5926, 360, EARTH).inPreviousWeek());
+
+		//Year 1 has 101 days
+		assertEquals(Day.of(2, 1, WEEKS_TEST), Day.of(2, 11, WEEKS_TEST).inPreviousWeek());
+		assertLukashianException(() -> Day.of(2, 10, WEEKS_TEST).inPreviousWeek());
+		assertLukashianException(() -> Day.of(2, 2, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(1, 101, WEEKS_TEST), Day.of(2, 1, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(1, 91, WEEKS_TEST), Day.of(1, 101, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(1, 90, WEEKS_TEST), Day.of(1, 100, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(1, 89, WEEKS_TEST), Day.of(1, 99, WEEKS_TEST).inPreviousWeek());
+
+		//Year 2 has 100 days
+		assertEquals(Day.of(3, 1, WEEKS_TEST), Day.of(3, 11, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(2, 100, WEEKS_TEST), Day.of(3, 10, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(2, 92, WEEKS_TEST), Day.of(3, 2, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(2, 91, WEEKS_TEST), Day.of(3, 1, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(2, 90, WEEKS_TEST), Day.of(2, 100, WEEKS_TEST).inPreviousWeek());
+		assertEquals(Day.of(2, 89, WEEKS_TEST), Day.of(2, 99, WEEKS_TEST).inPreviousWeek());
+	}
+
+	@Test
+	public void testExistsNextWeek() {
+		assertTrue(Day.ofEpoch(1).existsNextWeek());
+		assertTrue(Day.ofEpoch(2).existsNextWeek());
+		assertTrue(Day.ofEpoch(3).existsNextWeek());
+		assertFalse(Day.ofEpoch(4).existsNextWeek());
+		assertTrue(Day.ofEpoch(5).existsNextWeek());
+
+		assertTrue(Day.of(5926, 1, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 5, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 10, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 350, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 355, EARTH).existsNextWeek());
+		assertFalse(Day.of(5926, 356, EARTH).existsNextWeek());
+		assertFalse(Day.of(5926, 360, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 361, EARTH).existsNextWeek());
+		assertTrue(Day.of(5926, 365, EARTH).existsNextWeek());
+
+		//Year 1 has 101 days
+		assertTrue(Day.of(1, 1, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(1, 90, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(1, 91, WEEKS_TEST).existsNextWeek());
+		assertFalse(Day.of(1, 92, WEEKS_TEST).existsNextWeek());
+		assertFalse(Day.of(1, 99, WEEKS_TEST).existsNextWeek());
+		assertFalse(Day.of(1, 100, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(1, 101, WEEKS_TEST).existsNextWeek());
+
+		//Year 2 has 100 days
+		assertTrue(Day.of(2, 1, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(2, 90, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(2, 91, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(2, 99, WEEKS_TEST).existsNextWeek());
+		assertTrue(Day.of(2, 100, WEEKS_TEST).existsNextWeek());
+	}
+
+	@Test
+	public void testExistsPreviousWeek() {
+		assertTrue(Day.ofEpoch(11).existsPreviousWeek());
+		assertTrue(Day.ofEpoch(12).existsPreviousWeek());
+		assertTrue(Day.ofEpoch(13).existsPreviousWeek());
+		assertFalse(Day.ofEpoch(14).existsPreviousWeek());
+		assertTrue(Day.ofEpoch(15).existsPreviousWeek());
+
+		assertTrue(Day.of(5927, 11, EARTH).existsPreviousWeek());
+		assertFalse(Day.of(5927, 10, EARTH).existsPreviousWeek());
+		assertFalse(Day.of(5927, 6, EARTH).existsPreviousWeek());
+		assertTrue(Day.of(5927, 5, EARTH).existsPreviousWeek());
+		assertTrue(Day.of(5927, 1, EARTH).existsPreviousWeek());
+		assertTrue(Day.of(5926, 365, EARTH).existsPreviousWeek());
+		assertTrue(Day.of(5926, 360, EARTH).existsPreviousWeek());
+
+		//Year 1 has 101 days
+		assertTrue(Day.of(2, 11, WEEKS_TEST).existsPreviousWeek());
+		assertFalse(Day.of(2, 10, WEEKS_TEST).existsPreviousWeek());
+		assertFalse(Day.of(2, 2, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(2, 1, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(1, 101, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(1, 100, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(1, 99, WEEKS_TEST).existsPreviousWeek());
+
+		//Year 2 has 100 days
+		assertTrue(Day.of(3, 11, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(3, 10, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(3, 2, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(3, 1, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(2, 100, WEEKS_TEST).existsPreviousWeek());
+		assertTrue(Day.of(2, 99, WEEKS_TEST).existsPreviousWeek());
+	}
+
+	@Test
+	public void testExistsInWeek() {
+		assertTrue(Day.of(5926, 1, EARTH).existsInWeek(37));
+		assertFalse(Day.of(5926, 9, EARTH).existsInWeek(37));
 	}
 
 	@Test
@@ -458,6 +663,11 @@ public class DayTest {
 		assertEquals(2, Day.ofEpoch(17, TEST).getDayNumber());
 		assertEquals(1, Day.ofEpoch(18, TEST).getDayNumber());
 		assertLukashianException(()-> Day.ofEpoch(19, TEST));
+	}
+
+	@Test
+	public void testGetLengthOfBeepInMilliseconds() {
+		assertEquals(8639, Day.of(5925, 136, EARTH).getLengthOfBeepInMilliseconds().intValue());
 	}
 
 	@Test

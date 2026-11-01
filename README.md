@@ -57,6 +57,12 @@ be loadable from the official lukashian.org server.
 ## Changelog
 Please refer to the [Maven Central](https://central.sonatype.com/artifact/org.lukashian/lukashian/versions) for the release date and artifacts of each version.
 
+### 1.16.0:
+- Added various methods for querying and working with weeks to the `Year`, `Day` and `Instant` classes
+- Added the `Year.getDays()` method
+- Renamed `Instant.atPreviousDay()` and `Instant.atNextDay()` to `Instant.onPreviousDay()` and `Instant.onNextDay()`
+- Updated versions of dependencies
+
 ### 1.15.0:
 - Added various parameter validation checks in the code
 - Registering a MillisecondStoreDataProvider under a certain key now clears the previously stored data for that key
