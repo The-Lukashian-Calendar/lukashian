@@ -199,7 +199,7 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
-	public Instant atPreviousDay() {
+	public Instant onPreviousDay() {
 		return this.minusDays(1);
 	}
 
@@ -211,8 +211,34 @@ public final class Instant extends CalendarObject implements Comparable<Instant>
 	 *
 	 * @throws LukashianException when the result would be before the start of the Lukashian Calendar
 	 */
-	public Instant atNextDay() {
+	public Instant onNextDay() {
 		return this.plusDays(1);
+	}
+
+	/**
+	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day one week later, for example, if this instant represents a
+	 * point at one third of day 105, then calling this method will return an instant that represents one third of day 115.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the next week does not contain a day with this day's weekday (can happen near end of year).
+	 */
+	public Instant inNextWeek() {
+		return this.getDay().inNextWeek().atTime(proportionOfDay);
+	}
+
+	/**
+	 * Returns a new {@link Instant} that represents the passed proportion of this instant's day one week earlier, for example, if this instant represents a
+	 * point at one third of day 105, then calling this method will return an instant that represents one third of day 95.
+	 * <p>
+	 * In the Lukashian Calendar, a week is simply a period of 10 days. The first week starts on day 1 of the year.
+	 * The last week possibly contains less than 10 days. Any information regarding the week can therefore be derived from the day number.
+	 *
+	 * @throws LukashianException when the previous week does not contain a day with this day's weekday (can happen near end of previous year).
+	 */
+	public Instant inPreviousWeek() {
+		return this.getDay().inPreviousWeek().atTime(proportionOfDay);
 	}
 
 	/**

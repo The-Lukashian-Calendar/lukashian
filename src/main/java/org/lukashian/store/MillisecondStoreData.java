@@ -88,6 +88,13 @@ public final class MillisecondStoreData implements Serializable {
 	}
 
 	/**
+	 * Gets the total number of years in this calendar instance.
+	 */
+	public int getNumberOfYears() {
+		return yearEpochMilliseconds.length;
+	}
+
+	/**
 	 * Gets the offset between the UNIX epoch and the Lukashian epoch of the calendar instance corresponding to this
 	 * {@link MillisecondStoreData}.
 	 * <p>

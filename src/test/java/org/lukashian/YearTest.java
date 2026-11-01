@@ -51,11 +51,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.lukashian.store.MillisecondStore;
 import org.lukashian.store.TestMillisecondStoreDataProvider;
+import org.lukashian.store.WeeksTestMillisecondStoreDataProvider;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lukashian.LukashianAssert.*;
 import static org.lukashian.store.CalendarKeys.EARTH;
+import static org.lukashian.store.CalendarKeys.MARS;
 import static org.lukashian.store.TestMillisecondStoreDataProvider.TEST;
+import static org.lukashian.store.WeeksTestMillisecondStoreDataProvider.WEEKS_TEST;
 
 /**
  * Unit tests for the {@link Year} class.
@@ -66,6 +71,8 @@ public class YearTest {
 	public static void setUp() {
 		MillisecondStore.store().registerProvider(TEST, new TestMillisecondStoreDataProvider());
 		MillisecondStore.store().setDefaultCalendarKey(TEST);
+
+		MillisecondStore.store().registerProvider(WEEKS_TEST, new WeeksTestMillisecondStoreDataProvider());
 	}
 
 	@Test
@@ -249,6 +256,17 @@ public class YearTest {
 	}
 
 	@Test
+	public void testGetDays() {
+		assertEquals(List.of(Day.ofEpoch(1), Day.ofEpoch(2), Day.ofEpoch(3), Day.ofEpoch(4)), Year.of(1).getDays());
+		assertEquals(List.of(Day.ofEpoch(5), Day.ofEpoch(6), Day.ofEpoch(7)), Year.of(2).getDays());
+		assertEquals(List.of(Day.ofEpoch(8), Day.ofEpoch(9), Day.ofEpoch(10)), Year.of(3).getDays());
+		assertEquals(List.of(Day.ofEpoch(11), Day.ofEpoch(12), Day.ofEpoch(13), Day.ofEpoch(14)), Year.of(4).getDays());
+		assertEquals(List.of(Day.ofEpoch(15)), Year.of(5).getDays());
+		assertEquals(List.of(Day.ofEpoch(16), Day.ofEpoch(17)), Year.of(6).getDays());
+		assertEquals(List.of(Day.ofEpoch(18)), Year.of(7).getDays());
+	}
+
+	@Test
 	public void testContains() {
 		Year year = Year.of(2);
 
@@ -330,6 +348,30 @@ public class YearTest {
 		assertEquals(2, Year.of(6).getNumberOfDays());
 		assertEquals(1, Year.of(7).getNumberOfDays());
 		assertLukashianException(() -> Year.of(8).getNumberOfDays());
+
+		assertEquals(101, Year.of(1, WEEKS_TEST).getNumberOfDays());
+		assertEquals(100, Year.of(2, WEEKS_TEST).getNumberOfDays());
+		assertEquals(101, Year.of(3, WEEKS_TEST).getNumberOfDays());
+		assertEquals(100, Year.of(4, WEEKS_TEST).getNumberOfDays());
+		assertEquals(101, Year.of(5, WEEKS_TEST).getNumberOfDays());
+	}
+
+	@Test
+	public void testGetNumberOfWeeks() {
+		assertEquals(1, Year.of(1, TEST).getNumberOfWeeks());
+		assertEquals(1, Year.of(7, TEST).getNumberOfWeeks());
+
+		assertEquals(37, Year.of(1, EARTH).getNumberOfWeeks());
+		assertEquals(37, Year.of(5926, EARTH).getNumberOfWeeks());
+
+		assertEquals(67, Year.of(1, MARS).getNumberOfWeeks());
+		assertEquals(67, Year.of(42, MARS).getNumberOfWeeks());
+
+		assertEquals(11, Year.of(1, WEEKS_TEST).getNumberOfWeeks());
+		assertEquals(10, Year.of(2, WEEKS_TEST).getNumberOfWeeks());
+		assertEquals(11, Year.of(3, WEEKS_TEST).getNumberOfWeeks());
+		assertEquals(10, Year.of(4, WEEKS_TEST).getNumberOfWeeks());
+		assertEquals(11, Year.of(5, WEEKS_TEST).getNumberOfWeeks());
 	}
 
 	@Test

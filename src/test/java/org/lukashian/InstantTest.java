@@ -99,13 +99,23 @@ public class InstantTest {
 	}
 
 	@Test
-	public void testAtPreviousDay() {
-		assertInstant(150, TEST, Instant.ofEpoch(450, TEST).atPreviousDay());
+	public void testOnPreviousDay() {
+		assertInstant(150, TEST, Instant.ofEpoch(450, TEST).onPreviousDay());
 	}
 
 	@Test
-	public void testAtNextDay() {
-		assertInstant(750, TEST, Instant.ofEpoch(450, TEST).atNextDay());
+	public void testOnNextDay() {
+		assertInstant(750, TEST, Instant.ofEpoch(450, TEST).onNextDay());
+	}
+
+	@Test
+	public void testInNextWeek() {
+		assertEquals(Instant.of(5926, 210, 5000, EARTH), Instant.of(5926, 200, 5000, EARTH).inNextWeek());
+	}
+
+	@Test
+	public void testInPreviousWeek() {
+		assertEquals(Instant.of(5926, 190, 5000, EARTH), Instant.of(5926, 200, 5000, EARTH).inPreviousWeek());
 	}
 
 	@Test
