@@ -416,10 +416,13 @@ public class DayTest {
 		assertTrue(Day.of(2, 91, WEEKS_TEST).existsNextWeek());
 		assertTrue(Day.of(2, 99, WEEKS_TEST).existsNextWeek());
 		assertTrue(Day.of(2, 100, WEEKS_TEST).existsNextWeek());
+
+		assertFalse(Day.of(5, 101, WEEKS_TEST).existsNextWeek());
 	}
 
 	@Test
 	public void testExistsPreviousWeek() {
+		assertFalse(Day.ofEpoch(1).existsPreviousWeek());
 		assertTrue(Day.ofEpoch(11).existsPreviousWeek());
 		assertTrue(Day.ofEpoch(12).existsPreviousWeek());
 		assertTrue(Day.ofEpoch(13).existsPreviousWeek());
@@ -435,6 +438,8 @@ public class DayTest {
 		assertTrue(Day.of(5926, 360, EARTH).existsPreviousWeek());
 
 		//Year 1 has 101 days
+		assertFalse(Day.of(1, 1, WEEKS_TEST).existsPreviousWeek());
+
 		assertTrue(Day.of(2, 11, WEEKS_TEST).existsPreviousWeek());
 		assertFalse(Day.of(2, 10, WEEKS_TEST).existsPreviousWeek());
 		assertFalse(Day.of(2, 2, WEEKS_TEST).existsPreviousWeek());

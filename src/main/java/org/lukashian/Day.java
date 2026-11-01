@@ -58,8 +58,7 @@ import java.util.Objects;
 
 import static org.lukashian.Instant.BEEPS_PER_DAY;
 import static org.lukashian.LukashianException.check;
-import static org.lukashian.store.MillisecondStore.data;
-import static org.lukashian.store.MillisecondStore.defaultCalendarKey;
+import static org.lukashian.store.MillisecondStore.*;
 
 /**
  * Represents a day in the Lukashian Calendar Mechanism.
@@ -349,6 +348,10 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 		int thisWeek = this.getWeek();
 		boolean nextWeekInThisYear = this.getYear().getNumberOfWeeks() > thisWeek;
 
+		if (!nextWeekInThisYear && this.getYear().getYearNumber() == data(calendarKey).getNumberOfYears()) { //Last week of last year
+			return false;
+		}
+
 		int nextWeek = nextWeekInThisYear ? thisWeek + 1 : 1;
 		Year nextWeekYear = nextWeekInThisYear ? this.getYear() : this.getYear().next();
 
@@ -366,6 +369,10 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	public boolean existsPreviousWeek() {
 		int thisWeek = this.getWeek();
 		boolean previousWeekInThisYear = thisWeek > 1;
+
+		if (!previousWeekInThisYear && this.getYear().getYearNumber() == 1) { //First week of first year
+			return false;
+		}
 
 		int previousWeek = previousWeekInThisYear ? thisWeek - 1 : this.getYear().previous().getNumberOfWeeks();
 		Year previousWeekYear = previousWeekInThisYear ? this.getYear() : this.getYear().previous();
