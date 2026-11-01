@@ -263,6 +263,7 @@ public class YearTest {
 		assertEquals(List.of(Day.ofEpoch(11), Day.ofEpoch(12), Day.ofEpoch(13), Day.ofEpoch(14)), Year.of(4).getDays());
 		assertEquals(List.of(Day.ofEpoch(15)), Year.of(5).getDays());
 		assertEquals(List.of(Day.ofEpoch(16), Day.ofEpoch(17)), Year.of(6).getDays());
+		assertEquals(List.of(Day.ofEpoch(18)), Year.of(7).getDays());
 	}
 
 	@Test

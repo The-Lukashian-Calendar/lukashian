@@ -212,9 +212,11 @@ public final class Year extends CalendarObject implements Comparable<Year>, Seri
 	 * Returns a {@link List} containing all {@link Day}s of this year, in chronological order.
 	 */
 	public List<Day> getDays() {
-		List<Day> days = new ArrayList<>();
-		for (Day day = this.firstDay(); this.contains(day); day = day.next()) {
-			days.add(day);
+		int firstEpochDay = this.firstDay().getEpochDay();
+		int lastEpochDay = this.lastDay().getEpochDay();
+		List<Day> days = new ArrayList<>(lastEpochDay - firstEpochDay + 1);
+		for (int epochDay = firstEpochDay; epochDay <= lastEpochDay; epochDay++) {
+			days.add(Day.ofEpoch(epochDay, calendarKey));
 		}
 		return days;
 	}

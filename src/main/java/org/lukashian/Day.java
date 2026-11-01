@@ -294,7 +294,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	}
 
 	/**
-	 * Gets a {@link Day} that is this day next week. For example, if this day is day 205, then this method will return day 215. If the
+	 * Gets a {@link Day} that is this day one week later. For example, if this day is day 205, then this method will return day 215. If the
 	 * next week does not contain a day with this day's weekday (which can happen if the next week is the last week of the year with less
 	 * than 10 days), then a {@link LukashianException} is thrown. This can be prevented by checking {@link #existsNextWeek()}.
 	 * <p>
@@ -317,7 +317,7 @@ public final class Day extends CalendarObject implements Comparable<Day>, Serial
 	}
 
 	/**
-	 * Gets a {@link Day} that is this day previous week. For example, if this day is day 205, then this method will return day 215. If the
+	 * Gets a {@link Day} that is this day one week earlier. For example, if this day is day 205, then this method will return day 195. If the
 	 * previous week does not contain a day with this day's weekday (which can happen if the previous week is the last week of the previous
 	 * year with less than 10 days), then a {@link LukashianException} is thrown. This can be prevented by checking {@link #existsPreviousWeek()}.
 	 * <p>
